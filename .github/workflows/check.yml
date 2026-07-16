@@ -1,0 +1,37 @@
+name: Controlla font Juventus AWAY 26-27
+
+on:
+  workflow_dispatch:          # avvio manuale dal tab Actions o via API
+  repository_dispatch:        # trigger da cron esterno via API
+    types: [check-font]
+
+permissions:
+  contents: write             # serve per committare il flag .found
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install requests
+
+      - name: Controlla immagini e notifica
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python check_font.py
+
+      - name: Salva flag (se creato)
+        run: |
+          if [ -f .found ]; then
+            git config user.name "font-bot"
+            git config user.email "bot@users.noreply.github.com"
+            git add .found
+            git commit -m "Immagini trovate, notifica inviata" || true
+            git push
+          fi
