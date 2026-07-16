@@ -8,7 +8,7 @@ import os
 import sys
 import requests
 
-KITS = ["AWAY-26-27", "THIRD-26-27"]  # aggiungi qui eventuali kit futuri
+KITS = ["HOME-26-27", "AWAY-26-27", "THIRD-26-27"]  # aggiungi qui eventuali kit futuri
 BASE_URL = "https://store.juventus.com/images/juventus/customizations/fonts/{kit}/{n}.png"
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
