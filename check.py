@@ -46,7 +46,7 @@ NEWS_MAX_SEEN   = 300
 def _gist_headers() -> dict:
     token = os.environ.get("GIST_TOKEN", "")
     if not token:
-        raise RuntimeError("Secret mancante: configura GITHUB_GIST_TOKEN.")
+        raise RuntimeError("Secret mancante: configura GIST_TOKEN.")
     return {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
