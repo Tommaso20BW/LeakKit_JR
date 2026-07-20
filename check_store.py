@@ -1,16 +1,22 @@
 """
-Controlla se sono state caricate sullo store Juventus:
-  1) le immagini dei font (cifre di personalizzazione) per HOME/AWAY/THIRD 26-27
-  2) le immagini prodotto (fronte/retro) 26-27
+Juve Leak Bot 🦓
 
-Se trova qualcosa, invia notifica + immagini su Telegram.
-Ogni elemento (kit font / codice prodotto) ha il suo flag: la notifica
-di uno non blocca gli altri.
+Controlla se sono state caricate sullo store Juventus:
+1) le immagini dei font (cifre di personalizzazione) per HOME/AWAY/THIRD 26-27
+2) le immagini prodotto (fronte/retro) 26-27
+3) nuovi articoli sulla Juventus su Footy Headlines (leak, release, notizie kit)
+
+Se trova qualcosa, invia notifica (+ immagini, quando previste) su Telegram.
+Ogni elemento ha il suo stato: la notifica di uno non blocca gli altri.
 """
 
 import os
+import re
 import sys
+import json
+
 import requests
+from bs4 import BeautifulSoup
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
@@ -20,19 +26,20 @@ HEADERS = {
                   "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 }
 
-# ---------------------------------------------------------------------------
-# SEZIONE 1: font (cifre di personalizzazione)
-# ---------------------------------------------------------------------------
-
-FONT_KITS = ["HOME-26-27", "AWAY-26-27", "THIRD-26-27"]  # aggiungi qui eventuali kit futuri
-FONT_URL = "https://store.juventus.com/images/juventus/customizations/fonts/{kit}/{n}.png"
-
 
 def tg(method, **kwargs):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/{method}"
     r = requests.post(url, timeout=30, **kwargs)
     r.raise_for_status()
     return r.json()
+
+
+# ---------------------------------------------------------------------------
+# SEZIONE 1: font (cifre di personalizzazione)
+# ---------------------------------------------------------------------------
+
+FONT_KITS = ["HOME-26-27", "AWAY-26-27", "THIRD-26-27"]  # aggiungi qui eventuali kit futuri
+FONT_URL = "https://store.juventus.com/images/juventus/customizations/fonts/{kit}/{n}.png"
 
 
 def check_font_kit(kit):
@@ -69,7 +76,6 @@ def check_font_kit(kit):
             "Te le invio qui sotto 👇"
         ),
     })
-
     for n, content in found:
         tg("sendPhoto",
            data={"chat_id": CHAT_ID, "caption": f"Cifra {n} — {kit}"},
@@ -88,7 +94,6 @@ def check_font_kit(kit):
 # Se in futuro cambia stagione/lettera, aggiorna qui.
 PRODUCT_LETTER = "A"
 
-# codice -> nome (stile coerente con FONT_KITS)
 PRODUCTS = {
     "01": "HOME-26-27-REPLICA",
     "02": "AWAY-26-27-REPLICA",
@@ -125,7 +130,6 @@ def check_product(code, name):
         return
 
     found = {}
-
     front_url = PRODUCT_URL.format(letter=PRODUCT_LETTER, code=code, suffix="")
     print(f"[PRODUCT {name}] fronte: {front_url}")
     content = fetch_image(front_url)
@@ -150,7 +154,6 @@ def check_product(code, name):
             "Te la invio qui sotto 👇"
         ),
     })
-
     for side, content in found.items():
         tg("sendPhoto",
            data={"chat_id": CHAT_ID, "caption": f"{name} — {side}"},
@@ -162,12 +165,106 @@ def check_product(code, name):
 
 
 # ---------------------------------------------------------------------------
+# SEZIONE 3: notizie Footy Headlines
+# ---------------------------------------------------------------------------
+
+NEWS_TEAM_URL = "https://www.footyheadlines.com/team/Juventus"
+NEWS_SEEN_FILE = ".seen_news.json"
+NEWS_MAX_SEEN = 300
+
+# Un articolo Footy Headlines ha sempre un URL che finisce in .html
+# (es. /0694254978/titolo.html oppure /2025/08/titolo.html). Usiamo questo
+# pattern invece di affidarci alle classi CSS del template Blogger, che
+# possono cambiare senza preavviso.
+NEWS_URL_RE = re.compile(r"^https://www\.footyheadlines\.com/.+\.html$")
+
+
+def load_seen_news():
+    if os.path.exists(NEWS_SEEN_FILE):
+        with open(NEWS_SEEN_FILE, "r", encoding="utf-8") as f:
+            return set(json.load(f))
+    return set()
+
+
+def save_seen_news(seen_list):
+    with open(NEWS_SEEN_FILE, "w", encoding="utf-8") as f:
+        json.dump(seen_list[-NEWS_MAX_SEEN:], f, ensure_ascii=False, indent=2)
+
+
+def fetch_news_articles():
+    """Ritorna gli articoli in ordine di apparizione (piu' recenti prima), senza duplicati."""
+    r = requests.get(NEWS_TEAM_URL, headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    articles = []
+    urls_done = set()
+
+    for h2 in soup.find_all("h2"):
+        a = h2.find("a", href=True)
+        if not a:
+            continue
+        url = a["href"].split("#")[0].strip()
+        if not NEWS_URL_RE.match(url) or url in urls_done:
+            continue
+        urls_done.add(url)
+
+        title = a.get_text(strip=True)
+        snippet = ""
+        sib = h2.find_next_sibling("p")
+        if sib:
+            snippet = sib.get_text(strip=True).replace("More", "").strip()
+
+        articles.append({"url": url, "title": title, "snippet": snippet})
+
+    return articles
+
+
+def check_news():
+    seen = load_seen_news()
+    try:
+        articles = fetch_news_articles()
+    except requests.RequestException as e:
+        print(f"[NEWS] errore rete: {e}")
+        return
+
+    if not articles:
+        print("[NEWS] nessun articolo trovato in pagina (possibile cambio di template).")
+        return
+
+    new_articles = [a for a in articles if a["url"] not in seen]
+    new_articles.reverse()  # dal piu' vecchio al piu' nuovo, per un ordine cronologico su Telegram
+
+    if not new_articles:
+        print("[NEWS] nessuna notizia nuova.")
+        return
+
+    for art in new_articles:
+        text = f"📰 *{art['title']}*\n"
+        if art["snippet"]:
+            text += f"\n{art['snippet']}\n"
+        text += f"\n{art['url']}"
+
+        tg("sendMessage", json={
+            "chat_id": CHAT_ID,
+            "text": text,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": False,
+        })
+        print(f"[NEWS] notificato: {art['title']}")
+        seen.add(art["url"])
+
+    save_seen_news(list(seen))
+
+
+# ---------------------------------------------------------------------------
 
 def main():
     for kit in FONT_KITS:
         check_font_kit(kit)
     for code, name in PRODUCTS.items():
         check_product(code, name)
+    check_news()
 
 
 if __name__ == "__main__":
