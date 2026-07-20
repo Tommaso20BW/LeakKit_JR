@@ -14,7 +14,10 @@ import json
 import os
 import re
 import sys
+from datetime import datetime, timedelta
+from html import escape
 from urllib.parse import urljoin
+from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
@@ -29,11 +32,20 @@ HEADERS = {
     )
 }
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def tg(method, **kwargs):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/{method}"
     r = requests.post(url, timeout=30, **kwargs)
-    r.raise_for_status()
+    if not r.ok:
+        try:
+            description = r.json().get("description", r.text)
+        except ValueError:
+            description = r.text
+        raise RuntimeError(
+            f"Telegram {method}: HTTP {r.status_code} - {description}"
+        )
     return r.json()
 
 
@@ -205,8 +217,10 @@ def check_product(code, name):
 # ---------------------------------------------------------------------------
 
 NEWS_TEAM_URL = "https://www.footyheadlines.com/team/Juventus"
-NEWS_SEEN_FILE = ".seen_news.json"
+NEWS_SEEN_FILE = os.path.join(SCRIPT_DIR, ".seen_news.json")
 NEWS_MAX_SEEN = 300
+NEWS_MAX_AGE_DAYS = 10
+NEWS_TIMEZONE = ZoneInfo("Europe/Rome")
 
 # Un articolo Footy Headlines ha sempre un URL che finisce in .html
 # (es. /0694254978/titolo.html oppure /2025/08/titolo.html). Il sito usa
@@ -215,33 +229,106 @@ NEWS_URL_RE = re.compile(
     r"^https://www\.footyheadlines\.com/.+\.html$",
     re.IGNORECASE,
 )
+NEWS_ABSOLUTE_DATE_RE = re.compile(
+    r"\b([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})\b"
+)
+NEWS_RELATIVE_DATE_RE = re.compile(r"^\s*(\d+)\s*([mhdw])\s*$", re.IGNORECASE)
+NEWS_IMAGE_DATE_RE = re.compile(
+    r"/static/img/post/(\d{4})/(\d{2})/(\d{2})/"
+)
 
 
 def load_seen_news():
     if os.path.exists(NEWS_SEEN_FILE):
         with open(NEWS_SEEN_FILE, "r", encoding="utf-8") as f:
-            return set(json.load(f))
-    return set()
+            saved = json.load(f)
+            return list(dict.fromkeys(saved))
+    return []
 
 
 def save_seen_news(seen_list):
-    with open(NEWS_SEEN_FILE, "w", encoding="utf-8") as f:
+    # Mantiene l'ordine, elimina eventuali duplicati e scrive in modo atomico.
+    saved = list(dict.fromkeys(seen_list))[-NEWS_MAX_SEEN:]
+    temporary_file = f"{NEWS_SEEN_FILE}.tmp"
+    with open(temporary_file, "w", encoding="utf-8") as f:
         json.dump(
-            seen_list[-NEWS_MAX_SEEN:],
+            saved,
             f,
             ensure_ascii=False,
             indent=2,
         )
+    os.replace(temporary_file, NEWS_SEEN_FILE)
+
+
+def parse_news_date(text, today):
+    """Converte date come 'Jul 11, 2026', '15h' o '4d' in una data."""
+    text = text.strip()
+
+    absolute = NEWS_ABSOLUTE_DATE_RE.search(text)
+    if absolute:
+        try:
+            return datetime.strptime(absolute.group(1), "%b %d, %Y").date()
+        except ValueError:
+            return None
+
+    relative = NEWS_RELATIVE_DATE_RE.match(text)
+    if not relative:
+        return None
+
+    amount = int(relative.group(1))
+    unit = relative.group(2).lower()
+    if unit in {"m", "h"}:
+        days = 0
+    elif unit == "d":
+        days = amount
+    else:
+        days = amount * 7
+    return today - timedelta(days=days)
+
+
+def extract_news_date(item, content, today):
+    """Estrae la data dalla scheda dell'articolo."""
+    # Usa soltanto i metadati principali della scheda. Il testo dell'articolo
+    # può contenere rimandi ad altri post con date diverse.
+    metadata = None
+    if content:
+        metadata = content.find(
+            "div",
+            class_="post-feed__item-meta",
+            recursive=False,
+        )
+    if metadata:
+        for meta in metadata.select(".post-feed__item-meta-el"):
+            published = parse_news_date(meta.get_text(" ", strip=True), today)
+            if published:
+                return published
+
+    # Fallback: nelle schede recenti il percorso dell'immagine contiene
+    # direttamente anno, mese e giorno di pubblicazione.
+    image_date = NEWS_IMAGE_DATE_RE.search(str(item))
+    if image_date:
+        try:
+            return datetime(
+                int(image_date.group(1)),
+                int(image_date.group(2)),
+                int(image_date.group(3)),
+            ).date()
+        except ValueError:
+            return None
+
+    return None
 
 
 def fetch_news_articles():
-    """Ritorna gli articoli nell'ordine della pagina, senza duplicati."""
+    """Ritorna gli articoli degli ultimi 10 giorni, senza duplicati."""
     r = requests.get(NEWS_TEAM_URL, headers=HEADERS, timeout=30)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
 
     articles = []
     urls_done = set()
+    today = datetime.now(NEWS_TIMEZONE).date()
+    oldest_allowed = today - timedelta(days=NEWS_MAX_AGE_DAYS)
 
     # Nel template attuale il link contiene l'h2 (non il contrario), perciò
     # bisogna risalire al tag <a>. Limitiamo la ricerca alle classi dei titoli
@@ -251,6 +338,13 @@ def fetch_news_articles():
         "h2.simple-post-feed__item-headline"
     )
     for h2 in headlines:
+        item = h2.find_parent(
+            "div",
+            class_=re.compile(r"^(?:simple-)?post-feed__item$"),
+        )
+        if not item:
+            continue
+
         a = h2.find_parent("a", href=True)
         if not a:
             continue
@@ -259,11 +353,16 @@ def fetch_news_articles():
         url = url.split("#", 1)[0].split("?", 1)[0]
         if not NEWS_URL_RE.match(url) or url in urls_done:
             continue
+
+        content = h2.find_parent("div", class_="post-feed__item-content")
+        published = extract_news_date(item, content, today)
+        if not published or not (oldest_allowed <= published <= today):
+            continue
+
         urls_done.add(url)
 
         title = h2.get_text(" ", strip=True)
         snippet = ""
-        content = h2.find_parent("div", class_="post-feed__item-content")
         if content:
             paragraph = (
                 content.select_one(".content-teaser p")
@@ -278,6 +377,7 @@ def fetch_news_articles():
                 "url": url,
                 "title": title,
                 "snippet": snippet,
+                "published": published.isoformat(),
             }
         )
 
@@ -285,7 +385,9 @@ def fetch_news_articles():
 
 
 def check_news():
-    seen = load_seen_news()
+    seen_list = load_seen_news()
+    seen = set(seen_list)
+    print(f"[NEWS] stato caricato: {len(seen)} articoli già notificati.")
     try:
         articles = fetch_news_articles()
     except requests.RequestException as e:
@@ -304,24 +406,26 @@ def check_news():
         return
 
     for art in new_articles:
-        text = f"📰 *{art['title']}*\n"
+        text = f"📰 <b>{escape(art['title'])}</b>\n"
         if art["snippet"]:
-            text += f"\n{art['snippet']}\n"
-        text += f"\n{art['url']}"
+            text += f"\n{escape(art['snippet'])}\n"
+        text += f"\n{escape(art['url'])}"
 
         tg(
             "sendMessage",
             json={
                 "chat_id": CHAT_ID,
                 "text": text,
-                "parse_mode": "Markdown",
+                "parse_mode": "HTML",
                 "disable_web_page_preview": False,
             },
         )
         print(f"[NEWS] notificato: {art['title']}")
         seen.add(art["url"])
-
-    save_seen_news(list(seen))
+        seen_list.append(art["url"])
+        # Salva dopo ogni invio riuscito: se un invio successivo fallisce,
+        # gli articoli già notificati non verranno ripetuti al prossimo avvio.
+        save_seen_news(seen_list)
 
 
 # ---------------------------------------------------------------------------
