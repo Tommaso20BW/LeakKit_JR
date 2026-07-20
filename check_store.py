@@ -14,6 +14,7 @@ import os
 import re
 import sys
 import json
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -173,10 +174,12 @@ NEWS_SEEN_FILE = ".seen_news.json"
 NEWS_MAX_SEEN = 300
 
 # Un articolo Footy Headlines ha sempre un URL che finisce in .html
-# (es. /0694254978/titolo.html oppure /2025/08/titolo.html). Usiamo questo
-# pattern invece di affidarci alle classi CSS del template Blogger, che
-# possono cambiare senza preavviso.
-NEWS_URL_RE = re.compile(r"^https://www\.footyheadlines\.com/.+\.html$")
+# (es. /0694254978/titolo.html oppure /2025/08/titolo.html). Il sito usa
+# sia URL assoluti sia relativi: vengono normalizzati prima del controllo.
+NEWS_URL_RE = re.compile(
+    r"^https://www\.footyheadlines\.com/.+\.html$",
+    re.IGNORECASE,
+)
 
 
 def load_seen_news():
@@ -200,20 +203,35 @@ def fetch_news_articles():
     articles = []
     urls_done = set()
 
-    for h2 in soup.find_all("h2"):
-        a = h2.find("a", href=True)
+    # Nel template attuale il link contiene l'h2 (non il contrario), perciò
+    # bisogna risalire al tag <a>. Limitiamo la ricerca alle classi dei titoli
+    # per non raccogliere link .html estranei presenti in menu e widget.
+    headlines = soup.select(
+        "h2.post-feed__item-headline, "
+        "h2.simple-post-feed__item-headline"
+    )
+    for h2 in headlines:
+        a = h2.find_parent("a", href=True)
         if not a:
             continue
-        url = a["href"].split("#")[0].strip()
+
+        url = urljoin(NEWS_TEAM_URL, a["href"].strip())
+        url = url.split("#", 1)[0].split("?", 1)[0]
         if not NEWS_URL_RE.match(url) or url in urls_done:
             continue
         urls_done.add(url)
 
-        title = a.get_text(strip=True)
+        title = h2.get_text(" ", strip=True)
         snippet = ""
-        sib = h2.find_next_sibling("p")
-        if sib:
-            snippet = sib.get_text(strip=True).replace("More", "").strip()
+        content = h2.find_parent("div", class_="post-feed__item-content")
+        if content:
+            paragraph = (
+                content.select_one(".content-teaser p")
+                or content.select_one(".content-full p")
+            )
+            if paragraph:
+                snippet = paragraph.get_text(" ", strip=True)
+                snippet = re.sub(r"\s*More\s*$", "", snippet).strip()
 
         articles.append({"url": url, "title": title, "snippet": snippet})
 
