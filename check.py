@@ -10,10 +10,10 @@ Se trova qualcosa, invia notifica (+ immagini, quando previste) su Telegram.
 Ogni elemento ha il suo stato: la notifica di uno non blocca gli altri.
 """
 
+import json
 import os
 import re
 import sys
-import json
 from urllib.parse import urljoin
 
 import requests
@@ -23,8 +23,10 @@ TELEGRAM_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                  "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+    )
 }
 
 
@@ -39,8 +41,11 @@ def tg(method, **kwargs):
 # SEZIONE 1: font (cifre di personalizzazione)
 # ---------------------------------------------------------------------------
 
-FONT_KITS = ["HOME-26-27", "AWAY-26-27", "THIRD-26-27"]  # aggiungi qui eventuali kit futuri
-FONT_URL = "https://store.juventus.com/images/juventus/customizations/fonts/{kit}/{n}.png"
+FONT_KITS = ["HOME-26-27", "AWAY-26-27", "THIRD-26-27"]
+FONT_URL = (
+    "https://store.juventus.com/images/juventus/customizations/"
+    "fonts/{kit}/{n}.png"
+)
 
 
 def check_font_kit(kit):
@@ -69,18 +74,23 @@ def check_font_kit(kit):
         print(f"[FONT {kit}] nessuna immagine ancora caricata.")
         return
 
-    tg("sendMessage", json={
-        "chat_id": CHAT_ID,
-        "text": (
-            f"🚨 LEAK! Le immagini del font {kit} della Juventus "
-            f"sono state caricate sullo store! ({len(found)}/10 cifre trovate)\n\n"
-            "Te le invio qui sotto 👇"
-        ),
-    })
+    tg(
+        "sendMessage",
+        json={
+            "chat_id": CHAT_ID,
+            "text": (
+                f"🚨 LEAK! Le immagini del font {kit} della Juventus "
+                f"sono state caricate sullo store! ({len(found)}/10 cifre trovate)\n\n"
+                "Te le invio qui sotto 👇"
+            ),
+        },
+    )
     for n, content in found:
-        tg("sendPhoto",
-           data={"chat_id": CHAT_ID, "caption": f"Cifra {n} — {kit}"},
-           files={"photo": (f"{kit}-{n}.png", content, "image/png")})
+        tg(
+            "sendPhoto",
+            data={"chat_id": CHAT_ID, "caption": f"Cifra {n} — {kit}"},
+            files={"photo": (f"{kit}-{n}.png", content, "image/png")},
+        )
 
     with open(flag_file, "w") as f:
         f.write("notified\n")
@@ -91,8 +101,8 @@ def check_font_kit(kit):
 # SEZIONE 2: immagini prodotto (fronte/retro)
 # ---------------------------------------------------------------------------
 
-# La lettera "A" è fissa per questa stagione (unico esempio confermato: JU26A07_d.webp).
-# Se in futuro cambia stagione/lettera, aggiorna qui.
+# La lettera "A" è fissa per questa stagione
+# (unico esempio confermato: JU26A07_d.webp).
 PRODUCT_LETTER = "A"
 
 PRODUCTS = {
@@ -107,7 +117,10 @@ PRODUCTS = {
     "09": "GK-26-27",
 }
 
-PRODUCT_URL = "https://store.juventus.com/images/juventus/products/small/JU26{letter}{code}{suffix}.webp"
+PRODUCT_URL = (
+    "https://store.juventus.com/images/juventus/products/small/"
+    "JU26{letter}{code}{suffix}.webp"
+)
 
 
 def fetch_image(url):
@@ -116,10 +129,12 @@ def fetch_image(url):
     except requests.RequestException as e:
         print(f"  -> errore rete: {e}")
         return None
+
     ctype = r.headers.get("Content-Type", "")
     if r.status_code == 200 and "image" in ctype and len(r.content) > 500:
         print(f"  -> TROVATA! ({len(r.content)} byte)")
         return r.content
+
     print(f"  -> non ancora ({r.status_code}, {ctype})")
     return None
 
@@ -131,14 +146,23 @@ def check_product(code, name):
         return
 
     found = {}
-    front_url = PRODUCT_URL.format(letter=PRODUCT_LETTER, code=code, suffix="")
-    print(f"[PRODUCT {name}] fronte: {front_url}")
+
+    front_url = PRODUCT_URL.format(
+        letter=PRODUCT_LETTER,
+        code=code,
+        suffix="",
+    )
+    print(f"[PRODUCT {name}] controllo fronte:")
     content = fetch_image(front_url)
     if content:
         found["fronte"] = content
 
-    back_url = PRODUCT_URL.format(letter=PRODUCT_LETTER, code=code, suffix="_d")
-    print(f"[PRODUCT {name}] retro: {back_url}")
+    back_url = PRODUCT_URL.format(
+        letter=PRODUCT_LETTER,
+        code=code,
+        suffix="_d",
+    )
+    print(f"[PRODUCT {name}] controllo retro:")
     content = fetch_image(back_url)
     if content:
         found["retro"] = content
@@ -147,18 +171,29 @@ def check_product(code, name):
         print(f"[PRODUCT {name}] nessuna immagine ancora caricata.")
         return
 
-    tg("sendMessage", json={
-        "chat_id": CHAT_ID,
-        "text": (
-            f"🚨 LEAK! Immagine prodotto {name} della Juventus "
-            f"è stata caricata sullo store! ({len(found)}/2 lati trovati)\n\n"
-            "Te la invio qui sotto 👇"
-        ),
-    })
+    tg(
+        "sendMessage",
+        json={
+            "chat_id": CHAT_ID,
+            "text": (
+                f"🚨 LEAK! Immagine prodotto {name} della Juventus "
+                f"è stata caricata sullo store! ({len(found)}/2 lati trovati)\n\n"
+                "Te la invio qui sotto 👇"
+            ),
+        },
+    )
     for side, content in found.items():
-        tg("sendPhoto",
-           data={"chat_id": CHAT_ID, "caption": f"{name} — {side}"},
-           files={"photo": (f"JU26{PRODUCT_LETTER}{code}-{side}.png", content, "image/png")})
+        tg(
+            "sendPhoto",
+            data={"chat_id": CHAT_ID, "caption": f"{name} — {side}"},
+            files={
+                "photo": (
+                    f"JU26{PRODUCT_LETTER}{code}-{side}.png",
+                    content,
+                    "image/png",
+                )
+            },
+        )
 
     with open(flag_file, "w") as f:
         f.write("notified\n")
@@ -191,11 +226,16 @@ def load_seen_news():
 
 def save_seen_news(seen_list):
     with open(NEWS_SEEN_FILE, "w", encoding="utf-8") as f:
-        json.dump(seen_list[-NEWS_MAX_SEEN:], f, ensure_ascii=False, indent=2)
+        json.dump(
+            seen_list[-NEWS_MAX_SEEN:],
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
 
 
 def fetch_news_articles():
-    """Ritorna gli articoli in ordine di apparizione (piu' recenti prima), senza duplicati."""
+    """Ritorna gli articoli nell'ordine della pagina, senza duplicati."""
     r = requests.get(NEWS_TEAM_URL, headers=HEADERS, timeout=30)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
@@ -233,7 +273,13 @@ def fetch_news_articles():
                 snippet = paragraph.get_text(" ", strip=True)
                 snippet = re.sub(r"\s*More\s*$", "", snippet).strip()
 
-        articles.append({"url": url, "title": title, "snippet": snippet})
+        articles.append(
+            {
+                "url": url,
+                "title": title,
+                "snippet": snippet,
+            }
+        )
 
     return articles
 
@@ -251,7 +297,7 @@ def check_news():
         return
 
     new_articles = [a for a in articles if a["url"] not in seen]
-    new_articles.reverse()  # dal piu' vecchio al piu' nuovo, per un ordine cronologico su Telegram
+    new_articles.reverse()
 
     if not new_articles:
         print("[NEWS] nessuna notizia nuova.")
@@ -263,12 +309,15 @@ def check_news():
             text += f"\n{art['snippet']}\n"
         text += f"\n{art['url']}"
 
-        tg("sendMessage", json={
-            "chat_id": CHAT_ID,
-            "text": text,
-            "parse_mode": "Markdown",
-            "disable_web_page_preview": False,
-        })
+        tg(
+            "sendMessage",
+            json={
+                "chat_id": CHAT_ID,
+                "text": text,
+                "parse_mode": "Markdown",
+                "disable_web_page_preview": False,
+            },
+        )
         print(f"[NEWS] notificato: {art['title']}")
         seen.add(art["url"])
 
@@ -276,6 +325,7 @@ def check_news():
 
 
 # ---------------------------------------------------------------------------
+
 
 def main():
     for kit in FONT_KITS:
