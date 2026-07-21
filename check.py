@@ -146,6 +146,7 @@ PRODUCTS = {
     "07": "HOME-26-27-MANICHE-LUNGHE",
     "08": "AWAY-26-27-MANICHE-LUNGHE",
     "09": "GK-26-27",
+    "10": "AWAY-GK-26-27",
 }
 
 PRODUCT_URL = (
