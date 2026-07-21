@@ -1,7 +1,173 @@
-[
-  "https://www.footyheadlines.com/1319942260/juventus-26-27-away-kit-spotted-for-sale-again.html",
-  "https://www.footyheadlines.com/1176070192/juventus-26-27-away-kit-leaked-6-new-official-pictures.html",
-  "https://www.footyheadlines.com/0694254978/juventus-26-27-third-kit-leaked-youth-since-1897.html",
-  "https://www.footyheadlines.com/2025/08/juventus-26-27-away-kit_01156287895.html",
-  "https://www.footyheadlines.com/0899372588/juventus-26-27-away-kit-spotted-on-wwe-raw.html"
-]
+{
+  "version": 2,
+  "articles": {
+    "https://www.footyheadlines.com/2025/06/juventus-25-26-baseball-collection.html": {
+      "fingerprint": "22ed053d12441fcfa4df18210347f26d95ef91480f7302ce615b75037c739b2f",
+      "published": "2025-06-15T11:10:00+02:00",
+      "modified": "2025-06-15T11:10:00+02:00",
+      "title": "Juventus 25-26 Baseball Collection Released",
+      "description": "Adidas has officially launched a special baseball-inspired lifestyle collection for Juventus."
+    },
+    "https://www.footyheadlines.com/2025/06/new-juventus-adidas-to-extend-kit-deal-until-2038.html": {
+      "fingerprint": "d40fcaf1e9c8dafcbadb7dd49cde74c81e0a1c067e4b5650164627f69c897197",
+      "published": "2025-06-19T19:10:00+02:00",
+      "modified": "2025-06-19T19:10:00+02:00",
+      "title": "Juventus Extends Adidas Kit Deal Until 2037",
+      "description": "Update: Italian giants Juventus have officially announced a major, long-term extension of their technical partnership with Adidas."
+    },
+    "https://www.footyheadlines.com/2025/06/juventus-created-a-horrific-color-mismatch-for-25-26-away-kit.html": {
+      "fingerprint": "8fd32c4c63b7dad068fb1e8d90d80fb986af51decd8793d5ebca088eb350dc13",
+      "published": "2025-06-19T23:46:00+02:00",
+      "modified": "2025-06-19T23:46:00+02:00",
+      "title": "Did Adidas & Juventus Create a Horrific Mismatch With the 25-26 Away Kit?",
+      "description": "Juventus debuted their new Adidas 2025-2026 away kit during the FIFA Club World Cup, and the on-pitch debut has sparked debate among fans, particularly due to an apparent color \"mismatch."
+    },
+    "https://www.footyheadlines.com/2025/06/adidas-elite-teams-25-26-tango-balls.html": {
+      "fingerprint": "90821e3e72e6d1e1108c3ecc0bd7adeb02f79f2699a762ad3f73a4796de4d4a5",
+      "published": "2025-06-24T13:14:00+02:00",
+      "modified": "2025-06-24T13:14:00+02:00",
+      "title": "Adidas Elite Teams 25-26 Tango Third Balls Leaked",
+      "description": "Images of the complete set of Adidas supporter balls for their elite clubs' 2025-2026 third collections have been leaked, giving us a fantastic preview of the color schemes and retro themes for the upcoming season."
+    },
+    "https://www.footyheadlines.com/2024/09/juventus-25-26-third-kit.html": {
+      "fingerprint": "23aa70d115fe80983f79364c4df36250aac60f4cefdbd97629a503f5100253b4",
+      "published": "2025-09-10T11:41:00+02:00",
+      "modified": "2025-09-10T11:41:00+02:00",
+      "title": "Juventus 25-26 Third Kit Released - Inspired by Piedmont Vineyards",
+      "description": "Update: Juventus has officially unveiled their third kit for the 2025-26 season, featuring an elegant and sophisticated design inspired by Italy's winemaking heritage and the vineyards of the Piedmont region."
+    },
+    "https://www.footyheadlines.com/2024/09/adidas-elite-teams-25-26-third-kits.html": {
+      "fingerprint": "7243278a18f465fa94bdd8b9bfd96ac9e3e17b0afca17137517628ed2f291c0e",
+      "published": "2025-09-12T19:02:00+02:00",
+      "modified": "2025-09-12T19:02:00+02:00",
+      "title": "Adidas Elite Teams 25-26 Third Kits Released - 9 Teams",
+      "description": "Update: Juventus are the final Adidas elite team to unveil their 25-26 third kit, completing the Adidas Trefoil 25-26 elite team third kit collection."
+    },
+    "https://www.footyheadlines.com/2025/09/new-juventus-26-27-lifestyle-retro-kit.html": {
+      "fingerprint": "d4acb1603af7a8a86229de9f865056e1ae5a53a5cfd24872a05e2b6c210a76b6",
+      "published": "2025-09-20T01:29:00+02:00",
+      "modified": "2025-09-20T01:29:00+02:00",
+      "title": "Juventus 26-27 Lifestyle Retro Kit Leaked",
+      "description": "Adidas will release a very classy Juventus retro jersey ahead of the 2026-27 season - a celebratory casual version, not intended for match use (the actual Juventus away kit with the Trefoil is pink)."
+    },
+    "https://www.footyheadlines.com/2025/10/juventus-25-26-lifestyle-jersey.html": {
+      "fingerprint": "81937a61a017ed3319f99209454e3feaf36921022f248a844260e3565b1b52d1",
+      "published": "2025-10-06T17:06:00+02:00",
+      "modified": "2025-10-06T17:06:00+02:00",
+      "title": "Exclusive: Juventus 25-26 Lifestyle Retro Jersey Leaked",
+      "description": "Footy Headlines can exclusively leak the new Juventus 2025-26 Lifestyle retro strip featuring a bold, fashion-forward splatter design that highlights the club's identity."
+    },
+    "https://www.footyheadlines.com/2025/10/adidas-25-26-lifestyle-retro-jerseys.html": {
+      "fingerprint": "97cdb30880410b3a45d0002f3d05cfa0a218c504bdd6718fefecbe772711d8d8",
+      "published": "2025-10-14T14:31:00+02:00",
+      "modified": "2025-10-14T14:31:00+02:00",
+      "title": "Adidas Elite Teams 25-26 Lifestyle Retro Jerseys Released/Leaked",
+      "description": "Adidas is set to launch the 25-26 Lifestyle Retro collection featuring unique designs tailored specifically for each elite club."
+    },
+    "https://www.footyheadlines.com/2025/10/adidas-25-26-og-shirts.html": {
+      "fingerprint": "dfead9a15c21aea1743cc6c2f390ce3307ff6f730f6dad8f0a3707edceba89c1",
+      "published": "2025-10-15T12:12:00+02:00",
+      "modified": "2025-10-15T12:12:00+02:00",
+      "title": "Adidas Elite Teams 25-26 Originals Shirts Leaked",
+      "description": "Adidas is set to launch an Originals collection featuring classic design elements for its elite clubs."
+    },
+    "https://www.footyheadlines.com/2025/10/juventus-25-26-originals-shirt.html": {
+      "fingerprint": "77574367f2671379aa887e0d8595ec60c6c2cb204f7fbb4260e3e65706c6f6f5",
+      "published": "2025-12-12T06:07:00+01:00",
+      "modified": "2025-12-12T06:07:00+01:00",
+      "title": "Adidas Juventus x Del Piero 25-26 Originals Collection Released",
+      "description": "Update: Adidas is set to team up with the ultimate Bianconeri legend, Alessandro Del Piero, for a special Juventus Originals retro collection."
+    },
+    "https://www.footyheadlines.com/2025/12/juventus-2026-pm-shirt.html": {
+      "fingerprint": "be7ec937ca3cd3ecef209239ca2cfb97b4c750dcdff138d2c1910e41c8101c62",
+      "published": "2025-12-16T12:31:00+01:00",
+      "modified": "2025-12-16T12:31:00+01:00",
+      "title": "Insane Juventus x Del Piero 2026 Pre-Match Shirt & Original Collection Released",
+      "description": "Adidas has officially released the Juventus x Del Piero 2026 pre-match shirt & OG collection, a very bold design that pays homage to the legendary forward's artistic nickname: \"Il Pinturicchio\"."
+    },
+    "https://www.footyheadlines.com/1345761138/juventus-26-27-third-kit-leaked-2-new-pictures.html": {
+      "fingerprint": "5aed66a0a036c1641b92c2e5c382e8f18e756fccbfcc749e26fd6db3234e437d",
+      "published": "2026-06-17T05:29:00+02:00",
+      "modified": "2026-06-17T05:29:00+02:00",
+      "title": "Juventus 26-27 Third Kit Leaked - 2 New Pictures",
+      "description": "Footy Headlines can now leak 2 new pictures of the Adidas Juventus 26-27 third kit."
+    },
+    "https://www.footyheadlines.com/2026/05/juventus-1970s-remake-kit.html": {
+      "fingerprint": "b29d687015c419c43297109700d3655ae84caec5904eed70c816baf1ca71cb2d",
+      "published": "2026-06-17T08:51:15+02:00",
+      "modified": "2026-06-17T08:51:15+02:00",
+      "title": "Adidas Juventus 1970s Remake Kit + Jacket Leaked",
+      "description": "Update - Jun 17, 2026: Footy Headlines can leak the Juventus 1970s remake jacket, which is part of the 1970s remake collection that Adidas is set to release for Juventus in early 2027."
+    },
+    "https://www.footyheadlines.com/1091247780/juventus-26-27-retro-collection-leaked.html": {
+      "fingerprint": "d08446bc631e30a1b3c6916bdc3d52afb15c4ce2f3537f8f51b8f18ed184f64d",
+      "published": "2026-06-17T22:02:00+02:00",
+      "modified": "2026-06-17T22:02:00+02:00",
+      "title": "Juventus 26-27 Retro Collection Leaked",
+      "description": "Juventus goes pink, black, and cream in the 26-27 season."
+    },
+    "https://www.footyheadlines.com/2154087419/new-picture-leaked-juventus-26-27-third-kit.html": {
+      "fingerprint": "aa27530c7182718dc72b9347e49b17cef3a08ccbff4e0c763e64c5e950b225d4",
+      "published": "2026-06-18T19:10:00+02:00",
+      "modified": "2026-06-18T19:10:00+02:00",
+      "title": "New Picture Leaked: Juventus 26-27 Third Kit",
+      "description": "A new leaked image of the [Juventus 2026-27 third kit](https://www."
+    },
+    "https://www.footyheadlines.com/8620851066/unreleased-juventus-26-27-away-kit-spotted-in-store.html": {
+      "fingerprint": "68f691dfd50ec33d05348b5f0462ff555674b9de8e1c92c68c287c0a60ab2bb5",
+      "published": "2026-07-08T15:49:00+02:00",
+      "modified": "2026-07-08T15:49:00+02:00",
+      "title": "Unreleased Juventus 26-27 Away Kit Spotted in Store",
+      "description": "The unreleased Adidas Juventus 26-27 away kit has been spotted early in a Sports Direct store in the Netherlands by shirt collector @theboychunder."
+    },
+    "https://www.footyheadlines.com/6108290953/juventus-26-27-europa-league-training-top-leaked-official-look.html": {
+      "fingerprint": "e98111f0af0a744b5eafdfa6fa4fc4e8b5b34aa496caedceed32a2fbf9b06e8b",
+      "published": "2026-07-05T17:01:00+02:00",
+      "modified": "2026-07-05T17:01:00+02:00",
+      "title": "Juventus 26-27 Europa League Training Top Leaked - Official Look",
+      "description": "The new Adidas Juventus 2026-27 European training top delivers a stealthy and premium aesthetic with a black base, dark grey side panels, and metallic gold accents used for the Juventus crest, Adidas logo, and shoulder stripes, sharing the same concept with the home kit."
+    },
+    "https://www.footyheadlines.com/1319942260/juventus-26-27-away-kit-spotted-for-sale-again.html": {
+      "fingerprint": "2e9f594a7363f21397e0cf671afee31cda8efb2536a42698b56fc4766776a218",
+      "published": "2026-07-16T06:43:00+02:00",
+      "modified": "2026-07-16T06:43:00+02:00",
+      "title": "Juventus 26-27 Away Kit - Spotted for Sale Again",
+      "description": "The Juventus 2026-27 away kit & the shorts have once again been spotted on sale at a retail store."
+    },
+    "https://www.footyheadlines.com/1176070192/juventus-26-27-away-kit-leaked-6-new-official-pictures.html": {
+      "fingerprint": "5a8091bd3ff3b9edd26c2dc61db80b8d98b09ba5dd7a56fb7ed4a30de5a81ec9",
+      "published": "2026-07-11T23:53:00+02:00",
+      "modified": "2026-07-11T23:53:00+02:00",
+      "title": "Juventus 26-27 Away Kit Leaked - 6 New Official Pictures",
+      "description": "The Juventus 2026-27 away kit features a pale pink main color, combined with black and white."
+    },
+    "https://www.footyheadlines.com/0899372588/juventus-26-27-away-kit-spotted-on-wwe-raw.html": {
+      "fingerprint": "79f170e435f9a030d7be7a78a807de53a75b53c178e2e95824cf09836554305a",
+      "published": "2026-07-21T09:53:00+02:00",
+      "modified": "2026-07-21T09:53:00+02:00",
+      "title": "Juventus 26-27 Away Kit Spotted on WWE Raw",
+      "description": "In an unexpected crossover between professional wrestling and football, the new Juventus 26-27 away kit was debuted during an episode of WWE Raw."
+    },
+    "https://www.footyheadlines.com/0694254978/juventus-26-27-third-kit-leaked-youth-since-1897.html": {
+      "fingerprint": "d211b09862f97e49166baea8b11cbe5bccfd8a745769687671250b3340137117",
+      "published": "2026-07-20T01:06:00+02:00",
+      "modified": "2026-07-20T01:06:00+02:00",
+      "title": "Juventus 26-27 Third Kit Leaked - Youth Since 1897",
+      "description": "A new image shared by Juventus kit experts @La_Bianconera has revealed a specific detail on the back of the Adidas Juventus 26-27 third kit."
+    },
+    "https://www.footyheadlines.com/2025/09/juventus-26-27-eqt-jersey.html": {
+      "fingerprint": "60fe6344b394a0fb2d78278f91bae3ed58595eec7f1576d1375e6ee7f6de3c25",
+      "published": "2026-07-09T18:22:32+02:00",
+      "modified": "2026-07-09T18:22:32+02:00",
+      "title": "Special Juventus 26-27 EQT Retro Jersey + Jacket Leaked",
+      "description": "Update - Thursday, July 9, 2026: Juventus experts La Maglia Bianconera provide us with a first look at the Juventus 26-27 EQT jacket."
+    },
+    "https://www.footyheadlines.com/2025/08/juventus-26-27-away-kit_01156287895.html": {
+      "fingerprint": "849589d458b192a603ee03eb1f150adac0e06b9144c2acdd58b86dedd7b4fed4",
+      "published": "2026-07-21T10:47:29+02:00",
+      "modified": "2026-07-21T10:47:29+02:00",
+      "title": "Juventus 26-27 Away Kit Released",
+      "description": "Update - Jul 21, 2026: Juventus has officially unveiled their new 2026-27 away kit, bringing back the iconic La Vecchia Signora colors alongside subtle embossed zebra patterns."
+    }
+  }
+}
