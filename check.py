@@ -1,15 +1,12 @@
 """
-Juve Leak Bot 🦓
+Juve Leak Bot
 
-Controlla se sono state caricate sullo store Juventus:
-1) le immagini dei font (cifre di personalizzazione) per HOME/AWAY/THIRD 26-27
-2) le immagini prodotto (fronte/retro) 26-27
-3) nuovi articoli sulla Juventus su Footy Headlines (leak, release, notizie kit)
-
-Se trova qualcosa, invia notifica (+ immagini, quando previste) su Telegram.
-Ogni elemento ha il suo stato: la notifica di uno non blocca gli altri.
+Controlla font e immagini prodotto sullo store Juventus e le notizie Juventus
+su Footy Headlines. Un articolo già visto viene notificato nuovamente soltanto
+se Footy Headlines lo aggiorna davvero.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -22,6 +19,7 @@ from zoneinfo import ZoneInfo
 import requests
 from bs4 import BeautifulSoup
 
+
 TELEGRAM_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
@@ -33,20 +31,25 @@ HEADERS = {
 }
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ROME = ZoneInfo("Europe/Rome")
+
+
+def state_path(filename):
+    return os.path.join(SCRIPT_DIR, filename)
 
 
 def tg(method, **kwargs):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/{method}"
-    r = requests.post(url, timeout=30, **kwargs)
-    if not r.ok:
+    response = requests.post(url, timeout=30, **kwargs)
+    if not response.ok:
         try:
-            description = r.json().get("description", r.text)
+            description = response.json().get("description", response.text)
         except ValueError:
-            description = r.text
+            description = response.text
         raise RuntimeError(
-            f"Telegram {method}: HTTP {r.status_code} - {description}"
+            f"Telegram {method}: HTTP {response.status_code} - {description}"
         )
-    return r.json()
+    return response.json()
 
 
 # ---------------------------------------------------------------------------
@@ -61,26 +64,37 @@ FONT_URL = (
 
 
 def check_font_kit(kit):
-    flag_file = f".found-font-{kit}"
+    flag_file = state_path(f".found-font-{kit}")
     if os.path.exists(flag_file):
         print(f"[FONT {kit}] già notificato, salto.")
         return
 
     found = []
-    for n in range(10):
-        url = FONT_URL.format(kit=kit, n=n)
+    for number in range(10):
+        url = FONT_URL.format(kit=kit, n=number)
         try:
-            r = requests.get(url, headers=HEADERS, timeout=20)
-        except requests.RequestException as e:
-            print(f"[FONT {kit}] {n}.png -> errore rete: {e}")
+            response = requests.get(url, headers=HEADERS, timeout=20)
+        except requests.RequestException as error:
+            print(f"[FONT {kit}] {number}.png -> errore rete: {error}")
             continue
 
-        ctype = r.headers.get("Content-Type", "")
-        if r.status_code == 200 and "image" in ctype and len(r.content) > 500:
-            print(f"[FONT {kit}] {n}.png -> TROVATA! ({len(r.content)} byte)")
-            found.append((n, r.content))
+        content_type = response.headers.get("Content-Type", "")
+        if (
+            response.status_code == 200
+            and "image" in content_type
+            and "svg" not in content_type
+            and len(response.content) > 500
+        ):
+            print(
+                f"[FONT {kit}] {number}.png -> TROVATA! "
+                f"({len(response.content)} byte)"
+            )
+            found.append((number, response.content))
         else:
-            print(f"[FONT {kit}] {n}.png -> non ancora ({r.status_code}, {ctype})")
+            print(
+                f"[FONT {kit}] {number}.png -> non ancora "
+                f"({response.status_code}, {content_type})"
+            )
 
     if not found:
         print(f"[FONT {kit}] nessuna immagine ancora caricata.")
@@ -92,20 +106,27 @@ def check_font_kit(kit):
             "chat_id": CHAT_ID,
             "text": (
                 f"🚨 LEAK! Le immagini del font {kit} della Juventus "
-                f"sono state caricate sullo store! ({len(found)}/10 cifre trovate)\n\n"
+                f"sono state caricate sullo store! "
+                f"({len(found)}/10 cifre trovate)\n\n"
                 "Te le invio qui sotto 👇"
             ),
         },
     )
-    for n, content in found:
+    for number, content in found:
         tg(
             "sendPhoto",
-            data={"chat_id": CHAT_ID, "caption": f"Cifra {n} — {kit}"},
-            files={"photo": (f"{kit}-{n}.png", content, "image/png")},
+            data={"chat_id": CHAT_ID, "caption": f"Cifra {number} — {kit}"},
+            files={
+                "photo": (
+                    f"{kit}-{number}.png",
+                    content,
+                    "image/png",
+                )
+            },
         )
 
-    with open(flag_file, "w") as f:
-        f.write("notified\n")
+    with open(flag_file, "w", encoding="utf-8") as file:
+        file.write("notified\n")
     print(f"[FONT {kit}] notifica inviata, flag creato.")
 
 
@@ -113,8 +134,6 @@ def check_font_kit(kit):
 # SEZIONE 2: immagini prodotto (fronte/retro)
 # ---------------------------------------------------------------------------
 
-# La lettera "A" è fissa per questa stagione
-# (unico esempio confermato: JU26A07_d.webp).
 PRODUCT_LETTER = "A"
 
 PRODUCTS = {
@@ -137,22 +156,27 @@ PRODUCT_URL = (
 
 def fetch_image(url):
     try:
-        r = requests.get(url, headers=HEADERS, timeout=20)
-    except requests.RequestException as e:
-        print(f"  -> errore rete: {e}")
+        response = requests.get(url, headers=HEADERS, timeout=20)
+    except requests.RequestException as error:
+        print(f"  -> errore rete: {error}")
         return None
 
-    ctype = r.headers.get("Content-Type", "")
-    if r.status_code == 200 and "image" in ctype and len(r.content) > 500:
-        print(f"  -> TROVATA! ({len(r.content)} byte)")
-        return r.content
+    content_type = response.headers.get("Content-Type", "")
+    if (
+        response.status_code == 200
+        and "image" in content_type
+        and "svg" not in content_type
+        and len(response.content) > 500
+    ):
+        print(f"  -> TROVATA! ({len(response.content)} byte)")
+        return response.content
 
-    print(f"  -> non ancora ({r.status_code}, {ctype})")
+    print(f"  -> non ancora ({response.status_code}, {content_type})")
     return None
 
 
 def check_product(code, name):
-    flag_file = f".found-product-{code}"
+    flag_file = state_path(f".found-product-{code}")
     if os.path.exists(flag_file):
         print(f"[PRODUCT {name}] già notificato, salto.")
         return
@@ -189,26 +213,27 @@ def check_product(code, name):
             "chat_id": CHAT_ID,
             "text": (
                 f"🚨 LEAK! Immagine prodotto {name} della Juventus "
-                f"è stata caricata sullo store! ({len(found)}/2 lati trovati)\n\n"
+                f"è stata caricata sullo store! "
+                f"({len(found)}/2 lati trovati)\n\n"
                 "Te la invio qui sotto 👇"
             ),
         },
     )
-    for side, content in found.items():
+    for side, image_content in found.items():
         tg(
             "sendPhoto",
             data={"chat_id": CHAT_ID, "caption": f"{name} — {side}"},
             files={
                 "photo": (
                     f"JU26{PRODUCT_LETTER}{code}-{side}.png",
-                    content,
+                    image_content,
                     "image/png",
                 )
             },
         )
 
-    with open(flag_file, "w") as f:
-        f.write("notified\n")
+    with open(flag_file, "w", encoding="utf-8") as file:
+        file.write("notified\n")
     print(f"[PRODUCT {name}] notifica inviata, flag creato.")
 
 
@@ -217,151 +242,74 @@ def check_product(code, name):
 # ---------------------------------------------------------------------------
 
 NEWS_TEAM_URL = "https://www.footyheadlines.com/team/Juventus"
-NEWS_SEEN_FILE = os.path.join(SCRIPT_DIR, ".seen_news.json")
+NEWS_STATE_FILE = state_path(".seen_news.json")
 NEWS_MAX_SEEN = 300
 NEWS_MAX_AGE_DAYS = 10
-NEWS_TIMEZONE = ZoneInfo("Europe/Rome")
 
-# Un articolo Footy Headlines ha sempre un URL che finisce in .html
-# (es. /0694254978/titolo.html oppure /2025/08/titolo.html). Il sito usa
-# sia URL assoluti sia relativi: vengono normalizzati prima del controllo.
 NEWS_URL_RE = re.compile(
     r"^https://www\.footyheadlines\.com/.+\.html$",
     re.IGNORECASE,
 )
-NEWS_ABSOLUTE_DATE_RE = re.compile(
-    r"\b([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})\b"
-)
-NEWS_RELATIVE_DATE_RE = re.compile(r"^\s*(\d+)\s*([mhdw])\s*$", re.IGNORECASE)
-NEWS_IMAGE_DATE_RE = re.compile(
-    r"/static/img/post/(\d{4})/(\d{2})/(\d{2})/"
-)
 
 
-def load_seen_news():
-    if os.path.exists(NEWS_SEEN_FILE):
-        with open(NEWS_SEEN_FILE, "r", encoding="utf-8") as f:
-            saved = json.load(f)
-            return list(dict.fromkeys(saved))
-    return []
+def load_news_state():
+    if not os.path.exists(NEWS_STATE_FILE):
+        return {}
+
+    with open(NEWS_STATE_FILE, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    # Migrazione automatica dal vecchio formato: [url, url, ...]. La firma
+    # corrente viene registrata senza reinviare tutti gli articoli già visti.
+    if isinstance(data, list):
+        return {url: None for url in data if isinstance(url, str)}
+
+    if isinstance(data, dict) and isinstance(data.get("articles"), dict):
+        return data["articles"]
+
+    raise RuntimeError(
+        ".seen_news.json non valido; interrompo per evitare duplicati."
+    )
 
 
-def save_seen_news(seen_list):
-    # Mantiene l'ordine, elimina eventuali duplicati e scrive in modo atomico.
-    saved = list(dict.fromkeys(seen_list))[-NEWS_MAX_SEEN:]
-    temporary_file = f"{NEWS_SEEN_FILE}.tmp"
-    with open(temporary_file, "w", encoding="utf-8") as f:
-        json.dump(
-            saved,
-            f,
-            ensure_ascii=False,
-            indent=2,
-        )
-    os.replace(temporary_file, NEWS_SEEN_FILE)
+def save_news_state(state):
+    recent_items = list(state.items())[-NEWS_MAX_SEEN:]
+    payload = {
+        "version": 2,
+        "articles": dict(recent_items),
+    }
+    temporary_file = f"{NEWS_STATE_FILE}.tmp"
+    with open(temporary_file, "w", encoding="utf-8") as file:
+        json.dump(payload, file, ensure_ascii=False, indent=2)
+    os.replace(temporary_file, NEWS_STATE_FILE)
 
 
-def parse_news_date(text, today):
-    """Converte date come 'Jul 11, 2026', '15h' o '4d' in una data."""
-    text = text.strip()
+def fetch_news_candidates():
+    response = requests.get(NEWS_TEAM_URL, headers=HEADERS, timeout=30)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    absolute = NEWS_ABSOLUTE_DATE_RE.search(text)
-    if absolute:
-        try:
-            return datetime.strptime(absolute.group(1), "%b %d, %Y").date()
-        except ValueError:
-            return None
-
-    relative = NEWS_RELATIVE_DATE_RE.match(text)
-    if not relative:
-        return None
-
-    amount = int(relative.group(1))
-    unit = relative.group(2).lower()
-    if unit in {"m", "h"}:
-        days = 0
-    elif unit == "d":
-        days = amount
-    else:
-        days = amount * 7
-    return today - timedelta(days=days)
-
-
-def extract_news_date(item, content, today):
-    """Estrae la data dalla scheda dell'articolo."""
-    # Usa soltanto i metadati principali della scheda. Il testo dell'articolo
-    # può contenere rimandi ad altri post con date diverse.
-    metadata = None
-    if content:
-        metadata = content.find(
-            "div",
-            class_="post-feed__item-meta",
-            recursive=False,
-        )
-    if metadata:
-        for meta in metadata.select(".post-feed__item-meta-el"):
-            published = parse_news_date(meta.get_text(" ", strip=True), today)
-            if published:
-                return published
-
-    # Fallback: nelle schede recenti il percorso dell'immagine contiene
-    # direttamente anno, mese e giorno di pubblicazione.
-    image_date = NEWS_IMAGE_DATE_RE.search(str(item))
-    if image_date:
-        try:
-            return datetime(
-                int(image_date.group(1)),
-                int(image_date.group(2)),
-                int(image_date.group(3)),
-            ).date()
-        except ValueError:
-            return None
-
-    return None
-
-
-def fetch_news_articles():
-    """Ritorna gli articoli degli ultimi 10 giorni, senza duplicati."""
-    r = requests.get(NEWS_TEAM_URL, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
-
-    articles = []
+    candidates = []
     urls_done = set()
-    today = datetime.now(NEWS_TIMEZONE).date()
-    oldest_allowed = today - timedelta(days=NEWS_MAX_AGE_DAYS)
-
-    # Nel template attuale il link contiene l'h2 (non il contrario), perciò
-    # bisogna risalire al tag <a>. Limitiamo la ricerca alle classi dei titoli
-    # per non raccogliere link .html estranei presenti in menu e widget.
     headlines = soup.select(
         "h2.post-feed__item-headline, "
         "h2.simple-post-feed__item-headline"
     )
-    for h2 in headlines:
-        item = h2.find_parent(
-            "div",
-            class_=re.compile(r"^(?:simple-)?post-feed__item$"),
-        )
-        if not item:
+
+    for heading in headlines:
+        link = heading.find_parent("a", href=True)
+        if not link:
             continue
 
-        a = h2.find_parent("a", href=True)
-        if not a:
-            continue
-
-        url = urljoin(NEWS_TEAM_URL, a["href"].strip())
+        url = urljoin(NEWS_TEAM_URL, link["href"].strip())
         url = url.split("#", 1)[0].split("?", 1)[0]
         if not NEWS_URL_RE.match(url) or url in urls_done:
             continue
 
-        content = h2.find_parent("div", class_="post-feed__item-content")
-        published = extract_news_date(item, content, today)
-        if not published or not (oldest_allowed <= published <= today):
-            continue
-
-        urls_done.add(url)
-
-        title = h2.get_text(" ", strip=True)
+        content = heading.find_parent(
+            "div",
+            class_="post-feed__item-content",
+        )
         snippet = ""
         if content:
             paragraph = (
@@ -372,60 +320,237 @@ def fetch_news_articles():
                 snippet = paragraph.get_text(" ", strip=True)
                 snippet = re.sub(r"\s*More\s*$", "", snippet).strip()
 
-        articles.append(
+        urls_done.add(url)
+        candidates.append(
             {
                 "url": url,
-                "title": title,
+                "title": heading.get_text(" ", strip=True),
                 "snippet": snippet,
-                "published": published.isoformat(),
             }
         )
 
-    return articles
+    return candidates
+
+
+def iter_json_nodes(value):
+    if isinstance(value, dict):
+        yield value
+        for child in value.values():
+            yield from iter_json_nodes(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from iter_json_nodes(child)
+
+
+def clean_schema_text(value):
+    if not value:
+        return ""
+    text = BeautifulSoup(str(value), "html.parser").get_text(" ", strip=True)
+    return re.sub(r"\s+", " ", text.replace("\\_", "_")).strip()
+
+
+def fetch_article_version(candidate):
+    response = requests.get(candidate["url"], headers=HEADERS, timeout=30)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    metadata = None
+    for script in soup.find_all("script", type="application/ld+json"):
+        raw = script.string or script.get_text()
+        if not raw.strip():
+            continue
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        for node in iter_json_nodes(parsed):
+            article_type = node.get("@type")
+            if article_type == "NewsArticle" or (
+                isinstance(article_type, list)
+                and "NewsArticle" in article_type
+            ):
+                metadata = node
+                break
+        if metadata:
+            break
+
+    if not metadata:
+        raise RuntimeError("metadati NewsArticle non trovati")
+
+    title = clean_schema_text(
+        metadata.get("headline") or metadata.get("name")
+    ) or candidate["title"]
+    description = clean_schema_text(metadata.get("description"))
+    if not description:
+        description = candidate["snippet"]
+
+    published = str(metadata.get("datePublished") or "")
+    modified = str(metadata.get("dateModified") or published)
+    signature_source = json.dumps(
+        {
+            "title": title,
+            "description": description,
+            "modified": modified,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    fingerprint = hashlib.sha256(
+        signature_source.encode("utf-8")
+    ).hexdigest()
+
+    return {
+        "fingerprint": fingerprint,
+        "published": published,
+        "modified": modified,
+        "title": title,
+        "description": description,
+    }
+
+
+def parse_article_datetime(value):
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=ROME)
+    return parsed.astimezone(ROME)
+
+
+def is_recent_version(version):
+    dates = [
+        parsed
+        for parsed in (
+            parse_article_datetime(version.get("published")),
+            parse_article_datetime(version.get("modified")),
+        )
+        if parsed is not None
+    ]
+    if not dates:
+        return False
+    cutoff = datetime.now(ROME) - timedelta(days=NEWS_MAX_AGE_DAYS)
+    return max(dates) >= cutoff
+
+
+def send_news_article(candidate, version, is_update):
+    if is_update:
+        heading = "🔄 <b>AGGIORNAMENTO FOOTY HEADLINES</b>"
+    else:
+        heading = "📰 <b>FOOTY HEADLINES</b>"
+
+    text = f"{heading}\n\n<b>{escape(version['title'])}</b>"
+    if version["description"]:
+        text += f"\n\n{escape(version['description'])}"
+    text += (
+        f"\n\n<a href=\"{escape(candidate['url'], quote=True)}\">"
+        "Leggi l’articolo</a>"
+    )
+
+    tg(
+        "sendMessage",
+        json={
+            "chat_id": CHAT_ID,
+            "text": text,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": False,
+        },
+    )
 
 
 def check_news():
-    seen_list = load_seen_news()
-    seen = set(seen_list)
-    print(f"[NEWS] stato caricato: {len(seen)} articoli già notificati.")
+    state = load_news_state()
+    print(f"[NEWS] stato caricato: {len(state)} articoli monitorati.")
+
     try:
-        articles = fetch_news_articles()
-    except requests.RequestException as e:
-        print(f"[NEWS] errore rete: {e}")
+        page_candidates = fetch_news_candidates()
+    except requests.RequestException as error:
+        print(f"[NEWS] errore rete: {error}")
         return
 
-    if not articles:
-        print("[NEWS] nessun articolo trovato in pagina (possibile cambio di template).")
+    if not page_candidates:
+        print("[NEWS] nessun articolo trovato nella pagina.")
         return
 
-    new_articles = [a for a in articles if a["url"] not in seen]
-    new_articles.reverse()
-
-    if not new_articles:
-        print("[NEWS] nessuna notizia nuova.")
-        return
-
-    for art in new_articles:
-        text = f"📰 <b>{escape(art['title'])}</b>\n"
-        if art["snippet"]:
-            text += f"\n{escape(art['snippet'])}\n"
-        text += f"\n{escape(art['url'])}"
-
-        tg(
-            "sendMessage",
-            json={
-                "chat_id": CHAT_ID,
-                "text": text,
-                "parse_mode": "HTML",
-                "disable_web_page_preview": False,
-            },
+    # Un articolo vecchio può essere aggiornato quando non compare più nella
+    # prima pagina Juventus. Manteniamo quindi sotto controllo anche tutti gli
+    # URL già salvati nella cache, non soltanto quelli elencati oggi dal sito.
+    candidates = list(page_candidates)
+    candidate_urls = {candidate["url"] for candidate in candidates}
+    old_candidates = 0
+    for url, previous in state.items():
+        if url in candidate_urls or not NEWS_URL_RE.match(url):
+            continue
+        previous = previous if isinstance(previous, dict) else {}
+        candidates.append(
+            {
+                "url": url,
+                "title": previous.get("title", "Articolo Footy Headlines"),
+                "snippet": previous.get("description", ""),
+            }
         )
-        print(f"[NEWS] notificato: {art['title']}")
-        seen.add(art["url"])
-        seen_list.append(art["url"])
-        # Salva dopo ogni invio riuscito: se un invio successivo fallisce,
-        # gli articoli già notificati non verranno ripetuti al prossimo avvio.
-        save_seen_news(seen_list)
+        candidate_urls.add(url)
+        old_candidates += 1
+
+    print(
+        f"[NEWS] controllo aggiornamenti: {len(page_candidates)} in pagina, "
+        f"{old_candidates} articoli vecchi monitorati."
+    )
+    changed_state = False
+    notifications = 0
+
+    # La parte corrente della pagina è in ordine dal più recente al più
+    # vecchio; Telegram riceve le nuove notizie in ordine cronologico.
+    for candidate in reversed(candidates):
+        try:
+            version = fetch_article_version(candidate)
+        except (requests.RequestException, RuntimeError) as error:
+            print(
+                f"[NEWS] impossibile verificare '{candidate['title']}': "
+                f"{error}"
+            )
+            continue
+
+        previous = state.get(candidate["url"], "__missing__")
+
+        # Migrazione dal vecchio elenco URL o baseline di un articolo vecchio:
+        # registra la versione corrente senza generare notifiche retroattive.
+        if previous is None or (
+            previous == "__missing__" and not is_recent_version(version)
+        ):
+            state.pop(candidate["url"], None)
+            state[candidate["url"]] = version
+            changed_state = True
+            continue
+
+        is_new = previous == "__missing__"
+        is_update = (
+            isinstance(previous, dict)
+            and previous.get("fingerprint") != version["fingerprint"]
+        )
+
+        if not is_new and not is_update:
+            continue
+
+        send_news_article(candidate, version, is_update=is_update)
+        label = "aggiornamento" if is_update else "nuova notizia"
+        print(f"[NEWS] notificato {label}: {version['title']}")
+
+        state.pop(candidate["url"], None)
+        state[candidate["url"]] = version
+        save_news_state(state)
+        changed_state = False
+        notifications += 1
+
+    if changed_state:
+        save_news_state(state)
+
+    if notifications == 0:
+        print("[NEWS] nessuna notizia nuova o aggiornata.")
+    else:
+        print(f"[NEWS] notifiche inviate: {notifications}")
 
 
 # ---------------------------------------------------------------------------
@@ -442,6 +567,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception as e:
-        print(f"Errore: {e}", file=sys.stderr)
+    except Exception as error:
+        print(f"Errore: {error}", file=sys.stderr)
         sys.exit(1)
