@@ -19,7 +19,7 @@ jobs:
       - name: Installa dipendenze
         run: pip install requests beautifulsoup4
 
-      - name: Esegui check_store.py
+      - name: Esegui -u check_store.py
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
