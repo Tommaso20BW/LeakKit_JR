@@ -1,49 +1,41 @@
 # 🚨 LeakKit JR
 
-Monitor Telegram per nuovi asset dello store Juventus e nuove pubblicazioni su Footy Headlines.
+Bot Telegram modulare per monitorare font, immagini prodotto e notizie sulla Juventus, compresi i codici e gli asset Adidas già esposti pubblicamente.
 
-Il bot esegue tre controlli indipendenti:
+`check.py` è l’unico punto di avvio e richiama, in ordine, quattro monitor indipendenti:
 
-1. cifre dei font di personalizzazione delle maglie 2026/27;
-2. immagini fronte/retro dei prodotti Juventus 2026/27;
-3. articoli Juventus nuovi o realmente aggiornati su Footy Headlines.
+1. `font_monitor.py` — cifre dei font di personalizzazione 2026/27;
+2. `store_product_monitor.py` — fronte e retro delle maglie nello store Juventus;
+3. `news_monitor.py` — nuovi articoli e aggiornamenti di Footy Headlines;
+4. `adidas_monitor.py` — codici prodotto, hash e immagini Adidas Juventus.
 
-## Cosa controlla
+Un errore in un monitor non impedisce l’esecuzione degli altri. Al termine il job fallisce comunque se almeno un controllo ha avuto un errore non recuperabile, così il problema resta visibile.
 
-### Font maglie
+## Monitor Adidas
 
-Per `HOME-26-27`, `AWAY-26-27` e `THIRD-26-27`, `check.py` prova le cifre da 0 a 9 sull’URL di personalizzazione dello store.
+Il controllo Adidas usa soltanto informazioni già pubbliche:
 
-Una risposta viene accettata soltanto se:
+- prova le pagine Juventus ufficiali di Adidas;
+- se la protezione anti-bot le blocca, usa l’indice pubblico delle immagini;
+- accetta soltanto immagini ospitate sul CDN Adidas;
+- estrae il codice prodotto dal link o dal nome del file;
+- conserva l’asset ID, compreso l’hash presente nell’URL;
+- assegna un punteggio usando titolo, URL prodotto, dominio ufficiale e CDN;
+- scarta i risultati sotto la soglia Juventus.
 
-- ha stato HTTP 200;
-- dichiara un contenuto immagine non SVG;
-- contiene più di 500 byte.
+Al primo avvio crea una baseline e invia un riepilogo unico dei codici già pubblici. In seguito notifica sia i nuovi codici sia i nuovi asset associati a codici già noti. Non prova a generare o indovinare gli hash.
 
-Quando trova un set, il bot invia un avviso e ogni cifra disponibile come foto. Poi crea un flag `.found-font-<KIT>` per non ripetere la notifica.
+## Stato unico
 
-### Prodotti
+Tutto lo stato persistente è salvato in:
 
-Il bot controlla i codici `01`–`09` definiti in `PRODUCTS`: replica, authentic, maniche lunghe e portiere. Per ogni codice verifica il fronte e il retro (`_d`) in formato WebP.
+```text
+.leakkit_state.json
+```
 
-Alla prima disponibilità invia le immagini trovate e crea `.found-product-<CODICE>`. Ogni prodotto resta indipendente dagli altri.
+Il file contiene quattro sezioni: `fonts`, `store_products`, `news` e `adidas`.
 
-### Notizie Footy Headlines
-
-Il bot legge la pagina Juventus di Footy Headlines e apre ogni articolo candidato per estrarre i metadati `NewsArticle`:
-
-- titolo;
-- descrizione;
-- data di pubblicazione e modifica;
-- fingerprint SHA-256 della versione.
-
-In questo modo può distinguere una nuova notizia da un aggiornamento reale. Tiene sotto controllo anche gli URL già salvati, rileva vecchi URL ripubblicati e limita le novità normali a una finestra di **2 giorni**.
-
-Lo stato è salvato in `.seen_news.json` (massimo 300 articoli). Alla prima inizializzazione gli articoli storici vengono registrati senza invii in massa.
-
-## Stato persistente
-
-I file seguenti impediscono notifiche duplicate:
+La migrazione importa automaticamente:
 
 ```text
 .found-font-*
@@ -51,63 +43,68 @@ I file seguenti impediscono notifiche duplicate:
 .seen_news.json
 ```
 
-Il workflow li committa e li pubblica dopo ogni esecuzione. Per riarmare un singolo controllo di font o prodotto, elimina soltanto il relativo flag. Non cancellare `.seen_news.json` senza considerare che il bot dovrà ricostruire la baseline degli articoli.
+Dopo averli inseriti nel JSON unico, elimina i vecchi file. Le scritture sono atomiche e lo stato viene salvato subito dopo ogni notifica, per ridurre il rischio di duplicati se il job si interrompe.
 
 ## GitHub Actions
 
-Il workflow [`.github/workflows/check.yml`](.github/workflows/check.yml):
+Il workflow `.github/workflows/check.yml`:
 
-- è avviabile manualmente con `workflow_dispatch`;
-- usa Python 3.12;
-- installa `requests` e `beautifulsoup4` direttamente nel job;
-- esegue `python check.py`;
-- committa i file di stato quando cambiano.
+- parte automaticamente ogni 10 minuti;
+- può essere avviato anche con **Run workflow**;
+- esegue i test prima dei monitor;
+- esegue `python -u check.py`;
+- committa solo `.leakkit_state.json` quando cambia;
+- impedisce la sovrapposizione di due esecuzioni.
 
-Nel repository non è presente un trigger `schedule` o `repository_dispatch`. Per controlli periodici occorre aggiungere uno schedule oppure chiamare via API il `workflow_dispatch` di `check.yml`.
+Gli avvii pianificati di GitHub Actions possono subire ritardi rispetto all’orario nominale.
 
-## Configurazione
+## Configurazione Telegram
 
-Configura in **Settings → Secrets and variables → Actions**:
+In **Settings → Secrets and variables → Actions** servono:
 
-| Secret | Obbligatorio | Uso |
+| Secret | Uso |
+|---|---|
+| `TELEGRAM_BOT_TOKEN` | Token creato con BotFather |
+| `TELEGRAM_CHAT_ID` | Chat, gruppo o canale di destinazione |
+
+## Opzioni Adidas
+
+Il workflow imposta valori prudenti, modificabili tramite variabili d’ambiente:
+
+| Variabile | Default | Descrizione |
 |---|---:|---|
-| `TELEGRAM_BOT_TOKEN` | sì | Token del bot Telegram. |
-| `TELEGRAM_CHAT_ID` | sì | Chat o canale di destinazione. |
+| `ADIDAS_NOTIFY_BASELINE` | `true` | Invia il riepilogo dei codici presenti al primo avvio |
+| `ADIDAS_SEARCH_PAGES` | `1` | Pagine per ogni ricerca pubblica, massimo 2 |
+| `ADIDAS_QUERY_DELAY` | `0.35` | Pausa in secondi tra le richieste |
+| `ADIDAS_EXTRA_QUERIES` | vuota | Query aggiuntive separate dal carattere `\|` |
 
-Il workflow espone anche `GIST_TOKEN`, ma `check.py` non lo legge: non è necessario al funzionamento attuale.
-
-Il job richiede `contents: write` per aggiornare i file di stato con `GITHUB_TOKEN`.
-
-## Avvio
-
-### Da GitHub
-
-Apri **Actions → Controlla leak Juventus → Run workflow**.
-
-### In locale
+## Esecuzione locale
 
 ```bash
-python -m pip install requests beautifulsoup4
+python -m pip install -r requirements.txt
 python check.py
 ```
 
-Prima dell’avvio imposta `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`. Non è presente un `requirements.txt`.
+Comandi utili:
 
-## Personalizzazione
+```bash
+# Testa le sorgenti senza Telegram e senza modificare lo stato
+python check.py --dry-run
 
-In `check.py` puoi aggiornare:
+# Testa soltanto Adidas
+python check.py --only adidas --dry-run
 
-- `FONT_KITS` per le stagioni o i kit futuri;
-- `PRODUCTS` per i codici prodotto;
-- `PRODUCT_LETTER` quando cambia la lettera usata negli URL dello store;
-- `NEWS_MAX_AGE_DAYS` e `NEWS_MAX_SEEN` per la finestra e la dimensione dello stato notizie.
+# Importa soltanto i vecchi file nel JSON unico
+python check.py --migrate-state
+```
 
-## Limiti noti
+## Limiti
 
-- Gli URL dello store e il markup di Footy Headlines non sono API pubbliche stabili e possono cambiare.
-- Un asset viene considerato disponibile sulla base di tipo e dimensione del file, non tramite riconoscimento visivo.
-- Gli errori di rete sui singoli asset vengono registrati e il controllo prosegue; un errore non gestito a livello generale fa fallire il job.
+- Le pagine dello store, il markup di Footy Headlines e gli indici pubblici possono cambiare.
+- Un asset Adidas può apparire nell’indice con ritardo rispetto al caricamento sul CDN.
+- La classificazione Juventus usa il contesto testuale e i domini ufficiali; non esegue riconoscimento visivo del logo.
+- Il progetto non aggira login, aree riservate o controlli di accesso.
 
 ---
 
-Progetto amatoriale, non affiliato con Juventus FC, Telegram o Footy Headlines.
+Progetto amatoriale, non affiliato con Juventus FC, Adidas, Telegram, Bing o Footy Headlines.

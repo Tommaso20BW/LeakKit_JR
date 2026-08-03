@@ -1,51 +1,66 @@
 name: Controlla leak Juventus
 
 on:
-  workflow_dispatch: {}      # per lanciarlo a mano da Actions
+  workflow_dispatch: {}
+  schedule:
+    - cron: "*/10 * * * *"
 
 permissions:
   actions: write
   contents: write
 
+concurrency:
+  group: leakkit-check
+  cancel-in-progress: false
+
 jobs:
   check-leaks:
+    name: Font, maglie, notizie e Adidas
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
+    timeout-minutes: 15
 
-      - uses: actions/setup-python@v6
+    steps:
+      - name: Scarica il repository
+        uses: actions/checkout@v6
+
+      - name: Configura Python
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+          cache: pip
 
       - name: Installa dipendenze
         run: |
           python -m pip install --upgrade pip==26.1.2
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt
 
-      - name: Esegui -u check_store.py
+      - name: Esegui test
+        run: python -m unittest discover -s tests -v
+
+      - name: Esegui tutti i monitor
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          GIST_TOKEN: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ADIDAS_NOTIFY_BASELINE: "true"
+          ADIDAS_SEARCH_PAGES: "1"
+          ADIDAS_QUERY_DELAY: "0.35"
         run: python -u check.py
 
-      - name: Commit stato (flag + notizie viste)
+      - name: Salva lo stato unico
+        if: always() && hashFiles('.leakkit_state.json') != ''
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add .found-font-* .found-product-* .seen_news.json 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "Aggiorna stato leak/notizie Juventus"
+          git add .leakkit_state.json
+          git diff --cached --quiet || git commit -m "Aggiorna stato LeakKit JR"
           git push
 
       - name: Pulisci la cronologia dei run
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          KEEP: "0"   # 0 = cancella TUTTI i run precedenti; resta visibile solo quello in corso
-                      # (un run non puo' cancellare se' stesso mentre gira: limite di GitHub)
+          KEEP: "0"
         run: |
-          # Cancella i run COMPLETATI di questo stesso workflow,
-          # tenendo solo gli ultimi $KEEP.
           gh api "repos/${{ github.repository }}/actions/workflows/check.yml/runs?status=completed&per_page=100" \
             --jq '.workflow_runs | sort_by(.created_at) | reverse | .['"$KEEP"':] | .[].id' |
           while read -r RUN_ID; do
