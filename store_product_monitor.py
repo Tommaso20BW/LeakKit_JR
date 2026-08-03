@@ -11,10 +11,12 @@ from telegram_client import TelegramClient
 
 # Codici prodotto da 00 a 99.
 PRODUCT_CODES = [f"{n:02d}" for n in range(100)]  # 00 → 99
-PRODUCT_LETTERS = ["a", "b"]
+
+# Varianti prodotto, in maiuscolo come negli URL dello store.
+PRODUCT_LETTERS = ["A", "B"]
 
 PRODUCT_URL = (
-    "https://store.juventus.com/images/juventus/products/small/"
+    "https://store.juventus.com/images/juventus/products/large/"
     "JU{jersey_year}{letter}{code}{suffix}.webp"
 )
 
@@ -48,10 +50,9 @@ def check_product(
     state: StateStore,
     telegram: TelegramClient,
 ) -> None:
-    """Controlla le immagini fronte e retro di un codice prodotto."""
+    """Controlla le varianti A e B, fronte e retro, di un prodotto."""
     jersey_year = get_jersey_year()
 
-    # La chiave include l'anno, così ogni nuova stagione viene ricontrollata.
     state_key = f"{jersey_year}_{code}"
     product_state = state.section("store_products")
 
@@ -99,13 +100,13 @@ def check_product(
     telegram.send_message(
         f"🚨 LEAK! Immagine prodotto {code} della Juventus caricata "
         f"sullo store! ({len(found)}/{total_requests} immagini trovate)\n\n"
-        "Te la invio qui sotto 👇"
+        "Te le invio qui sotto 👇"
     )
 
     for key, image_content in found.items():
         letter, side = key.split("-", 1)
-
         suffix = "_d" if side == "retro" else ""
+
         filename = (
             f"JU{jersey_year}{letter}{code}{suffix}.webp"
         )
@@ -113,7 +114,7 @@ def check_product(
         telegram.send_photo_bytes(
             image_content,
             filename,
-            f"Codice {code} — lettera {letter} — {side}",
+            f"Codice {code} — variante {letter} — {side}",
             "image/webp",
         )
 
