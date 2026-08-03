@@ -26,15 +26,15 @@ def get_product_images(
     code: str,
 ) -> list[tuple[str, str]]:
     """
-    Restituisce i suffissi delle immagini da controllare.
+    Restituisce le immagini da controllare.
 
-    Per i prodotti da A01 ad A14:
-    - immagine principale: nessun suffisso
-    - seconda immagine: _d
+    Per i prodotti A01-A14:
+    - immagine principale senza suffisso
+    - seconda immagine con suffisso _d
 
-    Per tutti gli altri prodotti:
-    - immagine principale: nessun suffisso
-    - seconda immagine: _2
+    Per tutti gli altri:
+    - immagine principale senza suffisso
+    - seconda immagine con suffisso _2
     """
     code_number = int(code)
 
@@ -84,12 +84,12 @@ def check_product_variant(
 
     Esempi:
     - A01 + A01_d
+    - A14 + A14_d
     - A15 + A15_2
-    - B01 + B01_2
+    - B51 + B51_2
     """
     jersey_year = get_jersey_year()
 
-    # A e B vengono salvate separatamente.
     state_key = f"{jersey_year}_{letter}_{code}"
     product_state = state.section("store_products")
 
@@ -155,11 +155,10 @@ def check_product_variant(
         )
         return
 
-    # Aspetta entrambe le immagini prima di inviare l'album.
     if len(found) < total_requests:
         detail = (
             f"{len(found)}/{total_requests} immagini disponibili, "
-            "attendo il caricamento completo"
+            "invio comunque quelle trovate"
         )
 
         if network_errors:
@@ -170,15 +169,33 @@ def check_product_variant(
             f"{letter}{code}",
             detail,
         )
-        return
+
+    image_word = "immagine" if len(found) == 1 else "immagini"
 
     telegram.send_message(
-        f"🚨 LEAK! Immagini prodotto {letter}{code} della Juventus "
-        "caricate sullo store!\n\n"
-        "Te le invio qui sotto 👇"
+        f"🚨 LEAK! {image_word.capitalize()} prodotto "
+        f"{letter}{code} della Juventus "
+        "caricata sullo store!\n\n"
+        "Te la invio qui sotto 👇"
+        if len(found) == 1
+        else (
+            f"🚨 LEAK! Immagini prodotto {letter}{code} della Juventus "
+            "caricate sullo store!\n\n"
+            "Te le invio qui sotto 👇"
+        )
     )
 
-    telegram.send_media_group_bytes(found)
+    if len(found) == 1:
+        content, filename, caption, mime_type = found[0]
+
+        telegram.send_photo_bytes(
+            content=content,
+            filename=filename,
+            caption=caption,
+            mime_type=mime_type,
+        )
+    else:
+        telegram.send_media_group_bytes(found)
 
     product_state[state_key] = True
     state.save()
