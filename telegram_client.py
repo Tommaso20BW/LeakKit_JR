@@ -10,7 +10,7 @@ import requests
 
 
 class TelegramClient:
-    """Client essenziale per comunicare con Telegram."""
+    """Client per comunicare con Telegram, con supporto dry-run."""
 
     API_BASE_URL = "https://api.telegram.org"
 
@@ -18,16 +18,16 @@ class TelegramClient:
         self,
         token: str | None = None,
         chat_id: str | int | None = None,
+        dry_run: bool = False,
     ) -> None:
         """
         Inizializza il client Telegram.
 
-        Se token e chat_id non vengono passati direttamente, vengono letti
-        dalle variabili d'ambiente:
-
-        - TELEGRAM_BOT_TOKEN oppure TELEGRAM_TOKEN
-        - TELEGRAM_CHAT_ID
+        In modalità dry-run non vengono effettuati invii reali e non sono
+        richiesti token o chat ID.
         """
+        self.dry_run = dry_run
+
         self.token = (
             token
             or os.getenv("TELEGRAM_BOT_TOKEN")
@@ -40,21 +40,24 @@ class TelegramClient:
             else os.getenv("TELEGRAM_CHAT_ID")
         )
 
-        if not self.token:
-            raise ValueError(
-                "Token Telegram mancante. Imposta TELEGRAM_BOT_TOKEN "
-                "oppure TELEGRAM_TOKEN."
-            )
+        if not self.dry_run:
+            if not self.token:
+                raise ValueError(
+                    "Token Telegram mancante. Imposta TELEGRAM_BOT_TOKEN."
+                )
 
-        if self.chat_id is None or str(self.chat_id).strip() == "":
-            raise ValueError(
-                "Chat ID Telegram mancante. Imposta TELEGRAM_CHAT_ID."
-            )
+            if self.chat_id is None or not str(self.chat_id).strip():
+                raise ValueError(
+                    "Chat ID Telegram mancante. Imposta TELEGRAM_CHAT_ID."
+                )
 
         self.session = requests.Session()
 
     def _api_url(self, method: str) -> str:
-        """Restituisce l'URL completo di un metodo Telegram."""
+        """Restituisce l'URL completo del metodo Telegram."""
+        if not self.token:
+            raise RuntimeError("Token Telegram non disponibile.")
+
         return f"{self.API_BASE_URL}/bot{self.token}/{method}"
 
     def _post(
@@ -65,7 +68,15 @@ class TelegramClient:
         files: dict[str, tuple[str, bytes, str]] | None = None,
         timeout: int = 60,
     ) -> Any:
-        """Esegue una richiesta POST e controlla la risposta Telegram."""
+        """Esegue una richiesta POST verso Telegram."""
+        if self.dry_run:
+            print(
+                f"[DRY RUN][TELEGRAM] {method} "
+                f"data={data or {}} "
+                f"files={list(files or {})}"
+            )
+            return None
+
         try:
             response = self.session.post(
                 self._api_url(method),
@@ -98,7 +109,7 @@ class TelegramClient:
 
             if retry_after is not None:
                 description += (
-                    f" — riprovare tra {retry_after} secondi"
+                    f"; riprovare tra {retry_after} secondi"
                 )
 
             raise RuntimeError(
@@ -115,7 +126,13 @@ class TelegramClient:
     ) -> Any:
         """Invia un messaggio di testo."""
         if not text.strip():
-            raise ValueError("Il messaggio Telegram non può essere vuoto.")
+            raise ValueError(
+                "Il messaggio Telegram non può essere vuoto."
+            )
+
+        if self.dry_run:
+            print(f"[DRY RUN][TELEGRAM MESSAGE]\n{text}")
+            return None
 
         return self._post(
             "sendMessage",
@@ -145,7 +162,19 @@ class TelegramClient:
             )
 
         if not filename:
-            raise ValueError("Il nome del file non può essere vuoto.")
+            raise ValueError(
+                "Il nome del file non può essere vuoto."
+            )
+
+        if self.dry_run:
+            print(
+                f"[DRY RUN][TELEGRAM PHOTO] "
+                f"file={filename} "
+                f"bytes={len(content)} "
+                f"mime={mime_type} "
+                f"caption={caption!r}"
+            )
+            return None
 
         data: dict[str, Any] = {
             "chat_id": str(self.chat_id),
@@ -174,51 +203,51 @@ class TelegramClient:
         """
         Invia da 2 a 10 immagini come album Telegram.
 
-        Ogni elemento della lista deve contenere:
+        Ogni elemento deve contenere:
 
         (
-            contenuto_binario,
+            contenuto,
             nome_file,
             didascalia,
             mime_type,
         )
-
-        Esempio:
-
-        [
-            (
-                image_a,
-                "JU26A01.webp",
-                "Codice A01 — principale",
-                "image/webp",
-            ),
-            (
-                image_a2,
-                "JU26A01_2.webp",
-                "Codice A01 — seconda",
-                "image/webp",
-            ),
-        ]
         """
         if not 2 <= len(images) <= 10:
             raise ValueError(
                 "Un album Telegram deve contenere da 2 a 10 immagini."
             )
 
-        media: list[dict[str, str]] = {}
-        media = []
+        if self.dry_run:
+            print(
+                f"[DRY RUN][TELEGRAM ALBUM] "
+                f"{len(images)} immagini"
+            )
 
-        files: dict[str, tuple[str, bytes, str]] = {}
-
-        for index, item in enumerate(images):
-            if len(item) != 4:
-                raise ValueError(
-                    "Ogni immagine deve contenere: "
-                    "content, filename, caption e mime_type."
+            for index, (
+                content,
+                filename,
+                caption,
+                mime_type,
+            ) in enumerate(images, start=1):
+                print(
+                    f"  {index}. "
+                    f"file={filename} "
+                    f"bytes={len(content)} "
+                    f"mime={mime_type} "
+                    f"caption={caption!r}"
                 )
 
-            content, filename, caption, mime_type = item
+            return None
 
+        media: list[dict[str, str]] = []
+        files: dict[str, tuple[str, bytes, str]] = {}
+
+        for index, (
+            content,
+            filename,
+            caption,
+            mime_type,
+        ) in enumerate(images):
             if not content:
                 raise ValueError(
                     f"Il file {filename!r} non contiene dati."
@@ -231,7 +260,7 @@ class TelegramClient:
 
             attachment_name = f"media_{index}"
 
-            media_item = {
+            media_item: dict[str, str] = {
                 "type": "photo",
                 "media": f"attach://{attachment_name}",
             }
@@ -265,6 +294,7 @@ class TelegramClient:
         self.session.close()
 
     def __enter__(self) -> TelegramClient:
+        """Permette l'utilizzo tramite context manager."""
         return self
 
     def __exit__(
@@ -273,4 +303,5 @@ class TelegramClient:
         exc_value: object,
         traceback: object,
     ) -> None:
+        """Chiude la sessione quando termina il context manager."""
         self.close()
