@@ -54,6 +54,27 @@ class AdidasParserTests(unittest.TestCase):
             {}, adidas_monitor.parse_bing_image_results(document, "test")
         )
 
+    def test_parses_yahoo_result_format(self) -> None:
+        payload = {
+            "alt": "Juventus 26/27 Home Jersey - White | adidas Hong Kong",
+            "rurl": (
+                "https://www.adidas.com.hk/en/juventus-26-27-home-jersey/"
+                "KC2285.html"
+            ),
+            "iurl": (
+                "https://assets.adidas.com/images/w_1880,f_auto,q_auto/"
+                "7893afdbae8445ca8776a7bb7cbc98c8_9366/KC2285_41_detail.jpg"
+            ),
+        }
+        document = '<li data="{}"></li>'.format(
+            html.escape(json.dumps(payload), quote=True)
+        )
+
+        products = adidas_monitor.parse_yahoo_image_results(document, "test")
+
+        self.assertEqual(["KC2285"], list(products))
+        self.assertEqual(1, len(products["KC2285"]["assets"]))
+
 
 class UnifiedStateMigrationTests(unittest.TestCase):
     def test_migrates_and_deletes_all_legacy_files(self) -> None:

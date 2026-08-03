@@ -16,7 +16,7 @@ Un errore in un monitor non impedisce l’esecuzione degli altri. Al termine il 
 Il controllo Adidas usa soltanto informazioni già pubbliche:
 
 - prova le pagine Juventus ufficiali di Adidas;
-- se la protezione anti-bot le blocca, usa l’indice pubblico delle immagini;
+- se la protezione anti-bot le blocca, usa gli indici pubblici delle immagini Bing e Yahoo con fallback automatico;
 - accetta soltanto immagini ospitate sul CDN Adidas;
 - estrae il codice prodotto dal link o dal nome del file;
 - conserva l’asset ID, compreso l’hash presente nell’URL;

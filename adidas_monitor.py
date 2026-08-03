@@ -29,6 +29,8 @@ from telegram_client import TelegramClient
 
 ADIDAS_CATEGORY_URL = "https://www.adidas.it/juventus"
 BING_IMAGES_URL = "https://www.bing.com/images/search"
+BING_IMAGES_ASYNC_URL = "https://www.bing.com/images/async"
+YAHOO_IMAGES_URL = "https://it.images.search.yahoo.com/search/images"
 ROME = ZoneInfo("Europe/Rome")
 PRODUCT_CODE_RE = re.compile(r"^[A-Z0-9]{6}$")
 PRODUCT_PAGE_CODE_RE = re.compile(r"/([A-Z0-9]{6})\.html(?:[?#]|$)", re.I)
@@ -159,14 +161,37 @@ def merge_candidate(products: dict[str, dict[str, Any]], candidate: dict[str, An
 def parse_bing_image_results(document: str, source: str) -> dict[str, dict[str, Any]]:
     soup = BeautifulSoup(document, "html.parser")
     products: dict[str, dict[str, Any]] = {}
-    for anchor in soup.select("a.iusc[m]"):
+    for anchor in soup.select("[m], [data-m]"):
         try:
-            payload = json.loads(html.unescape(anchor.get("m", "")))
+            raw_payload = anchor.get("m") or anchor.get("data-m") or ""
+            payload = json.loads(html.unescape(raw_payload))
         except (TypeError, json.JSONDecodeError):
             continue
         title = str(payload.get("t") or payload.get("turl") or "")
         image_url = str(payload.get("murl") or "")
         product_url = str(payload.get("purl") or "")
+        if urlparse(image_url).netloc.casefold() not in {
+            "assets.adidas.com",
+            "brand.assets.adidas.com",
+        }:
+            continue
+        candidate = make_candidate(title, product_url, image_url, source)
+        if candidate:
+            merge_candidate(products, candidate)
+    return products
+
+
+def parse_yahoo_image_results(document: str, source: str) -> dict[str, dict[str, Any]]:
+    soup = BeautifulSoup(document, "html.parser")
+    products: dict[str, dict[str, Any]] = {}
+    for element in soup.select("li[data]"):
+        try:
+            payload = json.loads(str(element.get("data", "")))
+        except (TypeError, json.JSONDecodeError):
+            continue
+        title = str(payload.get("alt") or "")
+        image_url = str(payload.get("iurl") or payload.get("ourl") or "")
+        product_url = str(payload.get("rurl") or "")
         if urlparse(image_url).netloc.casefold() not in {
             "assets.adidas.com",
             "brand.assets.adidas.com",
@@ -262,7 +287,7 @@ def _fetch_direct_category(
     return products, successful_pages
 
 
-def _fetch_bing_index(
+def _fetch_public_index(
     session: browser_requests.Session,
 ) -> tuple[dict[str, dict[str, Any]], int]:
     products: dict[str, dict[str, Any]] = {}
@@ -276,6 +301,7 @@ def _fetch_bing_index(
     for query in _season_queries():
         for page in range(pages):
             first = 1 + page * 35
+            query_products: dict[str, dict[str, Any]] = {}
             try:
                 response = session.get(
                     BING_IMAGES_URL,
@@ -289,13 +315,57 @@ def _fetch_bing_index(
                 )
             except browser_requests.RequestsError as error:
                 log_status("ADIDAS", "INDICE", f"errore rete per '{query}': {error}")
-                continue
-            if response.status_code != 200:
+                response = None
+            if response is not None and response.status_code == 200:
+                successful_queries += 1
+                source = f"Bing Images: {query}"
+                query_products = parse_bing_image_results(response.text, source)
+            elif response is not None:
                 log_status("ADIDAS", "INDICE", f"HTTP {response.status_code} per '{query}'")
-                continue
-            successful_queries += 1
-            source = f"Bing Images: {query}"
-            for candidate in parse_bing_image_results(response.text, source).values():
+
+            # Bing serve markup diverso ad alcuni runner. L'endpoint asincrono
+            # usa lo stesso indice ma restituisce direttamente i risultati.
+            if not query_products:
+                try:
+                    response = session.get(
+                        BING_IMAGES_ASYNC_URL,
+                        params={
+                            "q": query,
+                            "first": str(first),
+                            "count": "100",
+                            "relp": "100",
+                            "scenario": "ImageBasicHover",
+                            "datsrc": "N_I",
+                            "layout": "ColumnBased",
+                        },
+                        timeout=30,
+                    )
+                except browser_requests.RequestsError:
+                    response = None
+                if response is not None and response.status_code == 200:
+                    successful_queries += 1
+                    source = f"Bing Images async: {query}"
+                    query_products = parse_bing_image_results(response.text, source)
+
+            # Yahoo espone pubblicamente lo stesso tipo di indice, con un
+            # formato differente. È una sorgente indipendente quando Bing
+            # risponde senza risultati utili sul runner GitHub.
+            if not query_products:
+                try:
+                    response = session.get(
+                        YAHOO_IMAGES_URL,
+                        params={"p": query, "b": str(first)},
+                        timeout=30,
+                    )
+                except browser_requests.RequestsError as error:
+                    log_status("ADIDAS", "INDICE", f"Yahoo non raggiungibile: {error}")
+                    response = None
+                if response is not None and response.status_code == 200:
+                    successful_queries += 1
+                    source = f"Yahoo Images: {query}"
+                    query_products = parse_yahoo_image_results(response.text, source)
+
+            for candidate in query_products.values():
                 merge_candidate(products, candidate)
             if delay:
                 time.sleep(delay)
@@ -308,7 +378,7 @@ def discover_products() -> dict[str, dict[str, Any]]:
         direct, direct_success = _fetch_direct_category(session)
         for candidate in direct.values():
             merge_candidate(products, candidate)
-        indexed, index_success = _fetch_bing_index(session)
+        indexed, index_success = _fetch_public_index(session)
         for candidate in indexed.values():
             merge_candidate(products, candidate)
 
