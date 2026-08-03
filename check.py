@@ -7,7 +7,6 @@ import sys
 import traceback
 from collections.abc import Callable
 
-import adidas_monitor
 import font_monitor
 import news_monitor
 import store_product_monitor
@@ -21,7 +20,6 @@ MONITORS: dict[str, Monitor] = {
     "fonts": font_monitor.run,
     "products": store_product_monitor.run,
     "news": news_monitor.run,
-    "adidas": adidas_monitor.run,
 }
 
 
@@ -56,7 +54,7 @@ def run_monitors(
         log_status("RUN", name.upper(), "avvio")
         try:
             MONITORS[name](state, telegram)
-        except Exception as error:  # ogni monitor deve lasciare partire i successivi
+        except Exception as error:
             failures.append(name)
             log_status("ERROR", name.upper(), str(error))
             traceback.print_exc()

@@ -5,7 +5,7 @@ from __future__ import annotations
 import requests
 
 from common import HEADERS, get_jersey_year, log_status
-from state_store import StateStore, utc_now
+from state_store import StateStore
 from telegram_client import TelegramClient
 
 
@@ -46,7 +46,7 @@ def check_product(
     # La chiave include l'anno così ogni nuova stagione viene ricontrollata.
     state_key = f"{jersey_year}_{code}"
     product_state = state.section("store_products")
-    if bool(product_state.get(state_key, {}).get("notified")):
+    if product_state.get(state_key):
         log_status("PRODUCT", code, "già notificato")
         return
 
@@ -90,11 +90,7 @@ def check_product(
             "image/webp",
         )
 
-    product_state[state_key] = {
-        "notified": True,
-        "notified_at": utc_now(),
-        "sides_found": list(found),
-    }
+    product_state[state_key] = True
     state.save()
     log_status("PRODUCT", code, f"notificato ({len(found)}/{total_requests} immagini)")
 

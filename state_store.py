@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import copy
 import json
 import os
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -13,11 +11,7 @@ from common import ROOT_DIR, log_status
 
 
 STATE_FILE = ROOT_DIR / ".leakkit_state.json"
-STATE_VERSION = 1
-
-
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+STATE_VERSION = 2
 
 
 def empty_state() -> dict[str, Any]:
@@ -26,7 +20,6 @@ def empty_state() -> dict[str, Any]:
         "fonts": {},
         "store_products": {},
         "news": {"initialized": False, "articles": {}},
-        "adidas": {"initialized": False, "products": {}},
     }
 
 
@@ -64,44 +57,33 @@ class StateStore:
             if not isinstance(self.data.get(key), dict):
                 self.data[key] = defaults[key]
 
-        for key in ("news", "adidas"):
-            if not isinstance(self.data.get(key), dict):
-                self.data[key] = copy.deepcopy(defaults[key])
+        if not isinstance(self.data.get("news"), dict):
+            self.data["news"] = defaults["news"]
 
         news = self.data["news"]
         news.setdefault("initialized", False)
         if not isinstance(news.get("articles"), dict):
             news["articles"] = {}
 
-        adidas = self.data["adidas"]
-        adidas.setdefault("initialized", False)
-        if not isinstance(adidas.get("products"), dict):
-            adidas["products"] = {}
+        # Rimuovi sezione adidas se presente da versioni precedenti
+        self.data.pop("adidas", None)
 
     def _migrate_legacy_files(self) -> bool:
-        """Importa flag/notizie precedenti e poi elimina i file ormai inutili."""
+        """Importa flag precedenti e poi elimina i file ormai inutili."""
 
         changed = False
-        migrated_at = utc_now()
-
         state_dir = self.path.parent
 
         for legacy in sorted(state_dir.glob(".found-font-*")):
             kit = legacy.name.removeprefix(".found-font-")
-            self.data["fonts"].setdefault(
-                kit,
-                {"notified": True, "migrated_at": migrated_at},
-            )
+            self.data["fonts"].setdefault(kit, True)
             if not self.read_only:
                 legacy.unlink()
             changed = True
 
         for legacy in sorted(state_dir.glob(".found-product-*")):
             code = legacy.name.removeprefix(".found-product-")
-            self.data["store_products"].setdefault(
-                code,
-                {"notified": True, "migrated_at": migrated_at},
-            )
+            self.data["store_products"].setdefault(code, True)
             if not self.read_only:
                 legacy.unlink()
             changed = True

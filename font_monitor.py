@@ -5,7 +5,7 @@ from __future__ import annotations
 import requests
 
 from common import HEADERS, get_season_label, log_status
-from state_store import StateStore, utc_now
+from state_store import StateStore
 from telegram_client import TelegramClient
 
 
@@ -42,7 +42,7 @@ def check_font_kit(
     telegram: TelegramClient,
 ) -> None:
     font_state = state.section("fonts")
-    if bool(font_state.get(kit, {}).get("notified")):
+    if font_state.get(kit):
         log_status("FONT", kit, "già notificato")
         return
 
@@ -80,11 +80,7 @@ def check_font_kit(
             f"Numero {number} — {kit}",
         )
 
-    font_state[kit] = {
-        "notified": True,
-        "notified_at": utc_now(),
-        "numbers_found": [number for number, _ in found],
-    }
+    font_state[kit] = True
     state.save()
     log_status("FONT", kit, f"notificato ({len(found)}/99 immagini)")
 
