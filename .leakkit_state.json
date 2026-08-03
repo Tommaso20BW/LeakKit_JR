@@ -254,8 +254,8 @@
     "initialized": true,
     "products": {
       "JJ4314": {
-        "title": "Juventus 25/26 Home Authentic Jersey - White | adidas Hong Kong",
-        "product_url": "https://www.adidas.com.hk/en/juventus-25-26-home-authentic-jersey/JJ4314.html",
+        "title": "adidas Juventus 25/26 Home Authentic Jersey - White | Free Shipping ...",
+        "product_url": "https://www.adidas.com/us/juventus-25-26-home-authentic-jersey/JJ4314.html",
         "confidence": 99,
         "reasons": [
           "Juventus nel titolo",
@@ -265,22 +265,94 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 25 26 jersey",
+          "Bing Images: adidas Juventus 25 26 authentic jersey",
+          "Bing Images: adidas Juventus 25 26 goalkeeper jersey",
+          "Bing Images: adidas Juventus 25 26 training",
+          "Bing Images: adidas Juventus 26 27 jersey",
+          "Bing Images: adidas Juventus 26 27 authentic jersey",
+          "Bing Images: adidas Juventus 27 28 jersey",
+          "Bing Images: adidas Juventus 2027 2028 jersey",
+          "Bing Images: adidas Juventus 27 28 authentic jersey",
+          "Bing Images: adidas Juventus 27 28 goalkeeper jersey",
+          "Bing Images: adidas Juventus 27 28 training",
+          "Bing Images: adidas Juventus new jersey",
+          "Bing Images: adidas Juventus collection"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:36+00:00",
         "assets": {
-          "926380279d544c729d7e5b7ca1c59532_9366/JJ4314_HM7.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/926380279d544c729d7e5b7ca1c59532_9366/JJ4314_HM7.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
-          },
           "99916ff36a154c54bca06aea393eb5a9_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM1.jpg": {
             "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/99916ff36a154c54bca06aea393eb5a9_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM1.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus new jersey"
+          },
+          "926380279d544c729d7e5b7ca1c59532_9366/JJ4314_HM7.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/926380279d544c729d7e5b7ca1c59532_9366/JJ4314_HM7.jpg",
+            "first_seen": "2026-08-03T15:31:30+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus collection"
+          },
+          "99916ff36a154c54bca06aea393eb5a9_9366/JJ4314_HM1.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/99916ff36a154c54bca06aea393eb5a9_9366/JJ4314_HM1.jpg",
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
+          },
+          "fe0a2e213d8d4ce2accb8324679b8e5a_9366/Juventus_25-26_Home_Jersey_White_JJ4320_21_model.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/fe0a2e213d8d4ce2accb8324679b8e5a_9366/Juventus_25-26_Home_Jersey_White_JJ4320_21_model.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
+          "2f3fd3cd987f4b0c8b515b61ac0a191f_9366/JJ4314_DM1.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/2f3fd3cd987f4b0c8b515b61ac0a191f_9366/JJ4314_DM1.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
+          "c0001cc9db634831b3caee2f4dd2fc84_9366/JJ4314_HM9.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/c0001cc9db634831b3caee2f4dd2fc84_9366/JJ4314_HM9.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
+          "00b09a39a165482c962db91c3a23910e_9366/JJ4314_HM5.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/00b09a39a165482c962db91c3a23910e_9366/JJ4314_HM5.jpg",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          },
+          "a5a98c15749e4897a8820c2407261cf1_9366/JJ4314_HM4.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/a5a98c15749e4897a8820c2407261cf1_9366/JJ4314_HM4.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
+          "url-5e4665a1ffa87453458d/global_aclubs_home_juventus_football_fw25_launch_PDP_statement_3_d_9f8ac92f74.jpg": {
+            "url": "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/if_w_gt_1920,w_1920/global_aclubs_home_juventus_football_fw25_launch_PDP_statement_3_d_9f8ac92f74.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
+          "96bfbb9011f54ba598e492f399f2c034_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM8.jpg": {
+            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/96bfbb9011f54ba598e492f399f2c034_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM8.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
+          "url-2f46ac22f631b277aec3/global_aclubs_home_juventus_football_ss25_launch_PDP_Banner_Hero_d_1_c78a6bdad4.jpg": {
+            "url": "https://brand.assets.adidas.com/video/upload/f_auto,q_auto/if_w_gt_1920,w_1920/global_aclubs_home_juventus_football_ss25_launch_PDP_Banner_Hero_d_1_c78a6bdad4.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
+          "url-76ab2b5dc4b07c909283/global_aclubs_home_juventus_football_ss25_launch_PDP_statement_d_new_4_37c4f59270.jpg": {
+            "url": "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/global_aclubs_home_juventus_football_ss25_launch_PDP_statement_d_new_4_37c4f59270.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:36+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
           },
           "2f3fd3cd987f4b0c8b515b61ac0a191f_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_DM1.jpg": {
             "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/2f3fd3cd987f4b0c8b515b61ac0a191f_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_DM1.jpg",
@@ -288,32 +360,14 @@
             "last_seen": "2026-08-03T15:11:35+00:00",
             "source": "Bing Images: adidas Juventus 25 26 jersey"
           },
-          "c0001cc9db634831b3caee2f4dd2fc84_9366/JJ4314_HM9.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/c0001cc9db634831b3caee2f4dd2fc84_9366/JJ4314_HM9.jpg",
-            "first_seen": "2026-08-03T15:11:21+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Yahoo Images: adidas Juventus 2027 2028 jersey"
-          },
           "92263d47ce684169a6bd075546abbf7b_9366/JJ4314_HM31.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/92263d47ce684169a6bd075546abbf7b_9366/JJ4314_HM31.jpg",
             "first_seen": "2026-08-03T15:11:21+00:00",
             "last_seen": "2026-08-03T15:11:35+00:00",
             "source": "Yahoo Images: adidas Juventus 2027 2028 jersey"
           },
-          "96bfbb9011f54ba598e492f399f2c034_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM8.jpg": {
-            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/96bfbb9011f54ba598e492f399f2c034_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM8.jpg",
-            "first_seen": "2026-08-03T15:11:11+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
-          },
           "9f65085a2d09466488b43d8de1a65335_9366/JJ4314_HM30.jpg": {
             "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/9f65085a2d09466488b43d8de1a65335_9366/JJ4314_HM30.jpg",
-            "first_seen": "2026-08-03T15:11:11+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
-          },
-          "2f3fd3cd987f4b0c8b515b61ac0a191f_9366/JJ4314_DM1.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/2f3fd3cd987f4b0c8b515b61ac0a191f_9366/JJ4314_DM1.jpg",
             "first_seen": "2026-08-03T15:11:11+00:00",
             "last_seen": "2026-08-03T15:11:35+00:00",
             "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
@@ -323,36 +377,6 @@
             "first_seen": "2026-08-03T15:11:11+00:00",
             "last_seen": "2026-08-03T15:11:35+00:00",
             "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
-          },
-          "a5a98c15749e4897a8820c2407261cf1_9366/JJ4314_HM4.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/a5a98c15749e4897a8820c2407261cf1_9366/JJ4314_HM4.jpg",
-            "first_seen": "2026-08-03T15:11:11+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
-          },
-          "url-76ab2b5dc4b07c909283/global_aclubs_home_juventus_football_ss25_launch_PDP_statement_d_new_4_37c4f59270.jpg": {
-            "url": "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/global_aclubs_home_juventus_football_ss25_launch_PDP_statement_d_new_4_37c4f59270.jpg",
-            "first_seen": "2026-08-03T15:11:11+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
-          },
-          "url-2f46ac22f631b277aec3/global_aclubs_home_juventus_football_ss25_launch_PDP_Banner_Hero_d_1_c78a6bdad4.jpg": {
-            "url": "https://brand.assets.adidas.com/video/upload/f_auto,q_auto/if_w_gt_1920,w_1920/global_aclubs_home_juventus_football_ss25_launch_PDP_Banner_Hero_d_1_c78a6bdad4.jpg",
-            "first_seen": "2026-08-03T15:11:11+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
-          },
-          "99916ff36a154c54bca06aea393eb5a9_9366/JJ4314_HM1.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/99916ff36a154c54bca06aea393eb5a9_9366/JJ4314_HM1.jpg",
-            "first_seen": "2026-08-03T15:11:26+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus collection"
-          },
-          "00b09a39a165482c962db91c3a23910e_9366/JJ4314_HM5.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/00b09a39a165482c962db91c3a23910e_9366/JJ4314_HM5.jpg",
-            "first_seen": "2026-08-03T15:11:22+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
           },
           "b8e3bf9284954438b2756ac47b73f922_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM3_hover.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/b8e3bf9284954438b2756ac47b73f922_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM3_hover.jpg",
@@ -365,12 +389,6 @@
             "first_seen": "2026-08-03T15:01:41+00:00",
             "last_seen": "2026-08-03T15:02:04+00:00",
             "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
-          },
-          "fe0a2e213d8d4ce2accb8324679b8e5a_9366/Juventus_25-26_Home_Jersey_White_JJ4320_21_model.jpg": {
-            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/fe0a2e213d8d4ce2accb8324679b8e5a_9366/Juventus_25-26_Home_Jersey_White_JJ4320_21_model.jpg",
-            "first_seen": "2026-08-03T15:01:40+00:00",
-            "last_seen": "2026-08-03T15:02:04+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
           },
           "a5a98c15749e4897a8820c2407261cf1_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM4.jpg": {
             "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/a5a98c15749e4897a8820c2407261cf1_9366/Juventus_25-26_Home_Authentic_Jersey_White_JJ4314_HM4.jpg",
@@ -399,8 +417,8 @@
         }
       },
       "JJ4320": {
-        "title": "Clothing - Juventus 25/26 Home Jersey - White | adidas Egypt",
-        "product_url": "https://www.adidas.com.eg/en/juventus-25-26-home-jersey/JJ4320.html",
+        "title": "adidas Juventus 25/26 Home Jersey - White | adidas UAE",
+        "product_url": "https://www.adidas.ae/en/juventus-25-26-home-jersey/JJ4320.html",
         "confidence": 99,
         "reasons": [
           "Juventus nel titolo",
@@ -410,39 +428,53 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 25 26 jersey",
+          "Bing Images: adidas Juventus 25 26 authentic jersey",
+          "Bing Images: adidas Juventus 25 26 goalkeeper jersey",
+          "Bing Images: adidas Juventus 25 26 training",
+          "Bing Images: adidas Juventus 27 28 jersey",
+          "Bing Images: adidas Juventus 27 28 authentic jersey",
+          "Bing Images: adidas Juventus 27 28 goalkeeper jersey",
+          "Bing Images: adidas Juventus new jersey",
+          "Bing Images: adidas Juventus collection"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:37+00:00",
         "assets": {
-          "e8f47352e93448ae84cb210b5acdb798_9366/JJ4320_42_detail.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/e8f47352e93448ae84cb210b5acdb798_9366/JJ4320_42_detail.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
-          },
-          "cfa70dd2fd124535a7a09dc658314966_9366/Juventus_25-26_Home_Jersey_White_JJ4320_01_laydown.jpg": {
-            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/cfa70dd2fd124535a7a09dc658314966_9366/Juventus_25-26_Home_Jersey_White_JJ4320_01_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:09+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 jersey"
+          "cfa70dd2fd124535a7a09dc658314966_9366/JJ4320_01_laydown.jpg": {
+            "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/cfa70dd2fd124535a7a09dc658314966_9366/JJ4320_01_laydown.jpg",
+            "first_seen": "2026-08-03T15:31:24+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 jersey"
           },
           "fe0a2e213d8d4ce2accb8324679b8e5a_9366/JJ4320_21_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/fe0a2e213d8d4ce2accb8324679b8e5a_9366/JJ4320_21_model.jpg",
-            "first_seen": "2026-08-03T15:11:26+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
+            "first_seen": "2026-08-03T15:31:30+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
             "source": "Bing Images: adidas Juventus collection"
+          },
+          "e8f47352e93448ae84cb210b5acdb798_9366/JJ4320_42_detail.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/e8f47352e93448ae84cb210b5acdb798_9366/JJ4320_42_detail.jpg",
+            "first_seen": "2026-08-03T15:31:27+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 goalkeeper jersey"
           },
           "7fda90cc5dc9402f8e605b60ef4c40f5_9366/JJ4320_02_laydown.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/7fda90cc5dc9402f8e605b60ef4c40f5_9366/JJ4320_02_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:11+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
             "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
           },
-          "cfa70dd2fd124535a7a09dc658314966_9366/JJ4320_01_laydown.jpg": {
-            "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/cfa70dd2fd124535a7a09dc658314966_9366/JJ4320_01_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:25+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
+          "fe0a2e213d8d4ce2accb8324679b8e5a_9366/Juventus_25-26_Home_Jersey_White_JJ4320_21_model.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/fe0a2e213d8d4ce2accb8324679b8e5a_9366/Juventus_25-26_Home_Jersey_White_JJ4320_21_model.jpg",
+            "first_seen": "2026-08-03T15:31:18+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 training"
+          },
+          "cfa70dd2fd124535a7a09dc658314966_9366/Juventus_25-26_Home_Jersey_White_JJ4320_01_laydown.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/cfa70dd2fd124535a7a09dc658314966_9366/Juventus_25-26_Home_Jersey_White_JJ4320_01_laydown.jpg",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
             "source": "Bing Images: adidas Juventus new jersey"
           },
           "url-e9b48ab5b61145f7759e/global_aclubs_home_juventus_football_ss25_launch_PDP_Statement_d_3_67c2fb64ac.jpg": {
@@ -478,8 +510,8 @@
         }
       },
       "JJ4323": {
-        "title": "Men's Clothing - Juventus 25/26 Away Jersey - Blue | adidas Egypt",
-        "product_url": "https://www.adidas.com.eg/en/juventus-25-26-away-jersey/JJ4323.html",
+        "title": "Clothing - Juventus 25/26 Away Jersey - Blue | adidas Kuwait",
+        "product_url": "https://www.adidas.com/kw/en/juventus-25-26-away-jersey/JJ4323.html",
         "confidence": 99,
         "reasons": [
           "Juventus nel titolo",
@@ -489,27 +521,31 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 25 26 jersey",
+          "Bing Images: adidas Juventus 25 26 authentic jersey",
+          "Bing Images: adidas Juventus 25 26 goalkeeper jersey",
+          "Bing Images: adidas Juventus 25 26 training",
+          "Bing Images: adidas Juventus 27 28 goalkeeper jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:37+00:00",
         "assets": {
-          "8c6cd78831754419beba203bacb3d1f2_9366/JJ4323_21_model.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/8c6cd78831754419beba203bacb3d1f2_9366/JJ4323_21_model.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
-          },
           "ce72a303fb64409d9a455975a4937588_9366/JJ4323_01_laydown.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/ce72a303fb64409d9a455975a4937588_9366/JJ4323_01_laydown.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:18+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 training"
+          },
+          "8c6cd78831754419beba203bacb3d1f2_9366/JJ4323_21_model.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/8c6cd78831754419beba203bacb3d1f2_9366/JJ4323_21_model.jpg",
+            "first_seen": "2026-08-03T15:31:27+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 goalkeeper jersey"
           },
           "e2123213af144963a4db40032c3a1fab_9366/JJ4323_02_laydown.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/e2123213af144963a4db40032c3a1fab_9366/JJ4323_02_laydown.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
+            "first_seen": "2026-08-03T15:31:17+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
             "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
           },
           "url-1254d09abea62bbceb18/global_aclubs_away_juventus_football_fw25_launch_PDP_Banner_Hero_1_d_9366c743e1.jpg": {
@@ -551,8 +587,8 @@
         }
       },
       "JN5237": {
-        "title": "adidas Juventus 25/26 Home Jersey - White | adidas UAE",
-        "product_url": "https://www.adidas.ae/en/juventus-25-26-home-jersey/JN5237.html",
+        "title": "Kids Clothing - Juventus 25/26 Home Jersey - White | adidas Qatar",
+        "product_url": "https://www.adidas.com/qa/en/juventus-25-26-home-jersey/JN5237.html",
         "confidence": 99,
         "reasons": [
           "Juventus nel titolo",
@@ -562,11 +598,25 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 25 26 jersey",
+          "Bing Images: adidas Juventus 25 26 goalkeeper jersey",
+          "Bing Images: adidas Juventus kit"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:37+00:00",
         "assets": {
+          "330a47553f804c599cc41cbc739a94c0_9366/JN5237_01_laydown.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/330a47553f804c599cc41cbc739a94c0_9366/JN5237_01_laydown.jpg",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus kit"
+          },
+          "a1cf6ef13f8c45c58912b5677894cc73_9366/JN5237_21_model.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/a1cf6ef13f8c45c58912b5677894cc73_9366/JN5237_21_model.jpg",
+            "first_seen": "2026-08-03T15:31:13+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 jersey"
+          },
           "112171ae59bf4f5596b8ae5661f84eea_9366/JN5237_25_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/112171ae59bf4f5596b8ae5661f84eea_9366/JN5237_25_model.jpg",
             "first_seen": "2026-08-03T15:21:12+00:00",
@@ -584,18 +634,6 @@
             "first_seen": "2026-08-03T15:21:12+00:00",
             "last_seen": "2026-08-03T15:21:26+00:00",
             "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
-          },
-          "330a47553f804c599cc41cbc739a94c0_9366/JN5237_01_laydown.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/330a47553f804c599cc41cbc739a94c0_9366/JN5237_01_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:26+00:00",
-            "last_seen": "2026-08-03T15:11:36+00:00",
-            "source": "Bing Images: adidas Juventus kit"
-          },
-          "a1cf6ef13f8c45c58912b5677894cc73_9366/JN5237_21_model.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/a1cf6ef13f8c45c58912b5677894cc73_9366/JN5237_21_model.jpg",
-            "first_seen": "2026-08-03T15:11:09+00:00",
-            "last_seen": "2026-08-03T15:11:36+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 jersey"
           },
           "7b08e2bb954a439db645066ede299d41_9366/JN5237_02_laydown.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/7b08e2bb954a439db645066ede299d41_9366/JN5237_02_laydown.jpg",
@@ -623,16 +661,40 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 25 26 jersey",
+          "Bing Images: adidas Juventus 25 26 goalkeeper jersey",
+          "Bing Images: adidas Juventus 25 26 training",
+          "Bing Images: adidas Juventus 26 27 goalkeeper jersey",
+          "Bing Images: adidas Juventus 27 28 goalkeeper jersey",
+          "Bing Images: adidas Juventus new jersey",
+          "Bing Images: adidas Juventus collection"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:41+00:00",
         "assets": {
           "f16db08d69d940d4bc2ab78e56cfa2e4_9366/KC3486_21_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/f16db08d69d940d4bc2ab78e56cfa2e4_9366/KC3486_21_model.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:30+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus collection"
+          },
+          "7c000000314c4e1ba66db87f3e2b4044_9366/Juventus_25-26_Third_Jersey_Black_KC3486_01_laydown.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/7c000000314c4e1ba66db87f3e2b4044_9366/Juventus_25-26_Third_Jersey_Black_KC3486_01_laydown.jpg",
+            "first_seen": "2026-08-03T15:31:13+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 jersey"
+          },
+          "486109b295634c809d12b323a4aafc5d_9366/KC3486_02_laydown.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/486109b295634c809d12b323a4aafc5d_9366/KC3486_02_laydown.jpg",
+            "first_seen": "2026-08-03T15:31:13+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 jersey"
+          },
+          "7c000000314c4e1ba66db87f3e2b4044_9366/KC3486_01_laydown.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/7c000000314c4e1ba66db87f3e2b4044_9366/KC3486_01_laydown.jpg",
+            "first_seen": "2026-08-03T15:31:18+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 training"
           },
           "2741015b3079445c8d775670534873b7_9366/Juventus_25-26_Third_Jersey_Black_KC3486_41_detail.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/2741015b3079445c8d775670534873b7_9366/Juventus_25-26_Third_Jersey_Black_KC3486_41_detail.jpg",
@@ -640,35 +702,17 @@
             "last_seen": "2026-08-03T15:21:26+00:00",
             "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
           },
-          "7c000000314c4e1ba66db87f3e2b4044_9366/Juventus_25-26_Third_Jersey_Black_KC3486_01_laydown.jpg": {
-            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/7c000000314c4e1ba66db87f3e2b4044_9366/Juventus_25-26_Third_Jersey_Black_KC3486_01_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:09+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 jersey"
-          },
           "674751337bcb439ba8aaaa7aa08c31cd_9366/Juventus_25-26_Third_Jersey_Black_KC3486_42_detail.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/674751337bcb439ba8aaaa7aa08c31cd_9366/Juventus_25-26_Third_Jersey_Black_KC3486_42_detail.jpg",
             "first_seen": "2026-08-03T15:11:12+00:00",
             "last_seen": "2026-08-03T15:11:48+00:00",
             "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
           },
-          "486109b295634c809d12b323a4aafc5d_9366/KC3486_02_laydown.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/486109b295634c809d12b323a4aafc5d_9366/KC3486_02_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:09+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 jersey"
-          },
           "462d9994dd4348a68756c2ef613afd8b_9366/KC3486_25_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/462d9994dd4348a68756c2ef613afd8b_9366/KC3486_25_model.jpg",
             "first_seen": "2026-08-03T15:11:09+00:00",
             "last_seen": "2026-08-03T15:11:48+00:00",
             "source": "Bing Images: adidas Juventus 25 26 jersey"
-          },
-          "7c000000314c4e1ba66db87f3e2b4044_9366/KC3486_01_laydown.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/7c000000314c4e1ba66db87f3e2b4044_9366/KC3486_01_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:12+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
           },
           "f16db08d69d940d4bc2ab78e56cfa2e4_9366/Juventus_25-26_Third_Jersey_Black_KC3486_21_model.jpg": {
             "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/f16db08d69d940d4bc2ab78e56cfa2e4_9366/Juventus_25-26_Third_Jersey_Black_KC3486_21_model.jpg",
@@ -690,28 +734,32 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 27 28 jersey",
+          "Bing Images: adidas Juventus 27 28 authentic jersey",
+          "Bing Images: adidas Juventus new jersey",
+          "Bing Images: adidas Juventus kit",
+          "Bing Images: adidas Juventus collection"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:35+00:00",
         "assets": {
           "2b119c8986e84f93bb12f461e3c5f39c_9366/IS8002_HM1.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/2b119c8986e84f93bb12f461e3c5f39c_9366/IS8002_HM1.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
-          },
-          "22a56f51134b4691bde9084cf3c4811e_9366/IS8002_HM9.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/22a56f51134b4691bde9084cf3c4811e_9366/IS8002_HM9.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:30+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
+            "source": "Bing Images: adidas Juventus collection"
           },
           "b38cbf7df9c04f92bb509a7357898535_9366/IS8002_HM30.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/b38cbf7df9c04f92bb509a7357898535_9366/IS8002_HM30.jpg",
-            "first_seen": "2026-08-03T15:11:25+00:00",
-            "last_seen": "2026-08-03T15:11:32+00:00",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
             "source": "Bing Images: adidas Juventus new jersey"
+          },
+          "22a56f51134b4691bde9084cf3c4811e_9366/IS8002_HM9.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/22a56f51134b4691bde9084cf3c4811e_9366/IS8002_HM9.jpg",
+            "first_seen": "2026-08-03T15:31:30+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
+            "source": "Bing Images: adidas Juventus collection"
           },
           "fafd81e01adb406683fe49e67f79ec87_9366/IS8002_HM6.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/fafd81e01adb406683fe49e67f79ec87_9366/IS8002_HM6.jpg",
@@ -798,35 +846,41 @@
         "sources": [
           "Bing Images: adidas Juventus 26 27 jersey",
           "Bing Images: adidas Juventus 26 27 authentic jersey",
+          "Bing Images: adidas Juventus 26 27 goalkeeper jersey",
           "Bing Images: adidas Juventus 27 28 jersey",
-          "Yahoo Images: adidas Juventus 2027 2028 jersey",
           "Bing Images: adidas Juventus 27 28 authentic jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:48+00:00",
+        "last_seen": "2026-08-03T15:31:41+00:00",
         "assets": {
           "7893afdbae8445ca8776a7bb7cbc98c8_9366/KC2285_41_detail.jpg": {
             "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/7893afdbae8445ca8776a7bb7cbc98c8_9366/KC2285_41_detail.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
+          },
+          "90c8a6b68d094dc3b82811f3188aa9bf_9366/KC2285_01_laydown.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/90c8a6b68d094dc3b82811f3188aa9bf_9366/KC2285_01_laydown.jpg",
+            "first_seen": "2026-08-03T15:31:19+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 jersey"
           },
           "5cdfd5682cb0474a9fbaad71778f2092_9366/KC2285_21_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/5cdfd5682cb0474a9fbaad71778f2092_9366/KC2285_21_model.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+            "first_seen": "2026-08-03T15:31:22+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 goalkeeper jersey"
           },
           "fc211eb7fcaf4f7681b34bc76bb8248b_9366/KC2285_23_hover_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/fc211eb7fcaf4f7681b34bc76bb8248b_9366/KC2285_23_hover_model.jpg",
-            "first_seen": "2026-08-03T15:11:21+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Yahoo Images: adidas Juventus 2027 2028 jersey"
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
           },
           "8d9dac6b380c4d168733b4c1deffa171_9366/KC2285_02_laydown.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/8d9dac6b380c4d168733b4c1deffa171_9366/KC2285_02_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
             "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
           },
           "7893afdbae8445ca8776a7bb7cbc98c8_9366/Juventus_26-27_Home_Jersey_White_KC2285_41_detail.jpg": {
@@ -882,18 +936,12 @@
             "first_seen": "2026-08-03T14:51:15+00:00",
             "last_seen": "2026-08-03T14:51:46+00:00",
             "source": "Yahoo Images: adidas Juventus 26 27 jersey"
-          },
-          "90c8a6b68d094dc3b82811f3188aa9bf_9366/KC2285_01_laydown.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/90c8a6b68d094dc3b82811f3188aa9bf_9366/KC2285_01_laydown.jpg",
-            "first_seen": "2026-08-03T14:51:22+00:00",
-            "last_seen": "2026-08-03T14:51:46+00:00",
-            "source": "Yahoo Images: adidas Juventus 26 27 goalkeeper jersey"
           }
         }
       },
       "JJ4312": {
-        "title": "adidas Juventus 25/26 Away Authentic Jersey - Blue | adidas UK",
-        "product_url": "https://www.adidas.co.uk/juventus-25-26-away-authentic-jersey/JJ4312.html",
+        "title": "adidas Juventus 25/26 Away Authentic Jersey - Blue | Free Shipping with ...",
+        "product_url": "https://www.adidas.com/us/juventus-25-26-away-authentic-jersey/JJ4312.html",
         "confidence": 99,
         "reasons": [
           "Juventus nel titolo",
@@ -903,16 +951,23 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 25 26 authentic jersey",
+          "Bing Images: adidas Juventus 26 27 authentic jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:35+00:00",
         "assets": {
+          "5fe44b855f3c42459785e4e1dd13c4c4_9366/Juventus_25-26_Away_Authentic_Jersey_Blue_JJ4312_HM30.jpg": {
+            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/5fe44b855f3c42459785e4e1dd13c4c4_9366/Juventus_25-26_Away_Authentic_Jersey_Blue_JJ4312_HM30.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
           "73749bca3d4f40a5975438b48af177a7_9366/Juventus_25-26_Away_Authentic_Jersey_Blue_JJ4312_HM6.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/73749bca3d4f40a5975438b48af177a7_9366/Juventus_25-26_Away_Authentic_Jersey_Blue_JJ4312_HM6.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
           },
           "472c19634d944615b05533d30571db7c_9366/Juventus_25-26_Away_Authentic_Jersey_Blue_JJ4312_HM1.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/472c19634d944615b05533d30571db7c_9366/Juventus_25-26_Away_Authentic_Jersey_Blue_JJ4312_HM1.jpg",
@@ -922,12 +977,6 @@
           },
           "8c6cd78831754419beba203bacb3d1f2_9366/Juventus_25-26_Away_Jersey_Blue_JJ4323_21_model.jpg": {
             "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/8c6cd78831754419beba203bacb3d1f2_9366/Juventus_25-26_Away_Jersey_Blue_JJ4323_21_model.jpg",
-            "first_seen": "2026-08-03T15:11:11+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
-          },
-          "5fe44b855f3c42459785e4e1dd13c4c4_9366/Juventus_25-26_Away_Authentic_Jersey_Blue_JJ4312_HM30.jpg": {
-            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/5fe44b855f3c42459785e4e1dd13c4c4_9366/Juventus_25-26_Away_Authentic_Jersey_Blue_JJ4312_HM30.jpg",
             "first_seen": "2026-08-03T15:11:11+00:00",
             "last_seen": "2026-08-03T15:11:35+00:00",
             "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
@@ -994,16 +1043,24 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 25 26 jersey",
+          "Bing Images: adidas Juventus 25 26 goalkeeper jersey",
+          "Bing Images: adidas Juventus 27 28 authentic jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:37+00:00",
         "assets": {
+          "url-5e4665a1ffa87453458d/global_aclubs_home_juventus_football_fw25_launch_PDP_statement_3_d_9f8ac92f74.jpg": {
+            "url": "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/if_w_gt_1920,w_1920/global_aclubs_home_juventus_football_fw25_launch_PDP_statement_3_d_9f8ac92f74.jpg",
+            "first_seen": "2026-08-03T15:31:17+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          },
           "aef425ccc92940b383cccae8c146271d_9366/Juventus_25-26_Home_Jersey_White_JN5224_21_model.jpg": {
             "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/aef425ccc92940b383cccae8c146271d_9366/Juventus_25-26_Home_Jersey_White_JN5224_21_model.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
           }
         }
       },
@@ -1019,49 +1076,55 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+          "Bing Images: adidas Juventus 25 26 jersey",
+          "Bing Images: adidas Juventus 25 26 authentic jersey",
+          "Bing Images: adidas Juventus 25 26 goalkeeper jersey",
+          "Bing Images: adidas Juventus 25 26 training",
+          "Bing Images: adidas Juventus 26 27 authentic jersey",
+          "Bing Images: adidas Juventus 27 28 authentic jersey",
+          "Bing Images: adidas Juventus collection"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:21:26+00:00",
+        "last_seen": "2026-08-03T15:31:41+00:00",
         "assets": {
           "2c0f320197fc490eb47a7bac9157c90c_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_HM1.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/2c0f320197fc490eb47a7bac9157c90c_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_HM1.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
-          },
-          "328099e45eff4b0a9ed864d5c7408c90_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_HM5.jpg": {
-            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/328099e45eff4b0a9ed864d5c7408c90_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_HM5.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:30+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus collection"
           },
           "dae94b9ed7a94987bf253746c1b30256_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_DM1.jpg": {
             "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/dae94b9ed7a94987bf253746c1b30256_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_DM1.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
           },
           "url-5947289597a4337ca13b/global_aclubs_third_juventus_football_ss25_launch_PDP_Banner_Hero_1_Storytab_d_75a05e0d9c.jpg": {
             "url": "https://brand.assets.adidas.com/video/upload/f_auto,q_auto/if_w_gt_1920,w_1920/global_aclubs_third_juventus_football_ss25_launch_PDP_Banner_Hero_1_Storytab_d_75a05e0d9c.jpg",
-            "first_seen": "2026-08-03T15:21:12+00:00",
-            "last_seen": "2026-08-03T15:21:26+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
           },
           "a8bc8094ebea4ee8b7d7a709fd00a498_9366/KC3487_HM6.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/a8bc8094ebea4ee8b7d7a709fd00a498_9366/KC3487_HM6.jpg",
-            "first_seen": "2026-08-03T15:11:21+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Yahoo Images: adidas Juventus 2027 2028 jersey"
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
           },
-          "url-d65a0d2555a73300a055/global_aclubs_third_juventus_football_ss25_launch_PDP_Banner_Statement_3_Storytab_d_da8ad499ac.jpg": {
-            "url": "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/if_w_gt_1920,w_1920/global_aclubs_third_juventus_football_ss25_launch_PDP_Banner_Statement_3_Storytab_d_da8ad499ac.jpg",
-            "first_seen": "2026-08-03T15:01:44+00:00",
-            "last_seen": "2026-08-03T15:02:15+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          "328099e45eff4b0a9ed864d5c7408c90_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_HM5.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/328099e45eff4b0a9ed864d5c7408c90_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_HM5.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
           },
           "f0763940320f470192c17328a8103f9b_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_HM3_hover.jpg": {
             "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/f0763940320f470192c17328a8103f9b_9366/Juventus_25-26_Third_Authentic_Jersey_Black_KC3487_HM3_hover.jpg",
+            "first_seen": "2026-08-03T15:31:16+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 authentic jersey"
+          },
+          "url-d65a0d2555a73300a055/global_aclubs_third_juventus_football_ss25_launch_PDP_Banner_Statement_3_Storytab_d_da8ad499ac.jpg": {
+            "url": "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/if_w_gt_1920,w_1920/global_aclubs_third_juventus_football_ss25_launch_PDP_Banner_Statement_3_Storytab_d_da8ad499ac.jpg",
             "first_seen": "2026-08-03T15:01:44+00:00",
             "last_seen": "2026-08-03T15:02:15+00:00",
             "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
@@ -1127,46 +1190,75 @@
           "Bing Images: adidas Juventus 26 27 goalkeeper jersey",
           "Bing Images: adidas Juventus 26 27 training",
           "Bing Images: adidas Juventus 27 28 jersey",
-          "Yahoo Images: adidas Juventus 2027 2028 jersey",
           "Bing Images: adidas Juventus 27 28 authentic jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:48+00:00",
+        "last_seen": "2026-08-03T15:31:41+00:00",
         "assets": {
           "530d3e32e39e4c33917b581e23840651_9366/KC2282_HM53.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/530d3e32e39e4c33917b581e23840651_9366/KC2282_HM53.jpg",
-            "first_seen": "2026-08-03T15:11:22+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
             "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
           },
           "23511da04da64f5d895c9dc70cbb3553_9366/KC2282_HM11.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/23511da04da64f5d895c9dc70cbb3553_9366/KC2282_HM11.jpg",
-            "first_seen": "2026-08-03T15:11:22+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
-          },
-          "2a1e6407b4504aa79be78abade222b18_9366/KC2282_HM9.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/2a1e6407b4504aa79be78abade222b18_9366/KC2282_HM9.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
-          },
-          "ee06aa7324bf4b3285ba66c71effbe84_9366/KC2282_HM12.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/ee06aa7324bf4b3285ba66c71effbe84_9366/KC2282_HM12.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
-          },
-          "bf61dd310f3542f38e4950e80141fff8_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM5.jpg": {
-            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/bf61dd310f3542f38e4950e80141fff8_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM5.jpg",
-            "first_seen": "2026-08-03T15:11:22+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
             "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
           },
           "1dbf7d34603c4fa088c47d8c9e3d44d1_9366/KC2282_HM7.jpg": {
             "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/1dbf7d34603c4fa088c47d8c9e3d44d1_9366/KC2282_HM7.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          },
+          "ee06aa7324bf4b3285ba66c71effbe84_9366/KC2282_HM12.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/ee06aa7324bf4b3285ba66c71effbe84_9366/KC2282_HM12.jpg",
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
+          },
+          "2a1e6407b4504aa79be78abade222b18_9366/KC2282_HM9.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/2a1e6407b4504aa79be78abade222b18_9366/KC2282_HM9.jpg",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          },
+          "bf61dd310f3542f38e4950e80141fff8_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM5.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/bf61dd310f3542f38e4950e80141fff8_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM5.jpg",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          },
+          "url-01d79c90992420c9bb3f/global_aclubs_home_juventus_football_ss26_launch_pdp_banner_statement_1_d_315e4534a0.jpg": {
+            "url": "https://brand.assets.adidas.com/video/upload/f_auto,q_auto/if_w_gt_1920,w_1920/global_aclubs_home_juventus_football_ss26_launch_pdp_banner_statement_1_d_315e4534a0.jpg",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          },
+          "2cb4ea6e8c874b238e82961c7738d06c_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM8.jpg": {
+            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/2cb4ea6e8c874b238e82961c7738d06c_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM8.jpg",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          },
+          "43d29fe18ab14ec89cdbb059b4c9cfc7_9366/KC2282_HM10.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/43d29fe18ab14ec89cdbb059b4c9cfc7_9366/KC2282_HM10.jpg",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          },
+          "0e6a09223e84451381b3bc1dbbe33101_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM13.jpg": {
+            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/0e6a09223e84451381b3bc1dbbe33101_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM13.jpg",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
+          },
+          "url-068684a91b807d50daed/global_aclubs_home_juventus_football_ss26_launch_pdp_banner_split_3_background_d_8e0a527cc9.jpg": {
+            "url": "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/global_aclubs_home_juventus_football_ss26_launch_pdp_banner_split_3_background_d_8e0a527cc9.jpg",
+            "first_seen": "2026-08-03T15:31:21+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
             "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
           },
           "1037234dfdc24f00b9a3187f82ab0525_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM6.jpg": {
@@ -1174,24 +1266,6 @@
             "first_seen": "2026-08-03T15:11:22+00:00",
             "last_seen": "2026-08-03T15:11:48+00:00",
             "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
-          },
-          "url-01d79c90992420c9bb3f/global_aclubs_home_juventus_football_ss26_launch_pdp_banner_statement_1_d_315e4534a0.jpg": {
-            "url": "https://brand.assets.adidas.com/video/upload/f_auto,q_auto/if_w_gt_1920,w_1920/global_aclubs_home_juventus_football_ss26_launch_pdp_banner_statement_1_d_315e4534a0.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
-          },
-          "2cb4ea6e8c874b238e82961c7738d06c_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM8.jpg": {
-            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/2cb4ea6e8c874b238e82961c7738d06c_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM8.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
-          },
-          "43d29fe18ab14ec89cdbb059b4c9cfc7_9366/KC2282_HM10.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/43d29fe18ab14ec89cdbb059b4c9cfc7_9366/KC2282_HM10.jpg",
-            "first_seen": "2026-08-03T15:11:16+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 authentic jersey"
           },
           "ee06aa7324bf4b3285ba66c71effbe84_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM12.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/ee06aa7324bf4b3285ba66c71effbe84_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM12.jpg",
@@ -1207,18 +1281,6 @@
           },
           "43d29fe18ab14ec89cdbb059b4c9cfc7_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM10.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/43d29fe18ab14ec89cdbb059b4c9cfc7_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM10.jpg",
-            "first_seen": "2026-08-03T15:11:21+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Yahoo Images: adidas Juventus 2027 2028 jersey"
-          },
-          "0e6a09223e84451381b3bc1dbbe33101_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM13.jpg": {
-            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/0e6a09223e84451381b3bc1dbbe33101_9366/Juventus_26-27_Home_Authentic_Jersey_White_KC2282_HM13.jpg",
-            "first_seen": "2026-08-03T15:11:21+00:00",
-            "last_seen": "2026-08-03T15:11:48+00:00",
-            "source": "Yahoo Images: adidas Juventus 2027 2028 jersey"
-          },
-          "url-068684a91b807d50daed/global_aclubs_home_juventus_football_ss26_launch_pdp_banner_split_3_background_d_8e0a527cc9.jpg": {
-            "url": "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/global_aclubs_home_juventus_football_ss26_launch_pdp_banner_split_3_background_d_8e0a527cc9.jpg",
             "first_seen": "2026-08-03T15:11:21+00:00",
             "last_seen": "2026-08-03T15:11:48+00:00",
             "source": "Yahoo Images: adidas Juventus 2027 2028 jersey"
@@ -1268,22 +1330,24 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 training"
+          "Bing Images: adidas Juventus 25 26 training",
+          "Bing Images: adidas Juventus 26 27 training",
+          "Bing Images: adidas Juventus 27 28 training"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:39+00:00",
+        "last_seen": "2026-08-03T15:31:37+00:00",
         "assets": {
           "456dcc23a31b4d1abb359749fdcbba1b_9366/JN7453_21_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/456dcc23a31b4d1abb359749fdcbba1b_9366/JN7453_21_model.jpg",
-            "first_seen": "2026-08-03T15:11:13+00:00",
-            "last_seen": "2026-08-03T15:11:39+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 training"
+            "first_seen": "2026-08-03T15:31:28+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 training"
           },
           "2e396b177d3a4896b0d24fb6772dee0a_9366/JN7453_25_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/2e396b177d3a4896b0d24fb6772dee0a_9366/JN7453_25_model.jpg",
-            "first_seen": "2026-08-03T15:11:13+00:00",
-            "last_seen": "2026-08-03T15:11:39+00:00",
-            "source": "Bing Images: adidas Juventus 25 26 training"
+            "first_seen": "2026-08-03T15:31:28+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 training"
           },
           "f558884a971c44f595247d373f83ff43_9366/JN7453_25_outfit.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/f558884a971c44f595247d373f83ff43_9366/JN7453_25_outfit.jpg",
@@ -1308,12 +1372,12 @@
           "Bing Images: adidas Juventus new jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:29+00:00",
+        "last_seen": "2026-08-03T15:31:33+00:00",
         "assets": {
           "48263a47dc1f44699214ea3a8fb70020_9366/Juventus_23-24_Away_Jersey_White_HR8255_HM1.jpg": {
             "url": "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/48263a47dc1f44699214ea3a8fb70020_9366/Juventus_23-24_Away_Jersey_White_HR8255_HM1.jpg",
-            "first_seen": "2026-08-03T15:11:25+00:00",
-            "last_seen": "2026-08-03T15:11:29+00:00",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:33+00:00",
             "source": "Bing Images: adidas Juventus new jersey"
           },
           "48263a47dc1f44699214ea3a8fb70020_9366/HR8255_HM1.jpg": {
@@ -1325,8 +1389,8 @@
         }
       },
       "HR8256": {
-        "title": "adidas Juventus 23/24 Home Jersey - Black | adidas Australia",
-        "product_url": "https://www.adidas.com.au/juventus-23-24-home-jersey/HR8256.html",
+        "title": "adidas Juventus 23/24 Home Jersey - Black | adidas UAE",
+        "product_url": "https://www.adidas.ae/en/juventus-23-24-home-jersey/HR8256.html",
         "confidence": 99,
         "reasons": [
           "Juventus nel titolo",
@@ -1340,25 +1404,25 @@
           "Bing Images: adidas Juventus collection"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:30+00:00",
+        "last_seen": "2026-08-03T15:31:33+00:00",
         "assets": {
+          "2b5df437a4d24ac2bc03d65981f80bdb_9366/HR8256_HM9.jpg": {
+            "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/2b5df437a4d24ac2bc03d65981f80bdb_9366/HR8256_HM9.jpg",
+            "first_seen": "2026-08-03T15:31:30+00:00",
+            "last_seen": "2026-08-03T15:31:33+00:00",
+            "source": "Bing Images: adidas Juventus collection"
+          },
+          "390216c9ba9840be89c1c3e361fca83e_9366/HR8256_HM1.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/390216c9ba9840be89c1c3e361fca83e_9366/HR8256_HM1.jpg",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:33+00:00",
+            "source": "Bing Images: adidas Juventus new jersey"
+          },
           "390216c9ba9840be89c1c3e361fca83e_9366/Juventus_23-24_Home_Jersey_Black_HR8256_HM1.jpg": {
             "url": "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/390216c9ba9840be89c1c3e361fca83e_9366/Juventus_23-24_Home_Jersey_Black_HR8256_HM1.jpg",
             "first_seen": "2026-08-03T15:11:26+00:00",
             "last_seen": "2026-08-03T15:11:30+00:00",
             "source": "Bing Images: adidas Juventus collection"
-          },
-          "2b5df437a4d24ac2bc03d65981f80bdb_9366/HR8256_HM9.jpg": {
-            "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/2b5df437a4d24ac2bc03d65981f80bdb_9366/HR8256_HM9.jpg",
-            "first_seen": "2026-08-03T15:11:26+00:00",
-            "last_seen": "2026-08-03T15:11:30+00:00",
-            "source": "Bing Images: adidas Juventus collection"
-          },
-          "390216c9ba9840be89c1c3e361fca83e_9366/HR8256_HM1.jpg": {
-            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/390216c9ba9840be89c1c3e361fca83e_9366/HR8256_HM1.jpg",
-            "first_seen": "2026-08-03T15:01:52+00:00",
-            "last_seen": "2026-08-03T15:01:56+00:00",
-            "source": "Bing Images: adidas Juventus new jersey"
           },
           "7ab554cc072641ad830d536284cf429b_9366/HR8256_HM6.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/7ab554cc072641ad830d536284cf429b_9366/HR8256_HM6.jpg",
@@ -1383,19 +1447,19 @@
           "Bing Images: adidas Juventus new jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:29+00:00",
+        "last_seen": "2026-08-03T15:31:33+00:00",
         "assets": {
           "411177b3978b4980974c71b8c4f7b817_9366/HR8246_HM1.jpg": {
-            "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/411177b3978b4980974c71b8c4f7b817_9366/HR8246_HM1.jpg",
-            "first_seen": "2026-08-03T15:11:25+00:00",
-            "last_seen": "2026-08-03T15:11:29+00:00",
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/411177b3978b4980974c71b8c4f7b817_9366/HR8246_HM1.jpg",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:33+00:00",
             "source": "Bing Images: adidas Juventus new jersey"
           }
         }
       },
       "JP1667": {
-        "title": "adidas Juventus 25/26 Pre-Match Jersey - White | Free Shipping with adiClub",
-        "product_url": "https://www.adidas.com/us/juventus-25-26-pre-match-jersey/JP1667.html",
+        "title": "Explore adidas Juventus Merchandise Online | adidas Saudi Arabia",
+        "product_url": "https://www.adidas.sa/en/juventus",
         "confidence": 99,
         "reasons": [
           "Juventus nel titolo",
@@ -1405,14 +1469,17 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 25 26 jersey",
-          "Bing Images: adidas Juventus 25 26 goalkeeper jersey",
-          "Bing Images: adidas Juventus 27 28 jersey",
-          "Yahoo Images: adidas Juventus 2027 2028 jersey"
+          "Bing Images: adidas Juventus 27 28 goalkeeper jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:40+00:00",
+        "last_seen": "2026-08-03T15:31:37+00:00",
         "assets": {
+          "da8fe8e27b2848ec8a243bda2b45e86a_9366/JP1667_000_plp_model.jpg": {
+            "url": "https://assets.adidas.com/images/w_450,f_auto,q_auto/da8fe8e27b2848ec8a243bda2b45e86a_9366/JP1667_000_plp_model.jpg",
+            "first_seen": "2026-08-03T15:31:27+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 goalkeeper jersey"
+          },
           "74b42dd1049049f49da42b61c46f2945_9366/Juventus_25-26_Pre-Match_Jersey_White_JP1667_01_laydown.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/74b42dd1049049f49da42b61c46f2945_9366/Juventus_25-26_Pre-Match_Jersey_White_JP1667_01_laydown.jpg",
             "first_seen": "2026-08-03T15:11:09+00:00",
@@ -1436,12 +1503,6 @@
             "first_seen": "2026-08-03T15:11:12+00:00",
             "last_seen": "2026-08-03T15:11:40+00:00",
             "source": "Bing Images: adidas Juventus 25 26 goalkeeper jersey"
-          },
-          "da8fe8e27b2848ec8a243bda2b45e86a_9366/JP1667_000_plp_model.jpg": {
-            "url": "https://assets.adidas.com/images/w_450,f_auto,q_auto/da8fe8e27b2848ec8a243bda2b45e86a_9366/JP1667_000_plp_model.jpg",
-            "first_seen": "2026-08-03T15:11:21+00:00",
-            "last_seen": "2026-08-03T15:11:40+00:00",
-            "source": "Yahoo Images: adidas Juventus 2027 2028 jersey"
           }
         }
       },
@@ -1457,16 +1518,16 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 27 28 authentic jersey",
-          "Bing Images: adidas Juventus new jersey"
+          "Bing Images: adidas Juventus 27 28 jersey",
+          "Bing Images: adidas Juventus 27 28 authentic jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:35+00:00",
+        "last_seen": "2026-08-03T15:31:35+00:00",
         "assets": {
           "c5df85aed0c84ecab666eae70d1c2c1e_9366/IT6056_HM1.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/c5df85aed0c84ecab666eae70d1c2c1e_9366/IT6056_HM1.jpg",
-            "first_seen": "2026-08-03T15:11:22+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
+            "first_seen": "2026-08-03T15:31:26+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
             "source": "Bing Images: adidas Juventus 27 28 authentic jersey"
           },
           "c5df85aed0c84ecab666eae70d1c2c1e_9366/Juventus_24-25_Home_Authentic_Jersey_White_IT6056_HM1.jpg": {
@@ -1509,7 +1570,7 @@
         }
       },
       "HR8248": {
-        "title": "adidas Juventus 23/24 Home Authentic Jersey - Black | Free Shipping with adiClub | adidas US",
+        "title": "adidas Juventus 23/24 Home Authentic Jersey - Black | Free Shipping ...",
         "product_url": "https://www.adidas.com/us/juventus-23-24-home-authentic-jersey/HR8248.html",
         "confidence": 99,
         "reasons": [
@@ -1523,12 +1584,12 @@
           "Bing Images: adidas Juventus new jersey"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:29+00:00",
+        "last_seen": "2026-08-03T15:31:33+00:00",
         "assets": {
           "5648ec4b5df145d09579607047adf92c_9366/Juventus_23-24_Home_Authentic_Jersey_Black_HR8248_HM1.jpg": {
-            "url": "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/5648ec4b5df145d09579607047adf92c_9366/Juventus_23-24_Home_Authentic_Jersey_Black_HR8248_HM1.jpg",
-            "first_seen": "2026-08-03T15:11:25+00:00",
-            "last_seen": "2026-08-03T15:11:29+00:00",
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/5648ec4b5df145d09579607047adf92c_9366/Juventus_23-24_Home_Authentic_Jersey_Black_HR8248_HM1.jpg",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:33+00:00",
             "source": "Bing Images: adidas Juventus new jersey"
           }
         }
@@ -1715,12 +1776,12 @@
           "Bing Images: adidas Juventus jacket"
         ],
         "first_seen": "2026-08-03T14:51:46+00:00",
-        "last_seen": "2026-08-03T15:11:30+00:00",
+        "last_seen": "2026-08-03T15:31:33+00:00",
         "assets": {
           "981fa8b2a4cd4b04bde0db01c0be0753_9366/Juventus_Anthem_Jacket_Black_HZ4985_HM1.jpg": {
             "url": "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/981fa8b2a4cd4b04bde0db01c0be0753_9366/Juventus_Anthem_Jacket_Black_HZ4985_HM1.jpg",
-            "first_seen": "2026-08-03T15:11:27+00:00",
-            "last_seen": "2026-08-03T15:11:30+00:00",
+            "first_seen": "2026-08-03T15:31:31+00:00",
+            "last_seen": "2026-08-03T15:31:33+00:00",
             "source": "Bing Images: adidas Juventus jacket"
           },
           "544727d71e074bae944463cf9cdf9571_9366/Juventus_Anthem_Jacket_Black_HZ4985_DM1.jpg": {
@@ -1846,12 +1907,12 @@
           "Bing Images: adidas Juventus 27 28 jersey"
         ],
         "first_seen": "2026-08-03T15:01:58+00:00",
-        "last_seen": "2026-08-03T15:11:31+00:00",
+        "last_seen": "2026-08-03T15:31:35+00:00",
         "assets": {
           "0c07cbdf43034ed295664505ea37cd6d_9366/IS5789_41_detail.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/0c07cbdf43034ed295664505ea37cd6d_9366/IS5789_41_detail.jpg",
-            "first_seen": "2026-08-03T15:11:18+00:00",
-            "last_seen": "2026-08-03T15:11:31+00:00",
+            "first_seen": "2026-08-03T15:31:24+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
             "source": "Bing Images: adidas Juventus 27 28 jersey"
           },
           "6e9e3a484ef945a7bf288195e8cb8d97_9366/IS5789_21_model.jpg": {
@@ -1905,16 +1966,16 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus collection"
+          "Bing Images: adidas Juventus 27 28 jersey"
         ],
         "first_seen": "2026-08-03T15:02:01+00:00",
-        "last_seen": "2026-08-03T15:11:35+00:00",
+        "last_seen": "2026-08-03T15:31:35+00:00",
         "assets": {
           "36bc12adbe6f479aa73c324a49f5d6fd_9366/IY0052_HM1.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/36bc12adbe6f479aa73c324a49f5d6fd_9366/IY0052_HM1.jpg",
-            "first_seen": "2026-08-03T15:11:26+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus collection"
+            "first_seen": "2026-08-03T15:31:24+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
+            "source": "Bing Images: adidas Juventus 27 28 jersey"
           }
         }
       },
@@ -1930,21 +1991,22 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 2026 2027 jersey"
+          "Bing Images: adidas Juventus 2026 2027 jersey",
+          "Bing Images: adidas Juventus 26 27 goalkeeper jersey"
         ],
         "first_seen": "2026-08-03T15:02:08+00:00",
-        "last_seen": "2026-08-03T15:11:36+00:00",
+        "last_seen": "2026-08-03T15:31:37+00:00",
         "assets": {
           "cbfe9bebb00b4b348b80a17f5c1efc2a_9366/JN5236_01_laydown.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/cbfe9bebb00b4b348b80a17f5c1efc2a_9366/JN5236_01_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:15+00:00",
-            "last_seen": "2026-08-03T15:11:36+00:00",
-            "source": "Bing Images: adidas Juventus 2026 2027 jersey"
+            "first_seen": "2026-08-03T15:31:22+00:00",
+            "last_seen": "2026-08-03T15:31:37+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 goalkeeper jersey"
           }
         }
       },
       "KA6785": {
-        "title": "adidas JUVENTUS 25/26 PRE-MATCH JERSEY - Black | Free Shipping with adiClub | adidas Canada",
+        "title": "adidas JUVENTUS 25/26 PRE-MATCH JERSEY - Black | Free Shipping with ...",
         "product_url": "https://www.adidas.ca/en/juventus-25-26-pre-match-jersey/KA6785.html",
         "confidence": 99,
         "reasons": [
@@ -1958,8 +2020,14 @@
           "Bing Images: adidas Juventus 25 26 jersey"
         ],
         "first_seen": "2026-08-03T15:02:12+00:00",
-        "last_seen": "2026-08-03T15:02:12+00:00",
+        "last_seen": "2026-08-03T15:31:40+00:00",
         "assets": {
+          "7bc52660b7e541779b30c97835dca6a5_9366/JUVENTUS_25-26_PRE-MATCH_JERSEY_Black_KA6785_HM1.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/7bc52660b7e541779b30c97835dca6a5_9366/JUVENTUS_25-26_PRE-MATCH_JERSEY_Black_KA6785_HM1.jpg",
+            "first_seen": "2026-08-03T15:31:13+00:00",
+            "last_seen": "2026-08-03T15:31:40+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 jersey"
+          },
           "4ba51af24895477a94336d365b7517cf_9366/JUVENTUS_25-26_PRE-MATCH_JERSEY_Black_KA6785_HM13.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/4ba51af24895477a94336d365b7517cf_9366/JUVENTUS_25-26_PRE-MATCH_JERSEY_Black_KA6785_HM13.jpg",
             "first_seen": "2026-08-03T15:01:36+00:00",
@@ -2000,8 +2068,8 @@
         }
       },
       "KC1316": {
-        "title": "adidas Juventus 26/27 Home Jersey Long Sleeve - White | Free Shipping with adiClub",
-        "product_url": "https://www.adidas.com/us/juventus-26-27-home-jersey-long-sleeve/KC1316.html",
+        "title": "adidas Juventus 26/27 Home Jersey Long Sleeve - White | adidas Australia",
+        "product_url": "https://www.adidas.com.au/juventus-26-27-home-jersey-long-sleeve/KC1316.html",
         "confidence": 99,
         "reasons": [
           "Juventus nel titolo",
@@ -2011,13 +2079,17 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus 26 27 jersey",
-          "Bing Images: adidas Juventus 26 27 authentic jersey",
-          "Bing Images: adidas Juventus 26 27 goalkeeper jersey"
+          "Bing Images: adidas Juventus 26 27 jersey"
         ],
         "first_seen": "2026-08-03T15:02:14+00:00",
-        "last_seen": "2026-08-03T15:11:47+00:00",
+        "last_seen": "2026-08-03T15:31:41+00:00",
         "assets": {
+          "13d1e556ee284f0da20b8ce3dbaeca6a_9366/Juventus_26-27_Home_Jersey_Long_Sleeve_White_KC1316_23_hover_model.jpg": {
+            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/13d1e556ee284f0da20b8ce3dbaeca6a_9366/Juventus_26-27_Home_Jersey_Long_Sleeve_White_KC1316_23_hover_model.jpg",
+            "first_seen": "2026-08-03T15:31:19+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 jersey"
+          },
           "e065a9d04d8c4b2d958cc7a62c821f73_9366/Juventus_26-27_Home_Jersey_Long_Sleeve_White_KC1316_42_detail.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/e065a9d04d8c4b2d958cc7a62c821f73_9366/Juventus_26-27_Home_Jersey_Long_Sleeve_White_KC1316_42_detail.jpg",
             "first_seen": "2026-08-03T15:11:16+00:00",
@@ -2038,12 +2110,6 @@
           },
           "0e98ff43cde34483b04e452c643166f9_9366/Juventus_26-27_Home_Jersey_Long_Sleeve_White_KC1316_21_model.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/0e98ff43cde34483b04e452c643166f9_9366/Juventus_26-27_Home_Jersey_Long_Sleeve_White_KC1316_21_model.jpg",
-            "first_seen": "2026-08-03T15:11:14+00:00",
-            "last_seen": "2026-08-03T15:11:47+00:00",
-            "source": "Bing Images: adidas Juventus 26 27 jersey"
-          },
-          "13d1e556ee284f0da20b8ce3dbaeca6a_9366/Juventus_26-27_Home_Jersey_Long_Sleeve_White_KC1316_23_hover_model.jpg": {
-            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/13d1e556ee284f0da20b8ce3dbaeca6a_9366/Juventus_26-27_Home_Jersey_Long_Sleeve_White_KC1316_23_hover_model.jpg",
             "first_seen": "2026-08-03T15:11:14+00:00",
             "last_seen": "2026-08-03T15:11:47+00:00",
             "source": "Bing Images: adidas Juventus 26 27 jersey"
@@ -2116,12 +2182,12 @@
           "Bing Images: adidas Juventus kit"
         ],
         "first_seen": "2026-08-03T15:11:34+00:00",
-        "last_seen": "2026-08-03T15:11:34+00:00",
+        "last_seen": "2026-08-03T15:31:35+00:00",
         "assets": {
           "5d911f98eb114facb204748c34c12300_9366/IT3542_01_laydown.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/5d911f98eb114facb204748c34c12300_9366/IT3542_01_laydown.jpg",
-            "first_seen": "2026-08-03T15:11:26+00:00",
-            "last_seen": "2026-08-03T15:11:34+00:00",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
             "source": "Bing Images: adidas Juventus kit"
           }
         }
@@ -2138,18 +2204,16 @@
           "codice prodotto verificabile"
         ],
         "sources": [
-          "Bing Images: adidas Juventus new jersey",
-          "Bing Images: adidas Juventus kit",
-          "Bing Images: adidas Juventus collection"
+          "Bing Images: adidas Juventus new jersey"
         ],
         "first_seen": "2026-08-03T15:11:35+00:00",
-        "last_seen": "2026-08-03T15:11:35+00:00",
+        "last_seen": "2026-08-03T15:31:35+00:00",
         "assets": {
           "url-5a01e173f4c0d2cefbc4/glbl_aclubs_juventus_home_football_ss24_launch_pdp_mh_d_9cb191cb33.jpg": {
             "url": "https://brand.assets.adidas.com/video/upload/f_auto,q_auto/if_w_gt_1920,w_1920/glbl_aclubs_juventus_home_football_ss24_launch_pdp_mh_d_9cb191cb33.jpg",
-            "first_seen": "2026-08-03T15:11:26+00:00",
-            "last_seen": "2026-08-03T15:11:35+00:00",
-            "source": "Bing Images: adidas Juventus kit"
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
+            "source": "Bing Images: adidas Juventus new jersey"
           },
           "e953c098bb3c47fcb1022cf67ff445d7_9366/IT3551_HM4.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/e953c098bb3c47fcb1022cf67ff445d7_9366/IT3551_HM4.jpg",
@@ -2175,12 +2239,12 @@
           "Bing Images: adidas Juventus 27 28 training"
         ],
         "first_seen": "2026-08-03T15:11:42+00:00",
-        "last_seen": "2026-08-03T15:11:42+00:00",
+        "last_seen": "2026-08-03T15:31:40+00:00",
         "assets": {
           "c97bc7bee7de4358bca2ce339ce4179e_9366/KB1933_21_model.jpg": {
             "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/c97bc7bee7de4358bca2ce339ce4179e_9366/KB1933_21_model.jpg",
-            "first_seen": "2026-08-03T15:11:24+00:00",
-            "last_seen": "2026-08-03T15:11:42+00:00",
+            "first_seen": "2026-08-03T15:31:28+00:00",
+            "last_seen": "2026-08-03T15:31:40+00:00",
             "source": "Bing Images: adidas Juventus 27 28 training"
           }
         }
@@ -2300,12 +2364,11 @@
         }
       },
       "KB8836": {
-        "title": "adidas Juventus 26/27 Home Jersey Kids - White | adidas UK",
-        "product_url": "https://www.adidas.co.uk/juventus-26-27-home-jersey-kids/KB8836.html",
-        "confidence": 99,
+        "title": "Clothing - Juventus 26/27 Home Jersey Kids - White | adidas South Africa",
+        "product_url": "https://www.adidas.co.za/KB8836.html",
+        "confidence": 85,
         "reasons": [
           "Juventus nel titolo",
-          "Juventus nell’URL prodotto",
           "pagina Adidas ufficiale",
           "immagine sul CDN Adidas",
           "codice prodotto verificabile"
@@ -2314,8 +2377,14 @@
           "Bing Images: adidas Juventus 26 27 jersey"
         ],
         "first_seen": "2026-08-03T15:11:46+00:00",
-        "last_seen": "2026-08-03T15:11:46+00:00",
+        "last_seen": "2026-08-03T15:31:41+00:00",
         "assets": {
+          "4951aed01920412ebb3c5a1c58e3781f_9366/KB8836_20_01_model.jpg": {
+            "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/4951aed01920412ebb3c5a1c58e3781f_9366/KB8836_20_01_model.jpg",
+            "first_seen": "2026-08-03T15:31:19+00:00",
+            "last_seen": "2026-08-03T15:31:41+00:00",
+            "source": "Bing Images: adidas Juventus 26 27 jersey"
+          },
           "8d617c690e8c47e088b850ce4cf1ed83_9366/Juventus_26-27_Home_Jersey_Kids_White_KB8836_01_laydown.jpg": {
             "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/8d617c690e8c47e088b850ce4cf1ed83_9366/Juventus_26-27_Home_Jersey_Kids_White_KB8836_01_laydown.jpg",
             "first_seen": "2026-08-03T15:11:14+00:00",
@@ -2405,8 +2474,182 @@
             "source": "Bing Images: adidas Juventus 26 27 training"
           }
         }
+      },
+      "H38907": {
+        "title": "Men's Clothing - Juventus 22/23 Home Jersey - White | adidas Egypt",
+        "product_url": "https://www.adidas.com.eg/en/juventus-22-23-home-jersey/H38907.html",
+        "confidence": 99,
+        "reasons": [
+          "Juventus nel titolo",
+          "Juventus nell’URL prodotto",
+          "pagina Adidas ufficiale",
+          "immagine sul CDN Adidas",
+          "codice prodotto verificabile"
+        ],
+        "sources": [
+          "Bing Images: adidas Juventus new jersey"
+        ],
+        "first_seen": "2026-08-03T15:31:33+00:00",
+        "last_seen": "2026-08-03T15:31:33+00:00",
+        "assets": {
+          "3075faec56ed43dca4e1ae8a009dc0b4_9366/H38907_01_laydown.jpg": {
+            "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/3075faec56ed43dca4e1ae8a009dc0b4_9366/H38907_01_laydown.jpg",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:33+00:00",
+            "source": "Bing Images: adidas Juventus new jersey"
+          }
+        }
+      },
+      "IB0495": {
+        "title": "adidas Juventus 23/24 Home Kit Kids - Black | adidas TZ",
+        "product_url": "https://www.adidas.com/tz/juventus-23/24-home-kit-kids/IB0495.html",
+        "confidence": 99,
+        "reasons": [
+          "Juventus nel titolo",
+          "Juventus nell’URL prodotto",
+          "pagina Adidas ufficiale",
+          "immagine sul CDN Adidas",
+          "codice prodotto verificabile"
+        ],
+        "sources": [
+          "Bing Images: adidas Juventus kit"
+        ],
+        "first_seen": "2026-08-03T15:31:34+00:00",
+        "last_seen": "2026-08-03T15:31:34+00:00",
+        "assets": {
+          "f7df12fee86f4629acc3afbb00ceaa03_9366/IB0495_03_laydown_hover.jpg": {
+            "url": "https://assets.adidas.com/images/w_940,f_auto,q_auto/f7df12fee86f4629acc3afbb00ceaa03_9366/IB0495_03_laydown_hover.jpg",
+            "first_seen": "2026-08-03T15:31:30+00:00",
+            "last_seen": "2026-08-03T15:31:34+00:00",
+            "source": "Bing Images: adidas Juventus kit"
+          }
+        }
+      },
+      "IQ4854": {
+        "title": "adidas Juventus 23/24 Third Authentic Jersey - Grey | adidas Australia",
+        "product_url": "https://www.adidas.com.au/juventus-23-24-third-authentic-jersey/IQ4854.html",
+        "confidence": 99,
+        "reasons": [
+          "Juventus nel titolo",
+          "Juventus nell’URL prodotto",
+          "pagina Adidas ufficiale",
+          "immagine sul CDN Adidas",
+          "codice prodotto verificabile"
+        ],
+        "sources": [
+          "Bing Images: adidas Juventus new jersey"
+        ],
+        "first_seen": "2026-08-03T15:31:35+00:00",
+        "last_seen": "2026-08-03T15:31:35+00:00",
+        "assets": {
+          "456640d999f3421c854023a7ab43c06e_9366/Juventus_23-24_Third_Authentic_Jersey_Grey_IQ4854_HM4.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/456640d999f3421c854023a7ab43c06e_9366/Juventus_23-24_Third_Authentic_Jersey_Grey_IQ4854_HM4.jpg",
+            "first_seen": "2026-08-03T15:31:29+00:00",
+            "last_seen": "2026-08-03T15:31:35+00:00",
+            "source": "Bing Images: adidas Juventus new jersey"
+          }
+        }
+      },
+      "JQ4040": {
+        "title": "adidas Samba Juventus Shoes - Black | adidas Indonesia",
+        "product_url": "https://www.adidas.co.id/en/samba-juventus-shoes/JQ4040.html",
+        "confidence": 99,
+        "reasons": [
+          "Juventus nel titolo",
+          "Juventus nell’URL prodotto",
+          "pagina Adidas ufficiale",
+          "immagine sul CDN Adidas",
+          "codice prodotto verificabile"
+        ],
+        "sources": [
+          "Bing Images: adidas Juventus shoes"
+        ],
+        "first_seen": "2026-08-03T15:31:38+00:00",
+        "last_seen": "2026-08-03T15:31:38+00:00",
+        "assets": {
+          "9b94f22537f34ab2910cdf4c60b84fe1_9366/Samba_Juventus_Shoes_Black_JQ4040_HM7.jpg": {
+            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/9b94f22537f34ab2910cdf4c60b84fe1_9366/Samba_Juventus_Shoes_Black_JQ4040_HM7.jpg",
+            "first_seen": "2026-08-03T15:31:32+00:00",
+            "last_seen": "2026-08-03T15:31:38+00:00",
+            "source": "Bing Images: adidas Juventus shoes"
+          },
+          "17e5389bbcb2447f849229504ee1f483_9366/Samba_Juventus_Shoes_Black_JQ4040_HM3_hover.jpg": {
+            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/17e5389bbcb2447f849229504ee1f483_9366/Samba_Juventus_Shoes_Black_JQ4040_HM3_hover.jpg",
+            "first_seen": "2026-08-03T15:31:32+00:00",
+            "last_seen": "2026-08-03T15:31:38+00:00",
+            "source": "Bing Images: adidas Juventus shoes"
+          },
+          "88ab871090ff4604b28fef08a444bcbc_9366/Samba_Juventus_Shoes_Black_JQ4040_DM1.jpg": {
+            "url": "https://assets.adidas.com/images/h_2000,f_auto,q_auto,fl_lossy,c_fill,g_auto/88ab871090ff4604b28fef08a444bcbc_9366/Samba_Juventus_Shoes_Black_JQ4040_DM1.jpg",
+            "first_seen": "2026-08-03T15:31:32+00:00",
+            "last_seen": "2026-08-03T15:31:38+00:00",
+            "source": "Bing Images: adidas Juventus shoes"
+          }
+        }
+      },
+      "JS3044": {
+        "title": "adidas Gazelle Juventus Terrace Icons Shoes - Blue | adidas Indonesia",
+        "product_url": "https://www.adidas.co.id/en/gazelle-juventus-terrace-icons-shoes/JS3044.html",
+        "confidence": 99,
+        "reasons": [
+          "Juventus nel titolo",
+          "Juventus nell’URL prodotto",
+          "pagina Adidas ufficiale",
+          "immagine sul CDN Adidas",
+          "codice prodotto verificabile"
+        ],
+        "sources": [
+          "Bing Images: adidas Juventus shoes"
+        ],
+        "first_seen": "2026-08-03T15:31:39+00:00",
+        "last_seen": "2026-08-03T15:31:39+00:00",
+        "assets": {
+          "edbf480ff43149ceb68e2a1b091b8e2a_9366/Gazelle_Juventus_Terrace_Icons_Shoes_Blue_JS3044_HM4_hover.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/edbf480ff43149ceb68e2a1b091b8e2a_9366/Gazelle_Juventus_Terrace_Icons_Shoes_Blue_JS3044_HM4_hover.jpg",
+            "first_seen": "2026-08-03T15:31:32+00:00",
+            "last_seen": "2026-08-03T15:31:39+00:00",
+            "source": "Bing Images: adidas Juventus shoes"
+          },
+          "7c7e99325535491a870fef6ef959035f_9366/Gazelle_Juventus_Terrace_Icons_Shoes_Blue_JS3044_HM3_hover.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/7c7e99325535491a870fef6ef959035f_9366/Gazelle_Juventus_Terrace_Icons_Shoes_Blue_JS3044_HM3_hover.jpg",
+            "first_seen": "2026-08-03T15:31:32+00:00",
+            "last_seen": "2026-08-03T15:31:39+00:00",
+            "source": "Bing Images: adidas Juventus shoes"
+          },
+          "74af240e5612489e95e6f5df6a0eac11_9366/Gazelle_Juventus_Terrace_Icons_Shoes_Blue_JS3044_DM1.jpg": {
+            "url": "https://assets.adidas.com/images/w_600,f_auto,q_auto/74af240e5612489e95e6f5df6a0eac11_9366/Gazelle_Juventus_Terrace_Icons_Shoes_Blue_JS3044_DM1.jpg",
+            "first_seen": "2026-08-03T15:31:32+00:00",
+            "last_seen": "2026-08-03T15:31:39+00:00",
+            "source": "Bing Images: adidas Juventus shoes"
+          }
+        }
+      },
+      "JV5830": {
+        "title": "Juventus 25/26 Home Shorts - Black | adidas Hong Kong",
+        "product_url": "https://www.adidas.com.hk/en/juventus-25-26-home-shorts/JV5830.html",
+        "confidence": 99,
+        "reasons": [
+          "Juventus nel titolo",
+          "Juventus nell’URL prodotto",
+          "pagina Adidas ufficiale",
+          "immagine sul CDN Adidas",
+          "codice prodotto verificabile"
+        ],
+        "sources": [
+          "Bing Images: adidas Juventus 25 26 training"
+        ],
+        "first_seen": "2026-08-03T15:31:40+00:00",
+        "last_seen": "2026-08-03T15:31:40+00:00",
+        "assets": {
+          "7d48817537074d9c995720de8da650c5_9366/JV5830_21_model.jpg": {
+            "url": "https://assets.adidas.com/images/w_1880,f_auto,q_auto/7d48817537074d9c995720de8da650c5_9366/JV5830_21_model.jpg",
+            "first_seen": "2026-08-03T15:31:18+00:00",
+            "last_seen": "2026-08-03T15:31:40+00:00",
+            "source": "Bing Images: adidas Juventus 25 26 training"
+          }
+        }
       }
     },
-    "last_scan": "2026-08-03T15:21:26+00:00"
+    "last_scan": "2026-08-03T15:31:33+00:00"
   }
 }
