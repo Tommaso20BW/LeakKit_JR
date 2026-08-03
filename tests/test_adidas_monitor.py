@@ -75,6 +75,23 @@ class AdidasParserTests(unittest.TestCase):
         self.assertEqual(["KC2285"], list(products))
         self.assertEqual(1, len(products["KC2285"]["assets"]))
 
+    def test_skips_words_and_finds_later_alphanumeric_code(self) -> None:
+        image_url = (
+            "https://assets.adidas.com/images/h_2000,f_auto/"
+            "5cdfd5682cb0474a9fbaad71778f2092_9366/"
+            "Juventus_26-27_Home_Jersey_White_KC2285_21_model.jpg"
+        )
+        self.assertEqual(
+            "KC2285",
+            adidas_monitor.extract_product_code("", image_url),
+        )
+        self.assertIsNone(
+            adidas_monitor.extract_product_code(
+                "https://www.adidas.test/collection/GLOBAL.html",
+                "https://assets.adidas.com/images/hash/GLOBAL_banner.jpg",
+            )
+        )
+
 
 class UnifiedStateMigrationTests(unittest.TestCase):
     def test_migrates_and_deletes_all_legacy_files(self) -> None:

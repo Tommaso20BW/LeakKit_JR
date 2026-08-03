@@ -32,7 +32,7 @@ BING_IMAGES_URL = "https://www.bing.com/images/search"
 BING_IMAGES_ASYNC_URL = "https://www.bing.com/images/async"
 YAHOO_IMAGES_URL = "https://it.images.search.yahoo.com/search/images"
 ROME = ZoneInfo("Europe/Rome")
-PRODUCT_CODE_RE = re.compile(r"^[A-Z0-9]{6}$")
+PRODUCT_CODE_RE = re.compile(r"^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{6}$")
 PRODUCT_PAGE_CODE_RE = re.compile(r"/([A-Z0-9]{6})\.html(?:[?#]|$)", re.I)
 IMAGE_CODE_RE = re.compile(
     r"(?:^|[_/])([A-Z0-9]{6})(?=_[^/]*\.(?:jpe?g|png|webp)(?:[?#]|$))",
@@ -58,12 +58,17 @@ def _is_adidas_host(host: str) -> bool:
 
 def extract_product_code(product_url: str, image_url: str) -> str | None:
     match = PRODUCT_PAGE_CODE_RE.search(product_url)
-    if not match:
-        match = IMAGE_CODE_RE.search(unquote(urlparse(image_url).path))
-    if not match:
-        return None
-    code = match.group(1).upper()
-    return code if PRODUCT_CODE_RE.fullmatch(code) else None
+    if match:
+        code = match.group(1).upper()
+        if PRODUCT_CODE_RE.fullmatch(code):
+            return code
+
+    image_path = unquote(urlparse(image_url).path)
+    for image_match in IMAGE_CODE_RE.finditer(image_path):
+        code = image_match.group(1).upper()
+        if PRODUCT_CODE_RE.fullmatch(code):
+            return code
+    return None
 
 
 def extract_asset_id(image_url: str) -> str:
@@ -484,6 +489,17 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
     discovered = discover_products()
     adidas_state = state.section("adidas")
     saved_products = adidas_state.setdefault("products", {})
+    invalid_codes = [
+        code for code in saved_products if not PRODUCT_CODE_RE.fullmatch(code)
+    ]
+    for code in invalid_codes:
+        saved_products.pop(code, None)
+    if invalid_codes:
+        log_status(
+            "ADIDAS",
+            "STATE",
+            "rimossi codici non validi: " + ", ".join(sorted(invalid_codes)),
+        )
     initialized = bool(adidas_state.get("initialized"))
 
     if not initialized:
