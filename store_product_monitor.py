@@ -1,4 +1,4 @@
-"""Monitor delle immagini fronte/retro dei prodotti nello store Juventus."""
+"""Monitor delle immagini dei prodotti nello store Juventus."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from telegram_client import TelegramClient
 # Codici prodotto da 00 a 99.
 PRODUCT_CODES = [f"{n:02d}" for n in range(100)]  # 00 → 99
 
-# Varianti prodotto, in maiuscolo come negli URL dello store.
+# Varianti prodotto presenti negli URL dello store.
 PRODUCT_LETTERS = ["A", "B"]
 
 PRODUCT_URL = (
@@ -50,9 +50,10 @@ def check_product(
     state: StateStore,
     telegram: TelegramClient,
 ) -> None:
-    """Controlla le varianti A e B, fronte e retro, di un prodotto."""
+    """Controlla le immagini principali e _2 delle varianti A e B."""
     jersey_year = get_jersey_year()
 
+    # La chiave include l'anno, così ogni nuova stagione viene ricontrollata.
     state_key = f"{jersey_year}_{code}"
     product_state = state.section("store_products")
 
@@ -64,9 +65,9 @@ def check_product(
     network_errors = 0
 
     for letter in PRODUCT_LETTERS:
-        for side, suffix in (
-            ("fronte", ""),
-            ("retro", "_d"),
+        for image_type, suffix in (
+            ("principale", ""),
+            ("seconda", "_2"),
         ):
             url = PRODUCT_URL.format(
                 jersey_year=jersey_year,
@@ -79,7 +80,7 @@ def check_product(
             network_errors += int(network_error)
 
             if content:
-                found[f"{letter}-{side}"] = content
+                found[f"{letter}-{image_type}"] = content
 
     total_requests = len(PRODUCT_LETTERS) * 2
 
@@ -104,8 +105,8 @@ def check_product(
     )
 
     for key, image_content in found.items():
-        letter, side = key.split("-", 1)
-        suffix = "_d" if side == "retro" else ""
+        letter, image_type = key.split("-", 1)
+        suffix = "_2" if image_type == "seconda" else ""
 
         filename = (
             f"JU{jersey_year}{letter}{code}{suffix}.webp"
@@ -114,7 +115,7 @@ def check_product(
         telegram.send_photo_bytes(
             image_content,
             filename,
-            f"Codice {code} — variante {letter} — {side}",
+            f"Codice {code} — variante {letter} — {image_type}",
             "image/webp",
         )
 
