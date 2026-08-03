@@ -15,16 +15,38 @@ PRODUCT_CODES = [f"{n:02d}" for n in range(100)]
 # Varianti prodotto da controllare separatamente.
 PRODUCT_LETTERS = ["A", "B"]
 
-# Immagine principale e seconda immagine.
-PRODUCT_IMAGES = [
-    ("principale", ""),
-    ("seconda", "_2"),
-]
-
 PRODUCT_URL = (
     "https://store.juventus.com/images/juventus/products/large/"
     "JU{jersey_year}{letter}{code}{suffix}.webp"
 )
+
+
+def get_product_images(
+    letter: str,
+    code: str,
+) -> list[tuple[str, str]]:
+    """
+    Restituisce i suffissi delle immagini da controllare.
+
+    Per i prodotti da A01 ad A14:
+    - immagine principale: nessun suffisso
+    - seconda immagine: _d
+
+    Per tutti gli altri prodotti:
+    - immagine principale: nessun suffisso
+    - seconda immagine: _2
+    """
+    code_number = int(code)
+
+    if letter == "A" and 1 <= code_number <= 14:
+        second_image_suffix = "_d"
+    else:
+        second_image_suffix = "_2"
+
+    return [
+        ("principale", ""),
+        ("seconda", second_image_suffix),
+    ]
 
 
 def fetch_image(url: str) -> tuple[bytes | None, bool]:
@@ -61,7 +83,8 @@ def check_product_variant(
     Controlla separatamente una variante prodotto.
 
     Esempi:
-    - A01 + A01_2
+    - A01 + A01_d
+    - A15 + A15_2
     - B01 + B01_2
     """
     jersey_year = get_jersey_year()
@@ -78,10 +101,15 @@ def check_product_variant(
         )
         return
 
+    product_images = get_product_images(
+        letter=letter,
+        code=code,
+    )
+
     found: list[tuple[bytes, str, str, str]] = []
     network_errors = 0
 
-    for image_type, suffix in PRODUCT_IMAGES:
+    for image_type, suffix in product_images:
         url = PRODUCT_URL.format(
             jersey_year=jersey_year,
             letter=letter,
@@ -95,13 +123,8 @@ def check_product_variant(
         if content is None:
             continue
 
-        filename = (
-            f"JU{jersey_year}{letter}{code}{suffix}.webp"
-        )
-
-        caption = (
-            f"Codice {letter}{code} — {image_type}"
-        )
+        filename = f"JU{jersey_year}{letter}{code}{suffix}.webp"
+        caption = f"Codice {letter}{code} — {image_type}"
 
         found.append(
             (
@@ -112,7 +135,7 @@ def check_product_variant(
             )
         )
 
-    total_requests = len(PRODUCT_IMAGES)
+    total_requests = len(product_images)
 
     if network_errors == total_requests:
         raise RuntimeError(
@@ -133,7 +156,6 @@ def check_product_variant(
         return
 
     # Aspetta entrambe le immagini prima di inviare l'album.
-    # In questo modo A01 e A01_2 vengono sempre raggruppate.
     if len(found) < total_requests:
         detail = (
             f"{len(found)}/{total_requests} immagini disponibili, "
@@ -156,10 +178,6 @@ def check_product_variant(
         "Te le invio qui sotto 👇"
     )
 
-    # Un solo album con:
-    # JU26A01.webp + JU26A01_2.webp
-    # oppure:
-    # JU26B01.webp + JU26B01_2.webp
     telegram.send_media_group_bytes(found)
 
     product_state[state_key] = True
