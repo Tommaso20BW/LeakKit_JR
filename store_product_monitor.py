@@ -11,7 +11,7 @@ from telegram_client import TelegramClient
 
 # Codici prodotto senza nomi: l'ordine può cambiare di stagione,
 # i nomi sono inutili — il codice numerico è sufficiente.
-PRODUCT_CODES = [f"{n:02d}" for n in range(1, 100)]   # 01 → 09
+PRODUCT_CODES = [f"{n:02d}" for n in range(1, 100)]   # 01 → 99
 PRODUCT_LETTERS = ["a", "b"]
 
 PRODUCT_URL = (
