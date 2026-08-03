@@ -20,6 +20,7 @@ TOTAL_DIGITS = 10
 def get_font_kits() -> list[str]:
     """Ritorna i kit da controllare per la stagione corrente."""
     season = get_season_label()
+
     return [
         f"HOME-{season}",
         f"AWAY-{season}",
@@ -45,7 +46,7 @@ def check_font_kit(
     state: StateStore,
     telegram: TelegramClient,
 ) -> None:
-    """Controlla le cifre da 0 a 9 per uno specifico kit."""
+    """Controlla e invia in un unico album le cifre da 0 a 9."""
     font_state = state.section("fonts")
 
     if font_state.get(kit):
@@ -57,6 +58,7 @@ def check_font_kit(
 
     for n in range(TOTAL_DIGITS):  # 0 → 9
         number = str(n)
+
         url = FONT_URL.format(
             kit=kit,
             number=number,
@@ -73,35 +75,68 @@ def check_font_kit(
             continue
 
         if _valid_image(response):
-            found.append((number, response.content))
-
-    if not found:
-        if network_errors == TOTAL_DIGITS:
-            raise RuntimeError(
-                f"{kit}: tutte le richieste sono fallite"
+            found.append(
+                (
+                    number,
+                    response.content,
+                )
             )
 
+    if network_errors == TOTAL_DIGITS:
+        raise RuntimeError(
+            f"{kit}: tutte le richieste sono fallite"
+        )
+
+    if not found:
         detail = "non disponibile"
 
         if network_errors:
             detail += f" ({network_errors} errori rete)"
 
-        log_status("FONT", kit, detail)
+        log_status(
+            "FONT",
+            kit,
+            detail,
+        )
+        return
+
+    # Non invia album incompleti: aspetta che siano presenti tutte le cifre.
+    if len(found) < TOTAL_DIGITS:
+        detail = (
+            f"{len(found)}/{TOTAL_DIGITS} immagini disponibili, "
+            "attendo il caricamento completo"
+        )
+
+        if network_errors:
+            detail += f" ({network_errors} errori rete)"
+
+        log_status(
+            "FONT",
+            kit,
+            detail,
+        )
         return
 
     telegram.send_message(
         "🚨 LEAK! Le immagini del font "
-        f"{kit} della Juventus sono state caricate sullo store! "
-        f"({len(found)}/{TOTAL_DIGITS} cifre trovate)\n\n"
-        "Te le invio qui sotto 👇"
+        f"{kit} della Juventus sono state caricate sullo store!\n\n"
+        "Te le invio in un unico album 👇"
     )
 
+    album: list[tuple[bytes, str, str, str]] = []
+
     for number, content in found:
-        telegram.send_photo_bytes(
-            content,
-            f"{kit}-{number}.png",
-            f"Numero {number} — {kit}",
+        album.append(
+            (
+                content,
+                f"{kit}-{number}.png",
+                f"Numero {number} — {kit}",
+                "image/png",
+            )
         )
+
+    # Invia tutte le 10 cifre nello stesso album Telegram.
+    telegram.send_media_group_bytes(album)
 
     font_state[kit] = True
     state.save()
@@ -123,12 +158,13 @@ def run(
     for kit in get_font_kits():
         try:
             check_font_kit(
-                kit,
-                state,
-                telegram,
+                kit=kit,
+                state=state,
+                telegram=telegram,
             )
         except RuntimeError as error:
             failures.append(str(error))
+
             log_status(
                 "FONT",
                 kit,
