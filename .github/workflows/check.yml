@@ -46,20 +46,72 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
+
           git add .leakkit_state.json
-          git diff --cached --quiet || git commit -m "Aggiorna stato LeakKit JR"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica allo stato da salvare."
+          else
+            git commit -m "Aggiorna stato LeakKit JR"
+            git push
+          fi
 
       - name: Pulisci la cronologia dei run
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          KEEP: "0"
+          REPOSITORY: ${{ github.repository }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
+        shell: bash
         run: |
-          gh api "repos/${{ github.repository }}/actions/workflows/check.yml/runs?status=completed&per_page=100" \
-            --jq '.workflow_runs | sort_by(.created_at) | reverse | .['\"$KEEP\"':] | .[].id' |
+          set -uo pipefail
+
+          echo "Recupero l'ID del workflow corrente..."
+
+          WORKFLOW_ID="$(
+            gh api \
+              "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}" \
+              --jq '.workflow_id'
+          )"
+
+          if [ -z "$WORKFLOW_ID" ]; then
+            echo "::error::Impossibile recuperare l'ID del workflow."
+            exit 1
+          fi
+
+          echo "Workflow ID: ${WORKFLOW_ID}"
+          echo "Cerco tutti i run completati..."
+
+          FOUND_RUNS=0
+          DELETED_RUNS=0
+          FAILED_RUNS=0
+
           while read -r RUN_ID; do
-            echo "Elimino run $RUN_ID"
-            gh api -X DELETE "repos/${{ github.repository }}/actions/runs/$RUN_ID" || true
-          done
+            if [ -z "$RUN_ID" ]; then
+              continue
+            fi
+
+            FOUND_RUNS=$((FOUND_RUNS + 1))
+            echo "Elimino il run ${RUN_ID}..."
+
+            if gh api \
+              --method DELETE \
+              "repos/${REPOSITORY}/actions/runs/${RUN_ID}"
+            then
+              DELETED_RUNS=$((DELETED_RUNS + 1))
+              echo "Run ${RUN_ID} eliminato."
+            else
+              FAILED_RUNS=$((FAILED_RUNS + 1))
+              echo "::warning::Impossibile eliminare il run ${RUN_ID}."
+            fi
+          done < <(
+            gh api \
+              --paginate \
+              "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100" \
+              --jq '.workflow_runs[].id'
+          )
+
           echo "Pulizia completata."
+          echo "Run trovati: ${FOUND_RUNS}"
+          echo "Run eliminati: ${DELETED_RUNS}"
+          echo "Eliminazioni fallite: ${FAILED_RUNS}"
