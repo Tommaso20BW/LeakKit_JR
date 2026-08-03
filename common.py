@@ -3,10 +3,32 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from pathlib import Path
 
 
 ROOT_DIR = Path(__file__).resolve().parent
+
+
+def get_season() -> tuple[str, str]:
+    """Ritorna (yy_start, yy_end) della stagione corrente.
+    Es: 2026 → ("26", "27"), 2027 → ("27", "28")
+    """
+    year = datetime.now().year
+    return str(year)[-2:], str(year + 1)[-2:]
+
+
+def get_season_label() -> str:
+    """Ritorna la stringa stagione, es. "26-27"."""
+    yy, yy_next = get_season()
+    return f"{yy}-{yy_next}"
+
+
+def get_jersey_year() -> str:
+    """Anno da usare negli URL delle maglie (anno corrente, 2 cifre).
+    Es: 2026 → "26", 2027 → "27"
+    """
+    return str(datetime.now().year)[-2:]
 
 HEADERS = {
     "User-Agent": (

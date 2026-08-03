@@ -4,16 +4,26 @@ from __future__ import annotations
 
 import requests
 
-from common import HEADERS, log_status
+from common import HEADERS, get_season_label, log_status
 from state_store import StateStore, utc_now
 from telegram_client import TelegramClient
 
 
-FONT_KITS = ["HOME-26-27", "AWAY-26-27", "THIRD-26-27"]
 FONT_URL = (
     "https://store.juventus.com/images/juventus/customizations/"
     "fonts/{kit}/{number}.png"
 )
+
+
+def get_font_kits() -> list[str]:
+    """Ritorna i kit da controllare per la stagione corrente."""
+    season = get_season_label()
+    return [
+        f"HOME-{season}",
+        f"AWAY-{season}",
+        f"THIRD-{season}",
+        f"FOURTH-{season}",
+    ]
 
 
 def _valid_image(response: requests.Response) -> bool:
@@ -36,9 +46,10 @@ def check_font_kit(
         log_status("FONT", kit, "già notificato")
         return
 
-    found: list[tuple[int, bytes]] = []
+    found: list[tuple[str, bytes]] = []
     network_errors = 0
-    for number in range(10):
+    for n in range(1, 100):          # 01 → 99
+        number = f"{n:02d}"
         url = FONT_URL.format(kit=kit, number=number)
         try:
             response = requests.get(url, headers=HEADERS, timeout=20)
@@ -49,7 +60,7 @@ def check_font_kit(
             found.append((number, response.content))
 
     if not found:
-        if network_errors == 10:
+        if network_errors == 99:
             raise RuntimeError(f"{kit}: tutte le richieste sono fallite")
         detail = "non disponibile"
         if network_errors:
@@ -60,27 +71,27 @@ def check_font_kit(
     telegram.send_message(
         "🚨 LEAK! Le immagini del font "
         f"{kit} della Juventus sono state caricate sullo store! "
-        f"({len(found)}/10 cifre trovate)\n\nTe le invio qui sotto 👇"
+        f"({len(found)}/99 numeri trovati)\n\nTe li invio qui sotto 👇"
     )
     for number, content in found:
         telegram.send_photo_bytes(
             content,
             f"{kit}-{number}.png",
-            f"Cifra {number} — {kit}",
+            f"Numero {number} — {kit}",
         )
 
     font_state[kit] = {
         "notified": True,
         "notified_at": utc_now(),
-        "digits_found": [number for number, _ in found],
+        "numbers_found": [number for number, _ in found],
     }
     state.save()
-    log_status("FONT", kit, f"notificato ({len(found)}/10 immagini)")
+    log_status("FONT", kit, f"notificato ({len(found)}/99 immagini)")
 
 
 def run(state: StateStore, telegram: TelegramClient) -> None:
     failures: list[str] = []
-    for kit in FONT_KITS:
+    for kit in get_font_kits():
         try:
             check_font_kit(kit, state, telegram)
         except RuntimeError as error:
