@@ -33,7 +33,6 @@ class TelegramClient:
             or os.getenv("TELEGRAM_BOT_TOKEN")
             or os.getenv("TELEGRAM_TOKEN")
         )
-
         self.chat_id = (
             chat_id
             if chat_id is not None
@@ -45,7 +44,6 @@ class TelegramClient:
                 raise ValueError(
                     "Token Telegram mancante. Imposta TELEGRAM_BOT_TOKEN."
                 )
-
             if self.chat_id is None or not str(self.chat_id).strip():
                 raise ValueError(
                     "Chat ID Telegram mancante. Imposta TELEGRAM_CHAT_ID."
@@ -102,19 +100,12 @@ class TelegramClient:
                 "description",
                 f"errore HTTP {response.status_code}",
             )
-
-            retry_after = (
-                payload.get("parameters", {}).get("retry_after")
-            )
+            retry_after = payload.get("parameters", {}).get("retry_after")
 
             if retry_after is not None:
-                description += (
-                    f"; riprovare tra {retry_after} secondi"
-                )
+                description += f"; riprovare tra {retry_after} secondi"
 
-            raise RuntimeError(
-                f"Telegram {method}: {description}"
-            )
+            raise RuntimeError(f"Telegram {method}: {description}")
 
         return payload.get("result")
 
@@ -122,6 +113,8 @@ class TelegramClient:
         self,
         text: str,
         *,
+        parse_mode: str | None = None,
+        disable_preview: bool | None = None,
         disable_web_page_preview: bool = True,
     ) -> Any:
         """Invia un messaggio di testo."""
@@ -130,21 +123,34 @@ class TelegramClient:
                 "Il messaggio Telegram non può essere vuoto."
             )
 
+        if disable_preview is not None:
+            disable_web_page_preview = disable_preview
+
         if self.dry_run:
-            print(f"[DRY RUN][TELEGRAM MESSAGE]\n{text}")
+            print(
+                "[DRY RUN][TELEGRAM MESSAGE]\n"
+                f"parse_mode={parse_mode!r}\n"
+                f"disable_preview={disable_web_page_preview}\n"
+                f"{text}"
+            )
             return None
+
+        data: dict[str, Any] = {
+            "chat_id": str(self.chat_id),
+            "text": text,
+            "link_preview_options": json.dumps(
+                {
+                    "is_disabled": disable_web_page_preview,
+                }
+            ),
+        }
+
+        if parse_mode:
+            data["parse_mode"] = parse_mode
 
         return self._post(
             "sendMessage",
-            data={
-                "chat_id": str(self.chat_id),
-                "text": text,
-                "link_preview_options": json.dumps(
-                    {
-                        "is_disabled": disable_web_page_preview,
-                    }
-                ),
-            },
+            data=data,
             timeout=30,
         )
 
@@ -204,7 +210,6 @@ class TelegramClient:
         Invia da 2 a 10 immagini come album Telegram.
 
         Ogni elemento deve contenere:
-
         (
             contenuto,
             nome_file,
@@ -222,7 +227,6 @@ class TelegramClient:
                 f"[DRY RUN][TELEGRAM ALBUM] "
                 f"{len(images)} immagini"
             )
-
             for index, (
                 content,
                 filename,
@@ -252,7 +256,6 @@ class TelegramClient:
                 raise ValueError(
                     f"Il file {filename!r} non contiene dati."
                 )
-
             if not filename:
                 raise ValueError(
                     f"Nome file mancante per l'immagine {index + 1}."
@@ -269,7 +272,6 @@ class TelegramClient:
                 media_item["caption"] = caption
 
             media.append(media_item)
-
             files[attachment_name] = (
                 filename,
                 content,
