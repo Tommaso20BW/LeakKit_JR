@@ -13,7 +13,6 @@ from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
-from bs4.element import Tag
 
 from common import HEADERS, log_status
 from state_store import StateStore
@@ -24,261 +23,82 @@ NEWS_TEAM_URL = "https://www.footyheadlines.com/team/Juventus"
 NEWS_MAX_SEEN = 300
 NEWS_MAX_AGE_DAYS = 2
 ROME = ZoneInfo("Europe/Rome")
-
 NEWS_URL_RE = re.compile(
     r"^https://www\.footyheadlines\.com/.+\.html$",
     re.IGNORECASE,
 )
 
-ARTICLE_URL_DATE_RE = re.compile(r"/(\d{4})/(\d{2})/")
-
-HEADLINE_SELECTOR = (
-    "h1, "
-    "h2.post-feed__item-headline, "
-    "h2.simple-post-feed__item-headline, "
-    "h2[class*='headline'], "
-    "h3[class*='headline'], "
-    "h2, "
-    "h3"
-)
-
-ARTICLE_CONTAINER_SELECTOR = (
-    "article, "
-    ".post-feed__item, "
-    ".simple-post-feed__item, "
-    ".post-feed__item-content, "
-    ".simple-post-feed__item-content"
-)
-
-LINK_SELECTOR = (
-    "a[href*='.html'], "
-    ".post-feed__item a[href], "
-    ".simple-post-feed__item a[href], "
-    ".post-feed__item-headline a[href], "
-    ".simple-post-feed__item-headline a[href], "
-    ".tab-container__content-tab a[href]"
-)
-
-
-def normalize_space(value: str) -> str:
-    """Normalizza spazi, tab e ritorni a capo."""
-    return re.sub(r"\s+", " ", value).strip()
-
-
-def normalize_article_url(raw_url: str) -> str:
-    """Converte un URL relativo in assoluto e rimuove query e frammenti."""
-    url = urljoin(NEWS_TEAM_URL, raw_url.strip())
-    return url.split("#", 1)[0].split("?", 1)[0]
-
-
-def is_valid_article_url(url: str) -> bool:
-    """Controlla che l'URL appartenga a un articolo Footy Headlines."""
-    return bool(NEWS_URL_RE.match(url))
-
-
-def find_article_container(element: Tag) -> Tag | None:
-    """Trova il contenitore principale della scheda di un articolo."""
-    for selector in (
-        "article",
-        ".post-feed__item",
-        ".simple-post-feed__item",
-        ".post-feed__item-content",
-        ".simple-post-feed__item-content",
-    ):
-        container = element.find_parent(
-            lambda tag: isinstance(tag, Tag)
-            and bool(tag.select_one(selector))
-            and (
-                tag.matches(selector)
-                if hasattr(tag, "matches")
-                else False
-            )
-        )
-        if container:
-            return container
-
-    return (
-        element.find_parent("article")
-        or element.find_parent("div", class_="post-feed__item")
-        or element.find_parent("div", class_="simple-post-feed__item")
-        or element.find_parent("div", class_="post-feed__item-content")
-        or element.find_parent(
-            "div",
-            class_="simple-post-feed__item-content",
-        )
-    )
-
-
-def extract_candidate_title(link: Tag, container: Tag | None) -> str:
-    """Estrae il titolo dalla scheda o dal link dell'articolo."""
-    heading: Tag | None = None
-
-    if container:
-        heading = container.select_one(HEADLINE_SELECTOR)
-
-    if heading is None:
-        heading = link.find_parent(["h1", "h2", "h3"])
-
-    if heading is None:
-        heading = link.select_one(HEADLINE_SELECTOR)
-
-    title = ""
-    if heading:
-        title = heading.get_text(" ", strip=True)
-
-    if not title:
-        title = link.get_text(" ", strip=True)
-
-    if not title:
-        title = str(link.get("aria-label", "")).strip()
-
-    if not title:
-        title = str(link.get("title", "")).strip()
-
-    return normalize_space(title)
-
-
-def extract_candidate_snippet(container: Tag | None) -> str:
-    """Estrae il breve testo di anteprima dalla scheda."""
-    if not container:
-        return ""
-
-    paragraph = (
-        container.select_one(".content-teaser p")
-        or container.select_one(".content-full p")
-        or container.select_one(
-            ".post-feed__item-description p"
-        )
-        or container.select_one(
-            ".simple-post-feed__item-description p"
-        )
-        or container.select_one("p")
-    )
-
-    if not paragraph:
-        return ""
-
-    snippet = normalize_space(paragraph.get_text(" ", strip=True))
-    return re.sub(
-        r"\s*(?:Read\s+)?More\s*$",
-        "",
-        snippet,
-        flags=re.IGNORECASE,
-    ).strip()
-
-
-def extract_candidate_source(link: Tag) -> str:
-    """Determina da quale tab della pagina proviene l'articolo."""
-    tab = link.find_parent(
-        "div",
-        class_="tab-container__content-tab",
-    )
-
-    if not tab:
-        return "page"
-
-    return str(tab.get("data-id", "page")).strip().lower() or "page"
-
 
 def fetch_news_candidates() -> list[dict[str, Any]]:
-    """Estrae tutti gli articoli presenti nella pagina Juventus."""
-    response = requests.get(
-        NEWS_TEAM_URL,
-        headers=HEADERS,
-        timeout=30,
-    )
+    response = requests.get(NEWS_TEAM_URL, headers=HEADERS, timeout=30)
     response.raise_for_status()
-
     soup = BeautifulSoup(response.text, "html.parser")
 
     candidates: list[dict[str, Any]] = []
     candidates_by_url: dict[str, dict[str, Any]] = {}
+    headlines = soup.select(
+        "h2.post-feed__item-headline, h2.simple-post-feed__item-headline"
+    )
 
-    links: list[Tag] = [
-        link
-        for link in soup.select(LINK_SELECTOR)
-        if isinstance(link, Tag)
-    ]
-
-    # Supporta anche la struttura in cui il link avvolge direttamente l'h2.
-    for heading in soup.select(
-        "h2.post-feed__item-headline, "
-        "h2.simple-post-feed__item-headline, "
-        "h2[class*='headline'], "
-        "h3[class*='headline']"
-    ):
-        if not isinstance(heading, Tag):
+    for heading in headlines:
+        link = heading.find_parent("a", href=True)
+        if not link:
             continue
 
-        parent_link = heading.find_parent("a", href=True)
-        if isinstance(parent_link, Tag):
-            links.append(parent_link)
+        url = urljoin(NEWS_TEAM_URL, str(link["href"]).strip())
+        url = url.split("#", 1)[0].split("?", 1)[0]
 
-    for link in links:
-        raw_href = str(link.get("href", "")).strip()
-        if not raw_href:
+        if not NEWS_URL_RE.match(url):
             continue
 
-        url = normalize_article_url(raw_href)
-        if not is_valid_article_url(url):
-            continue
-
-        source = extract_candidate_source(link)
-
-        existing = candidates_by_url.get(url)
-        if existing:
-            if source not in existing["sources"]:
-                existing["sources"].append(source)
-            continue
-
-        container = (
-            link.find_parent("article")
-            or link.find_parent("div", class_="post-feed__item")
-            or link.find_parent(
-                "div",
-                class_="simple-post-feed__item",
-            )
-            or link.find_parent(
-                "div",
-                class_="post-feed__item-content",
-            )
-            or link.find_parent(
-                "div",
-                class_="simple-post-feed__item-content",
-            )
+        tab = heading.find_parent(
+            "div",
+            class_="tab-container__content-tab",
         )
+        source = str(
+            tab.get("data-id", "page") if tab else "page"
+        ).lower()
 
-        title = extract_candidate_title(link, container)
+        if url in candidates_by_url:
+            sources = candidates_by_url[url]["sources"]
+            if source not in sources:
+                sources.append(source)
+            continue
 
-        # Scarta link interni, immagini e contatori privi di vero titolo.
-        if not title:
-            continue
-        if title.isdigit():
-            continue
-        if len(title) < 8:
-            continue
+        content = heading.find_parent(
+            "div",
+            class_="post-feed__item-content",
+        )
+        snippet = ""
+
+        if content:
+            paragraph = (
+                content.select_one(".content-teaser p")
+                or content.select_one(".content-full p")
+            )
+
+            if paragraph:
+                snippet = paragraph.get_text(" ", strip=True)
+                snippet = re.sub(
+                    r"\s*More\s*$",
+                    "",
+                    snippet,
+                ).strip()
 
         candidate = {
             "url": url,
-            "title": title,
-            "snippet": extract_candidate_snippet(container),
+            "title": heading.get_text(" ", strip=True),
+            "snippet": snippet,
             "sources": [source],
         }
 
         candidates.append(candidate)
         candidates_by_url[url] = candidate
 
-    log_status(
-        "NEWS",
-        "FOOTY-HEADLINES",
-        f"{len(candidates)} articoli estratti dalla pagina Juventus",
-    )
-
     return candidates
 
 
 def iter_json_nodes(value: Any) -> Iterator[dict[str, Any]]:
-    """Attraversa ricorsivamente un documento JSON."""
     if isinstance(value, dict):
         yield value
 
@@ -291,7 +111,6 @@ def iter_json_nodes(value: Any) -> Iterator[dict[str, Any]]:
 
 
 def clean_schema_text(value: Any) -> str:
-    """Pulisce il testo proveniente dai metadati JSON-LD."""
     if not value:
         return ""
 
@@ -300,19 +119,25 @@ def clean_schema_text(value: Any) -> str:
         "html.parser",
     ).get_text(" ", strip=True)
 
-    text = text.replace("\\_", "_")
-    return normalize_space(text)
+    return re.sub(
+        r"\s+",
+        " ",
+        text.replace("\\_", "_"),
+    ).strip()
 
 
-def find_news_article_metadata(
-    soup: BeautifulSoup,
-) -> dict[str, Any] | None:
-    """Trova i metadati NewsArticle o Article nella pagina."""
-    preferred_types = {
-        "NewsArticle",
-        "Article",
-        "BlogPosting",
-    }
+def fetch_article_version(
+    candidate: dict[str, Any],
+) -> dict[str, str]:
+    response = requests.get(
+        candidate["url"],
+        headers=HEADERS,
+        timeout=30,
+    )
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    metadata = None
 
     for script in soup.find_all(
         "script",
@@ -320,145 +145,49 @@ def find_news_article_metadata(
     ):
         raw = script.string or script.get_text()
 
-        if not raw or not raw.strip():
+        if not raw.strip():
             continue
 
         try:
             parsed = json.loads(raw)
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError:
             continue
 
         for node in iter_json_nodes(parsed):
             article_type = node.get("@type")
 
-            if isinstance(article_type, str):
-                article_types = {article_type}
-            elif isinstance(article_type, list):
-                article_types = {
-                    str(item)
-                    for item in article_type
-                }
-            else:
-                article_types = set()
+            if article_type == "NewsArticle" or (
+                isinstance(article_type, list)
+                and "NewsArticle" in article_type
+            ):
+                metadata = node
+                break
 
-            if article_types.intersection(preferred_types):
-                return node
+        if metadata:
+            break
 
-    return None
+    if not metadata:
+        raise RuntimeError(
+            "metadati NewsArticle non trovati"
+        )
 
-
-def extract_fallback_metadata(
-    soup: BeautifulSoup,
-    candidate: dict[str, Any],
-) -> dict[str, str]:
-    """Usa meta tag HTML quando il JSON-LD non è disponibile."""
-    title_tag = (
-        soup.select_one("meta[property='og:title']")
-        or soup.select_one("meta[name='twitter:title']")
+    title = clean_schema_text(
+        metadata.get("headline")
+        or metadata.get("name")
     )
+    title = title or candidate["title"]
 
-    description_tag = (
-        soup.select_one("meta[property='og:description']")
-        or soup.select_one("meta[name='description']")
-        or soup.select_one("meta[name='twitter:description']")
+    description = clean_schema_text(
+        metadata.get("description")
     )
+    description = description or candidate["snippet"]
 
-    published_tag = (
-        soup.select_one(
-            "meta[property='article:published_time']"
-        )
-        or soup.select_one(
-            "meta[name='article:published_time']"
-        )
+    published = str(
+        metadata.get("datePublished") or ""
     )
-
-    modified_tag = (
-        soup.select_one(
-            "meta[property='article:modified_time']"
-        )
-        or soup.select_one(
-            "meta[name='article:modified_time']"
-        )
+    modified = str(
+        metadata.get("dateModified") or published
     )
-
-    title = ""
-    description = ""
-    published = ""
-    modified = ""
-
-    if title_tag:
-        title = clean_schema_text(title_tag.get("content"))
-
-    if description_tag:
-        description = clean_schema_text(
-            description_tag.get("content")
-        )
-
-    if published_tag:
-        published = str(
-            published_tag.get("content", "")
-        ).strip()
-
-    if modified_tag:
-        modified = str(
-            modified_tag.get("content", "")
-        ).strip()
-
-    return {
-        "title": title or candidate["title"],
-        "description": description or candidate["snippet"],
-        "published": published,
-        "modified": modified or published,
-    }
-
-
-def fetch_article_version(
-    candidate: dict[str, Any],
-) -> dict[str, str]:
-    """Scarica e identifica la versione corrente di un articolo."""
-    response = requests.get(
-        candidate["url"],
-        headers=HEADERS,
-        timeout=30,
-    )
-    response.raise_for_status()
-
-    soup = BeautifulSoup(response.text, "html.parser")
-    metadata = find_news_article_metadata(soup)
-
-    if metadata:
-        title = clean_schema_text(
-            metadata.get("headline")
-            or metadata.get("name")
-        )
-        description = clean_schema_text(
-            metadata.get("description")
-        )
-        published = str(
-            metadata.get("datePublished") or ""
-        ).strip()
-        modified = str(
-            metadata.get("dateModified")
-            or published
-        ).strip()
-
-        title = title or candidate["title"]
-        description = description or candidate["snippet"]
-
-    else:
-        fallback = extract_fallback_metadata(
-            soup,
-            candidate,
-        )
-        title = fallback["title"]
-        description = fallback["description"]
-        published = fallback["published"]
-        modified = fallback["modified"]
-
-        if not title:
-            raise RuntimeError(
-                "metadati articolo non trovati"
-            )
 
     signature_source = json.dumps(
         {
@@ -483,15 +212,16 @@ def fetch_article_version(
     }
 
 
-def parse_article_datetime(value: str) -> datetime | None:
-    """Converte una data ISO nel fuso orario di Roma."""
+def parse_article_datetime(
+    value: str,
+) -> datetime | None:
     if not value:
         return None
 
-    normalized = value.strip().replace("Z", "+00:00")
-
     try:
-        parsed = datetime.fromisoformat(normalized)
+        parsed = datetime.fromisoformat(
+            value.replace("Z", "+00:00")
+        )
     except ValueError:
         return None
 
@@ -501,8 +231,9 @@ def parse_article_datetime(value: str) -> datetime | None:
     return parsed.astimezone(ROME)
 
 
-def is_recent_version(version: dict[str, str]) -> bool:
-    """Controlla se pubblicazione o modifica sono recenti."""
+def is_recent_version(
+    version: dict[str, str],
+) -> bool:
     dates = [
         parsed
         for parsed in (
@@ -519,16 +250,15 @@ def is_recent_version(version: dict[str, str]) -> bool:
     if not dates:
         return False
 
-    threshold = datetime.now(ROME) - timedelta(
-        days=NEWS_MAX_AGE_DAYS
+    return max(dates) >= (
+        datetime.now(ROME)
+        - timedelta(days=NEWS_MAX_AGE_DAYS)
     )
-    return max(dates) >= threshold
 
 
 def is_recent_publication(
     version: dict[str, str],
 ) -> bool:
-    """Controlla se la pubblicazione è recente."""
     published = parse_article_datetime(
         version.get("published", "")
     )
@@ -536,19 +266,19 @@ def is_recent_publication(
     if published is None:
         return False
 
-    threshold = datetime.now(ROME) - timedelta(
-        days=NEWS_MAX_AGE_DAYS
+    return published >= (
+        datetime.now(ROME)
+        - timedelta(days=NEWS_MAX_AGE_DAYS)
     )
-    return published >= threshold
 
 
 def is_republished_old_url(
     candidate: dict[str, Any],
     version: dict[str, str],
 ) -> bool:
-    """Rileva articoli ripubblicati usando un vecchio URL datato."""
-    url_date = ARTICLE_URL_DATE_RE.search(
-        candidate["url"]
+    url_date = re.search(
+        r"/(\d{4})/(\d{2})/",
+        candidate["url"],
     )
     published = parse_article_datetime(
         version.get("published", "")
@@ -557,19 +287,15 @@ def is_republished_old_url(
     if not url_date or published is None:
         return False
 
-    url_year = int(url_date.group(1))
-    url_month = int(url_date.group(2))
-
     return (published.year, published.month) > (
-        url_year,
-        url_month,
+        int(url_date.group(1)),
+        int(url_date.group(2)),
     )
 
 
 def handled_version(
     version: dict[str, str],
 ) -> dict[str, str]:
-    """Marca una versione come già gestita."""
     result = dict(version)
     result["handled_fingerprint"] = version["fingerprint"]
     return result
@@ -581,7 +307,6 @@ def send_news_article(
     version: dict[str, str],
     is_update: bool,
 ) -> None:
-    """Invia una nuova notizia o un aggiornamento su Telegram."""
     heading = (
         "🔄 <b>AGGIORNAMENTO FOOTY HEADLINES</b>"
         if is_update
@@ -604,42 +329,24 @@ def send_news_article(
         f'">Leggi l’articolo</a>'
     )
 
-    telegram.send_message(
-        text,
-        parse_mode="HTML",
-        disable_preview=False,
-    )
+    # TelegramClient gestisce già internamente formato HTML
+    # e anteprima del collegamento.
+    telegram.send_message(text)
 
 
 def _trim_articles(
     articles: dict[str, Any],
 ) -> None:
-    """Mantiene nello stato soltanto gli ultimi articoli."""
     overflow = len(articles) - NEWS_MAX_SEEN
 
-    if overflow <= 0:
-        return
-
-    for url in list(articles)[:overflow]:
+    for url in list(articles)[:max(0, overflow)]:
         articles.pop(url, None)
-
-
-def _save_article(
-    articles: dict[str, Any],
-    url: str,
-    version: dict[str, str],
-) -> None:
-    """Salva un articolo spostandolo in fondo all'ordine."""
-    articles.pop(url, None)
-    articles[url] = handled_version(version)
-    _trim_articles(articles)
 
 
 def run(
     state: StateStore,
     telegram: TelegramClient,
 ) -> None:
-    """Esegue il controllo delle notizie Footy Headlines."""
     news_state = state.section("news")
     articles = news_state.setdefault("articles", {})
     initialized = bool(news_state.get("initialized"))
@@ -664,17 +371,13 @@ def run(
         candidate["url"]
         for candidate in candidates
     }
-
-    # Continua a controllare anche gli articoli già salvati.
-    # In questo modo vengono rilevati gli aggiornamenti anche quando
-    # un articolo scompare dalla prima pagina della squadra.
     old_candidates = 0
 
     for url, previous in list(articles.items()):
-        if url in candidate_urls:
-            continue
-
-        if not is_valid_article_url(url):
+        if (
+            url in candidate_urls
+            or not NEWS_URL_RE.match(url)
+        ):
             continue
 
         previous_dict = (
@@ -704,29 +407,19 @@ def run(
     changed_state = False
     notifications = 0
     successful_checks = 0
-    missing = object()
 
-    # Il reverse mantiene l'ordine cronologico quando la pagina
-    # presenta gli articoli dal più recente al più vecchio.
     for candidate in reversed(candidates):
         try:
             version = fetch_article_version(candidate)
-        except requests.RequestException as error:
+        except (
+            requests.RequestException,
+            RuntimeError,
+        ) as error:
             log_status(
                 "NEWS",
                 "FOOTY-HEADLINES",
                 (
-                    "errore HTTP durante la verifica di "
-                    f"'{candidate['title']}': {error}"
-                ),
-            )
-            continue
-        except RuntimeError as error:
-            log_status(
-                "NEWS",
-                "FOOTY-HEADLINES",
-                (
-                    "errore durante la verifica di "
+                    f"errore verifica "
                     f"'{candidate['title']}': {error}"
                 ),
             )
@@ -736,40 +429,22 @@ def run(
 
         previous = articles.get(
             candidate["url"],
-            missing,
+            "__missing__",
         )
 
-        is_missing = previous is missing
-        is_legacy_null = previous is None
-        previous_dict = (
-            previous
-            if isinstance(previous, dict)
-            else {}
-        )
-
-        fingerprint_changed = (
-            bool(previous_dict)
-            and previous_dict.get("fingerprint")
-            != version["fingerprint"]
-        )
-
-        republished_old_url = (
+        unhandled_republished = (
             is_republished_old_url(
                 candidate,
                 version,
             )
             and is_recent_version(version)
-        )
-
-        republished_not_handled = (
-            republished_old_url
             and (
-                is_missing
-                or is_legacy_null
+                previous is None
                 or (
-                    previous_dict.get("fingerprint")
+                    isinstance(previous, dict)
+                    and previous.get("fingerprint")
                     == version["fingerprint"]
-                    and previous_dict.get(
+                    and previous.get(
                         "handled_fingerprint"
                     )
                     != version["fingerprint"]
@@ -777,199 +452,87 @@ def run(
             )
         )
 
-        recent_publication = is_recent_publication(
-            version
-        )
-        recent_version = is_recent_version(version)
-
-        source_names = {
-            str(source).lower()
-            for source in candidate.get(
-                "sources",
-                [],
-            )
-        }
-
-        appears_in_recent_tab = bool(
-            source_names.intersection(
-                {
-                    "latest",
-                    "recent",
-                    "news",
-                    "page",
-                }
-            )
+        unseen_old_update = (
+            previous == "__missing__"
+            and initialized
+            and "latest"
+            in candidate.get("sources", [])
+            and not is_recent_publication(version)
         )
 
-        # Prima esecuzione:
-        # crea la base iniziale senza inviare tutti gli articoli
-        # già presenti sul sito.
-        if not initialized:
-            _save_article(
-                articles,
-                candidate["url"],
-                version,
-            )
-            changed_state = True
+        if previous is None or (
+            previous == "__missing__"
+            and not is_recent_version(version)
+            and not unseen_old_update
+        ):
+            if not unhandled_republished:
+                articles.pop(
+                    candidate["url"],
+                    None,
+                )
+                articles[candidate["url"]] = (
+                    handled_version(version)
+                )
+                changed_state = True
+                continue
+
+        is_new = previous == "__missing__"
+
+        is_update = (
+            isinstance(previous, dict)
+            and previous.get("fingerprint")
+            != version["fingerprint"]
+        )
+
+        if (
+            not is_new
+            and not is_update
+            and not unhandled_republished
+        ):
             continue
 
-        # Vecchi valori null presenti nello stato vengono migrati.
-        # Se l'articolo è recente, viene comunque notificato.
-        if is_legacy_null:
-            if recent_version:
-                send_news_article(
-                    telegram,
-                    candidate,
-                    version,
-                    is_update=republished_old_url,
-                )
+        notify_as_update = (
+            is_update
+            or unseen_old_update
+            or unhandled_republished
+        )
 
-                label = (
-                    "aggiornamento ripubblicato"
-                    if republished_old_url
-                    else "nuova notizia"
-                )
+        send_news_article(
+            telegram,
+            candidate,
+            version,
+            notify_as_update,
+        )
 
-                log_status(
-                    "NEWS",
-                    "FOOTY-HEADLINES",
-                    (
-                        f"notificato {label}: "
-                        f"{version['title']}"
-                    ),
-                )
+        label = (
+            "aggiornamento"
+            if notify_as_update
+            else "nuova notizia"
+        )
 
-                notifications += 1
+        log_status(
+            "NEWS",
+            "FOOTY-HEADLINES",
+            (
+                f"notificato {label}: "
+                f"{version['title']}"
+            ),
+        )
 
-            _save_article(
-                articles,
-                candidate["url"],
-                version,
-            )
-            news_state["initialized"] = True
-            state.save()
-            changed_state = False
-            continue
+        articles.pop(
+            candidate["url"],
+            None,
+        )
+        articles[candidate["url"]] = (
+            handled_version(version)
+        )
 
-        # Articolo mai visto dopo l'inizializzazione.
-        if is_missing:
-            notify_as_update = (
-                republished_not_handled
-                or (
-                    not recent_publication
-                    and recent_version
-                    and appears_in_recent_tab
-                )
-            )
+        _trim_articles(articles)
+        news_state["initialized"] = True
+        state.save()
 
-            should_notify = (
-                recent_publication
-                or notify_as_update
-            )
-
-            if should_notify:
-                send_news_article(
-                    telegram,
-                    candidate,
-                    version,
-                    is_update=notify_as_update,
-                )
-
-                label = (
-                    "aggiornamento"
-                    if notify_as_update
-                    else "nuova notizia"
-                )
-
-                log_status(
-                    "NEWS",
-                    "FOOTY-HEADLINES",
-                    (
-                        f"notificato {label}: "
-                        f"{version['title']}"
-                    ),
-                )
-
-                notifications += 1
-
-            else:
-                log_status(
-                    "NEWS",
-                    "FOOTY-HEADLINES",
-                    (
-                        "articolo mai visto ma non recente, "
-                        f"registrato senza notifica: "
-                        f"{version['title']}"
-                    ),
-                )
-
-            _save_article(
-                articles,
-                candidate["url"],
-                version,
-            )
-            news_state["initialized"] = True
-            state.save()
-            changed_state = False
-            continue
-
-        # Articolo già presente ma modificato.
-        if fingerprint_changed:
-            send_news_article(
-                telegram,
-                candidate,
-                version,
-                is_update=True,
-            )
-
-            log_status(
-                "NEWS",
-                "FOOTY-HEADLINES",
-                (
-                    "notificato aggiornamento: "
-                    f"{version['title']}"
-                ),
-            )
-
-            _save_article(
-                articles,
-                candidate["url"],
-                version,
-            )
-            news_state["initialized"] = True
-            state.save()
-            changed_state = False
-            notifications += 1
-            continue
-
-        # Articolo ripubblicato con URL vecchio, ma stessa impronta
-        # non ancora marcata come gestita.
-        if republished_not_handled:
-            send_news_article(
-                telegram,
-                candidate,
-                version,
-                is_update=True,
-            )
-
-            log_status(
-                "NEWS",
-                "FOOTY-HEADLINES",
-                (
-                    "notificato articolo ripubblicato: "
-                    f"{version['title']}"
-                ),
-            )
-
-            _save_article(
-                articles,
-                candidate["url"],
-                version,
-            )
-            news_state["initialized"] = True
-            state.save()
-            changed_state = False
-            notifications += 1
+        changed_state = False
+        notifications += 1
 
     if successful_checks == 0:
         raise RuntimeError(
@@ -985,7 +548,10 @@ def run(
         state.save()
 
     if notifications == 0:
-        checked = len(page_candidates) + old_candidates
+        checked = (
+            len(page_candidates)
+            + old_candidates
+        )
 
         log_status(
             "NEWS",
