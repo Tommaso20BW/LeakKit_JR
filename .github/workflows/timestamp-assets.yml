@@ -11,7 +11,6 @@ on:
         description: "Ora iniziale (Roma) - HH:MM:SS"
         required: true
         type: string
-        default: "00:00:00"
       scan_end_date:
         description: "Data finale (Roma) - GG/MM/AAAA"
         required: true
@@ -20,7 +19,6 @@ on:
         description: "Ora finale (Roma) - HH:MM:SS"
         required: true
         type: string
-        default: "23:59:59"
       reset_state:
         description: "Avvia un nuovo intervallo e riparti dalla data iniziale"
         required: false
