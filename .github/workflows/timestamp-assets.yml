@@ -1,4 +1,4 @@
-ame: Scanner timestamp asset Juventus
+name: Scanner timestamp asset Juventus
 
 on:
   workflow_dispatch:
@@ -26,7 +26,7 @@ jobs:
   scan:
     name: Cerca immagini secondo per secondo
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    timeout-minutes: 75
 
     env:
       SCAN_START: "2026-08-06 00:00:00"
@@ -35,9 +35,9 @@ jobs:
       CONCURRENCY: "30"
       RETRIES: "3"
       HTTP_TIMEOUT_SECONDS: "25"
-      CHUNK_TIMESTAMPS: "300"
+      CHUNK_TIMESTAMPS: "60"
       CHECKPOINT_EVERY: "1"
-      MAX_RUNTIME_SECONDS: "18000"
+      MAX_RUNTIME_SECONDS: "3600"
       RESET_STATE: ${{ github.event_name == 'workflow_dispatch' && inputs.reset_state || false }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
