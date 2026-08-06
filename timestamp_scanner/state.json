@@ -1,0 +1,16 @@
+{
+  "checked_timestamps": 0,
+  "checked_urls": 0,
+  "completed": false,
+  "final_end": "20260808235959",
+  "found_assets": 0,
+  "last_attempted_timestamp": null,
+  "last_checked_timestamp": null,
+  "last_run": null,
+  "next_timestamp": "20260727000000",
+  "runs": 0,
+  "scan_start": "20260727000000",
+  "timezone": "Europe/Rome",
+  "updated_at_utc": null,
+  "version": 1
+}

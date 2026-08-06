@@ -1,0 +1,10 @@
+[
+  {
+    "name": "categories",
+    "url_template": "https://store.juventus.com/images/juventus/categories/{timestamp}.webp"
+  },
+  {
+    "name": "patch-overlay",
+    "url_template": "https://store.juventus.com/images/juventus/customizations/patch-overlay/{timestamp}.webp"
+  }
+]
