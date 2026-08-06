@@ -241,6 +241,38 @@ def looks_like_image(content: bytes, content_type: str | None) -> bool:
     return False
 
 
+def looks_like_block_page(content: bytes, content_type: str | None) -> bool:
+    """Riconosce le comuni pagine anti-bot restituite con HTTP 200.
+
+    Lo store restituisce anche una normale pagina HTML con status 200 quando
+    un'immagine timestamp non esiste. Quella risposta deve essere trattata
+    come ``missing``. Interrompiamo invece la scansione soltanto quando l'HTML
+    contiene segnali abbastanza chiari di challenge, CAPTCHA o blocco.
+    """
+    normalized_type = (content_type or "").lower()
+    if "html" not in normalized_type and not content.lstrip().lower().startswith(
+        (b"<!doctype html", b"<html")
+    ):
+        return False
+
+    sample = content[:100_000].decode("utf-8", errors="ignore").lower()
+    block_markers = (
+        "cf-chl-",
+        "cloudflare ray id",
+        "checking your browser",
+        "verify you are human",
+        "captcha",
+        "access denied",
+        "request blocked",
+        "bot detection",
+        "px-captcha",
+        "perimeterx",
+        "incapsula",
+        "akamai bot manager",
+    )
+    return any(marker in sample for marker in block_markers)
+
+
 def request_image(
     url: str,
     limiter: GlobalRateLimiter,
@@ -287,12 +319,18 @@ def request_image(
             response.close()
             if looks_like_image(content, content_type):
                 return status, content_type, content, None
-            return (
-                status,
-                content_type,
-                None,
-                f"HTTP 200 ma contenuto non riconosciuto come immagine ({content_type})",
-            )
+            if looks_like_block_page(content, content_type):
+                return (
+                    status,
+                    content_type,
+                    None,
+                    "HTTP 200 con pagina anti-bot/CAPTCHA: scansione sospesa",
+                )
+
+            # Su questo store gli asset inesistenti possono restituire una
+            # normale pagina HTML con status 200 invece di un vero 404.
+            # Nessun errore significa quindi: URL controllato ma immagine assente.
+            return status, content_type, None, None
 
         response.close()
         return (
@@ -324,7 +362,9 @@ def check_timestamp(
             timeout_seconds,
         )
 
-        if status in {404, 410}:
+        if status in {404, 410} or (
+            status == 200 and content is None and error is None
+        ):
             results.append(
                 UrlResult(
                     target=target.name,
