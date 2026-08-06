@@ -8,19 +8,19 @@
   "last_checked_timestamp": null,
   "last_run": {
     "checked_timestamps": 0,
-    "cutoff": "20260806160215",
+    "cutoff": "20260806160253",
     "fatal_error": "20260727000000 [categories] HTTP 200 ma contenuto non riconosciuto come immagine (text/html; charset=UTF-8)",
     "found_assets": 0,
-    "run_id": "31108812662",
-    "scanner_finished_at_utc": "2026-08-06T14:02:51+00:00",
-    "scanner_started_at_utc": "2026-08-06T14:02:35+00:00",
+    "run_id": "31108865312",
+    "scanner_finished_at_utc": "2026-08-06T14:03:37+00:00",
+    "scanner_started_at_utc": "2026-08-06T14:03:22+00:00",
     "stop_reason": "transient_http_error",
-    "workflow_started_at_rome": "2026-08-06T16:02:15+02:00"
+    "workflow_started_at_rome": "2026-08-06T16:02:53+02:00"
   },
   "next_timestamp": "20260727000000",
-  "runs": 1,
+  "runs": 2,
   "scan_start": "20260727000000",
   "timezone": "Europe/Rome",
-  "updated_at_utc": "2026-08-06T14:02:51+00:00",
+  "updated_at_utc": "2026-08-06T14:03:37+00:00",
   "version": 1
 }
