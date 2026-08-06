@@ -226,18 +226,36 @@ def load_state(
         return state
 
     state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
-    if state.get("scan_start") != expected_start:
-        raise RuntimeError(
-            "SCAN_START non coincide con state.json. Avvia manualmente il "
-            "workflow con reset_state=true per ripartire."
-        )
-    if state.get("final_end") != expected_end:
-        raise RuntimeError(
-            "SCAN_FINAL_END non coincide con state.json. Avvia manualmente il "
-            "workflow con reset_state=true per ripartire."
-        )
-    return state
+    stored_start = state.get("scan_start")
+    stored_end = state.get("final_end")
 
+    if stored_start != expected_start:
+        # Una nuova data iniziale indica un nuovo intervallo. Non serve
+        # ricordarsi di attivare reset_state manualmente.
+        print(
+            "[NUOVO INTERVALLO] "
+            f"state.json aveva {stored_start} → {stored_end}; "
+            f"ora userò {expected_start} → {expected_end}. "
+            "Riparto automaticamente dalla nuova data iniziale."
+        )
+        state = new_state(start, final_end)
+        save_json(STATE_PATH, state)
+        return state
+
+    if stored_end != expected_end:
+        # Se cambia soltanto il limite finale, conserva il punto raggiunto.
+        print(
+            "[LIMITE FINALE AGGIORNATO] "
+            f"{stored_end} → {expected_end}; "
+            f"riprendo da {state.get('next_timestamp', expected_start)}."
+        )
+        state["final_end"] = expected_end
+        next_timestamp = state.get("next_timestamp", expected_start)
+        state["completed"] = next_timestamp > expected_end
+        state["updated_at_utc"] = utc_now_iso()
+        save_json(STATE_PATH, state)
+
+    return state
 
 def load_found() -> dict[str, Any]:
     if not FOUND_PATH.exists():
@@ -444,7 +462,8 @@ def extension_for(content_type: str | None) -> str:
 def send_new_asset(
     telegram: TelegramClient,
     result: UrlResult,
-) -> None:
+) -> str:
+    """Invia l'asset come foto o, se necessario, come file originale."""
     if result.content is None:
         raise RuntimeError("Contenuto immagine mancante")
 
@@ -458,12 +477,39 @@ def send_new_asset(
         f"{result.target}-{result.timestamp}"
         f"{extension_for(result.content_type)}"
     )
-    telegram.send_photo_bytes(
-        result.content,
-        filename,
-        caption=caption,
-        mime_type=result.content_type or "image/webp",
-    )
+    mime_type = result.content_type or "image/webp"
+
+    try:
+        telegram.send_photo_bytes(
+            result.content,
+            filename,
+            caption=caption,
+            mime_type=mime_type,
+        )
+        return "photo"
+    except RuntimeError as exc:
+        error_text = str(exc).upper()
+        recoverable_photo_errors = (
+            "PHOTO_INVALID_DIMENSIONS",
+            "IMAGE_PROCESS_FAILED",
+        )
+        if not any(
+            marker in error_text
+            for marker in recoverable_photo_errors
+        ):
+            raise
+
+        print(
+            "[TELEGRAM FALLBACK] Telegram non accetta l'asset come foto "
+            f"({exc}). Lo invio come file originale."
+        )
+        telegram.send_document_bytes(
+            result.content,
+            filename,
+            caption=caption,
+            mime_type=mime_type,
+        )
+        return "document"
 
 
 def pause_after_asset(
@@ -705,18 +751,25 @@ def run_scan(args: argparse.Namespace) -> int:
                                 print(f"[GIÀ INVIATO] {result.url}")
                                 continue
 
-                            send_new_asset(telegram, result)
+                            telegram_mode = send_new_asset(
+                                telegram,
+                                result,
+                            )
                             found["assets"][result.url] = {
                                 "target": result.target,
                                 "timestamp": result.timestamp,
                                 "url": result.url,
                                 "content_type": result.content_type,
+                                "telegram_mode": telegram_mode,
                                 "telegram_sent_at_utc": utc_now_iso(),
                             }
                             found_in_run += 1
                             state["found_assets"] = len(found["assets"])
                             save_json(FOUND_PATH, found)
-                            print(f"[TROVATO E INVIATO] {result.url}")
+                            print(
+                                "[TROVATO E INVIATO] "
+                                f"modalità={telegram_mode} | {result.url}"
+                            )
 
                             # Non esce dal ciclo e non chiude Telegram:
                             # attende e poi continua nello stesso processo.
@@ -837,7 +890,9 @@ def main() -> int:
                 state = json.loads(
                     STATE_PATH.read_text(encoding="utf-8")
                 )
+                previous_last_run = state.get("last_run") or {}
                 state["last_run"] = {
+                    **previous_last_run,
                     "run_id": os.getenv("GITHUB_RUN_ID", "local"),
                     "stop_reason": "fatal_error",
                     "fatal_error": f"{type(exc).__name__}: {exc}",
