@@ -1,4 +1,152 @@
 {
-  "assets": {},
+  "assets": {
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161323.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:25:25+00:00",
+      "timestamp": "20260806161323",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161323.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161325.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:25:26+00:00",
+      "timestamp": "20260806161325",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161325.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161326.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:25:27+00:00",
+      "timestamp": "20260806161326",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161326.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161430.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:25:33+00:00",
+      "timestamp": "20260806161430",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161430.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161431.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:25:34+00:00",
+      "timestamp": "20260806161431",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161431.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161432.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:25:34+00:00",
+      "timestamp": "20260806161432",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161432.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161950.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:06+00:00",
+      "timestamp": "20260806161950",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161950.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161951.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:06+00:00",
+      "timestamp": "20260806161951",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161951.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161952.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:07+00:00",
+      "timestamp": "20260806161952",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161952.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162230.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:25+00:00",
+      "timestamp": "20260806162230",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162230.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162231.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:25+00:00",
+      "timestamp": "20260806162231",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162231.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162232.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:25+00:00",
+      "timestamp": "20260806162232",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162232.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162328.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:31+00:00",
+      "timestamp": "20260806162328",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162328.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162329.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:32+00:00",
+      "timestamp": "20260806162329",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162329.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162330.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:32+00:00",
+      "timestamp": "20260806162330",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162330.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162437.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:40+00:00",
+      "timestamp": "20260806162437",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162437.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162438.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:40+00:00",
+      "timestamp": "20260806162438",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162438.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162439.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:40+00:00",
+      "timestamp": "20260806162439",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162439.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162537.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:48+00:00",
+      "timestamp": "20260806162537",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162537.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162538.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:48+00:00",
+      "timestamp": "20260806162538",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162538.webp"
+    },
+    "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162539.webp": {
+      "content_type": "image/webp",
+      "target": "patch-overlay",
+      "telegram_sent_at_utc": "2026-08-06T22:26:48+00:00",
+      "timestamp": "20260806162539",
+      "url": "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806162539.webp"
+    }
+  },
   "version": 1
 }
