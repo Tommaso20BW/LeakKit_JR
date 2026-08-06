@@ -8,7 +8,7 @@ import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -26,12 +26,11 @@ from telegram_client import TelegramClient  # noqa: E402
 
 TIMESTAMP_FORMAT = "%Y%m%d%H%M%S"
 DISPLAY_FORMAT = "%Y-%m-%d %H:%M:%S"
+ITALIAN_DISPLAY_FORMAT = "%d/%m/%Y %H:%M:%S"
 ROME = ZoneInfo("Europe/Rome")
-
 STATE_PATH = MODULE_DIR / "state.json"
 FOUND_PATH = MODULE_DIR / "found_assets.json"
 TARGETS_PATH = MODULE_DIR / "targets.json"
-
 
 
 @dataclass(frozen=True)
@@ -58,7 +57,7 @@ class UrlResult:
 
 
 class GlobalRateLimiter:
-    """Limite globale condiviso tra tutti i thread."""
+    """Limite globale condiviso tra tutti i thread, con pausa globale."""
 
     def __init__(self, requests_per_second: float) -> None:
         if requests_per_second <= 0:
@@ -66,17 +65,33 @@ class GlobalRateLimiter:
         self._interval = 1.0 / requests_per_second
         self._lock = threading.Lock()
         self._next_request_at = 0.0
+        self._pause_until = 0.0
+
+    def pause(self, seconds: float) -> None:
+        """Blocca l'avvio di nuove richieste per almeno ``seconds`` secondi."""
+        if seconds <= 0:
+            return
+        with self._lock:
+            self._pause_until = max(
+                self._pause_until,
+                time.monotonic() + seconds,
+            )
 
     def wait(self) -> None:
-        with self._lock:
-            now = time.monotonic()
-            delay = self._next_request_at - now
-            if delay > 0:
-                time.sleep(delay)
-            self._next_request_at = max(
-                self._next_request_at,
-                time.monotonic(),
-            ) + self._interval
+        # Il lock non viene mantenuto durante tutta la pausa, così il thread
+        # principale può estendere la pausa appena trova e invia un'immagine.
+        while True:
+            with self._lock:
+                now = time.monotonic()
+                ready_at = max(self._next_request_at, self._pause_until)
+                delay = ready_at - now
+                if delay <= 0:
+                    self._next_request_at = max(
+                        self._next_request_at,
+                        now,
+                    ) + self._interval
+                    return
+            time.sleep(min(delay, 0.25))
 
 
 _thread_local = threading.local()
@@ -122,15 +137,21 @@ def env_bool(name: str, default: bool = False) -> bool:
 
 def parse_local_datetime(value: str) -> datetime:
     value = value.strip()
-    for fmt in (DISPLAY_FORMAT, "%Y-%m-%dT%H:%M:%S", TIMESTAMP_FORMAT):
+    formats = (
+        ITALIAN_DISPLAY_FORMAT,
+        DISPLAY_FORMAT,
+        "%Y-%m-%dT%H:%M:%S",
+        TIMESTAMP_FORMAT,
+    )
+    for fmt in formats:
         try:
             parsed = datetime.strptime(value, fmt)
             return parsed.replace(tzinfo=ROME)
         except ValueError:
             continue
     raise ValueError(
-        f"Data non valida: {value!r}. Usa YYYY-MM-DD HH:MM:SS "
-        "oppure YYYYMMDDHHMMSS."
+        f"Data non valida: {value!r}. Usa GG/MM/AAAA HH:MM:SS, "
+        "YYYY-MM-DD HH:MM:SS oppure YYYYMMDDHHMMSS."
     )
 
 
@@ -240,13 +261,7 @@ def looks_like_image(content: bytes, content_type: str | None) -> bool:
 
 
 def looks_like_block_page(content: bytes, content_type: str | None) -> bool:
-    """Riconosce le comuni pagine anti-bot restituite con HTTP 200.
-
-    Lo store restituisce anche una normale pagina HTML con status 200 quando
-    un'immagine timestamp non esiste. Quella risposta deve essere trattata
-    come ``missing``. Interrompiamo invece la scansione soltanto quando l'HTML
-    contiene segnali abbastanza chiari di challenge, CAPTCHA o blocco.
-    """
+    """Riconosce pagine anti-bot restituite anche con HTTP 200."""
     normalized_type = (content_type or "").lower()
     if "html" not in normalized_type and not content.lstrip().lower().startswith(
         (b"<!doctype html", b"<html")
@@ -324,10 +339,7 @@ def request_image(
                     None,
                     "HTTP 200 con pagina anti-bot/CAPTCHA: scansione sospesa",
                 )
-
-            # Su questo store gli asset inesistenti possono restituire una
-            # normale pagina HTML con status 200 invece di un vero 404.
-            # Nessun errore significa quindi: URL controllato ma immagine assente.
+            # Lo store può restituire normale HTML 200 per un asset inesistente.
             return status, content_type, None, None
 
         response.close()
@@ -400,8 +412,7 @@ def check_timestamp(
                 error=error or "Errore sconosciuto",
             )
         )
-        # Non ha senso interrogare gli altri target dello stesso secondo se il
-        # CDN sta già rispondendo con un errore: quel secondo sarà ritentato.
+        # Se il CDN sta fallendo, questo secondo verrà ritentato.
         break
 
     return results
@@ -443,12 +454,37 @@ def send_new_asset(
         f"Codice: {result.timestamp}\n"
         f"URL: {result.url}"
     )
-    filename = f"{result.target}-{result.timestamp}{extension_for(result.content_type)}"
+    filename = (
+        f"{result.target}-{result.timestamp}"
+        f"{extension_for(result.content_type)}"
+    )
     telegram.send_photo_bytes(
         result.content,
         filename,
         caption=caption,
         mime_type=result.content_type or "image/webp",
+    )
+
+
+def pause_after_asset(
+    limiter: GlobalRateLimiter,
+    seconds: float,
+    result: UrlResult,
+) -> None:
+    """Pausa la scansione senza chiudere il client Telegram o terminare il run."""
+    if seconds <= 0:
+        return
+
+    limiter.pause(seconds)
+    print(
+        "[PAUSA DOPO INVIO] "
+        f"{result.timestamp} [{result.target}] | "
+        f"attendo {seconds:g} secondi senza chiudere il bot..."
+    )
+    time.sleep(seconds)
+    print(
+        "[RIPRESA SCANSIONE] "
+        f"continuo dopo {result.timestamp}; client Telegram ancora attivo."
     )
 
 
@@ -559,9 +595,6 @@ def run_scan(args: argparse.Namespace) -> int:
         return 0
 
     if cursor > run_cutoff:
-        # Il precedente run è già arrivato oltre l'istante in cui questo run è
-        # stato creato. Non si guarda nel futuro: il workflow successivo avrà
-        # un nuovo cutoff.
         set_last_run(
             state,
             run_id=run_id,
@@ -596,12 +629,17 @@ def run_scan(args: argparse.Namespace) -> int:
     chunk_size = env_int("CHUNK_TIMESTAMPS", 300)
     checkpoint_every = max(1, env_int("CHECKPOINT_EVERY", 1))
     max_runtime_seconds = env_int("MAX_RUNTIME_SECONDS", 3_600)
+    pause_after_asset_seconds = max(
+        0.0,
+        env_float("PAUSE_AFTER_ASSET_SECONDS", 20.0),
+    )
 
     print(
         "[TIMESTAMP SCANNER] "
         f"{compact(cursor)} → {compact(run_cutoff)} | "
         f"limite definitivo {compact(final_end)} | "
-        f"{len(targets)} target | {requests_per_second:g} req/s"
+        f"{len(targets)} target | {requests_per_second:g} req/s | "
+        f"pausa dopo asset {pause_after_asset_seconds:g}s"
     )
 
     limiter = GlobalRateLimiter(requests_per_second)
@@ -611,7 +649,7 @@ def run_scan(args: argparse.Namespace) -> int:
     stop_reason = "cutoff_reached"
     fatal_error: str | None = None
 
-    # Il client esistente legge i due secret già configurati nel repository.
+    # Viene creato una volta e chiuso soltanto alla vera fine del run.
     telegram = TelegramClient(dry_run=False)
 
     try:
@@ -635,9 +673,6 @@ def run_scan(args: argparse.Namespace) -> int:
 
                 stop_after_timestamp = False
                 for timestamp, results in zip(chunk, mapped, strict=True):
-                    # Controlla il budget anche durante il blocco. In questo modo
-                    # il run si ferma dopo circa un'ora e conserva come prossimo
-                    # codice il primo timestamp non ancora completato.
                     elapsed = time.monotonic() - started_monotonic
                     if elapsed >= max_runtime_seconds:
                         stop_reason = "time_budget"
@@ -645,8 +680,11 @@ def run_scan(args: argparse.Namespace) -> int:
                         break
 
                     state["last_attempted_timestamp"] = compact(timestamp)
-
-                    errors = [result for result in results if result.status == "error"]
+                    errors = [
+                        result
+                        for result in results
+                        if result.status == "error"
+                    ]
                     if errors:
                         first_error = errors[0]
                         stop_reason = "transient_http_error"
@@ -679,9 +717,17 @@ def run_scan(args: argparse.Namespace) -> int:
                             state["found_assets"] = len(found["assets"])
                             save_json(FOUND_PATH, found)
                             print(f"[TROVATO E INVIATO] {result.url}")
+
+                            # Non esce dal ciclo e non chiude Telegram:
+                            # attende e poi continua nello stesso processo.
+                            pause_after_asset(
+                                limiter,
+                                pause_after_asset_seconds,
+                                result,
+                            )
                     except Exception as exc:
-                        # Non avanziamo il cursore: al prossimo run questo stesso
-                        # timestamp viene riprovato, senza perdere la foto.
+                        # Non avanziamo il cursore: lo stesso timestamp sarà
+                        # riprovato nel run successivo.
                         stop_reason = "telegram_error"
                         fatal_error = f"{compact(timestamp)} Telegram: {exc}"
                         print(f"[ERRORE] {fatal_error}", file=sys.stderr)
@@ -703,9 +749,6 @@ def run_scan(args: argparse.Namespace) -> int:
                         timestamp + timedelta(seconds=1) > final_end
                     )
 
-                    # Per impostazione predefinita registra nel JSON ogni codice
-                    # completato. Il file conserva solo l'ultimo codice, non un
-                    # elenco da milioni di righe.
                     if checked_in_run % checkpoint_every == 0:
                         set_last_run(
                             state,
@@ -727,8 +770,8 @@ def run_scan(args: argparse.Namespace) -> int:
 
                 if stop_after_timestamp:
                     break
-
     finally:
+        # La chiusura avviene qui, non dopo il singolo invio.
         telegram.close()
 
     finished_at_utc = utc_now_iso()
@@ -754,8 +797,8 @@ def run_scan(args: argparse.Namespace) -> int:
         f"cutoff={compact(run_cutoff)}"
     )
 
-    # Gli errori HTTP/Telegram sono trattati come temporanei: il JSON resta sul
-    # primo secondo incompleto e il workflow successivo lo riprova.
+    # Errori HTTP/Telegram temporanei lasciano il cursore sul primo secondo
+    # incompleto e il workflow successivo lo riprova.
     return 0
 
 
@@ -785,12 +828,15 @@ def main() -> int:
             return initialize_state_only(args)
         return run_scan(args)
     except Exception as exc:
-        print(f"[ERRORE FATALE] {type(exc).__name__}: {exc}", file=sys.stderr)
+        print(
+            f"[ERRORE FATALE] {type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
         try:
-            # Segnale leggibile dal workflow per evitare un ciclo infinito in
-            # caso di errore di configurazione o codice.
             if STATE_PATH.exists():
-                state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
+                state = json.loads(
+                    STATE_PATH.read_text(encoding="utf-8")
+                )
                 state["last_run"] = {
                     "run_id": os.getenv("GITHUB_RUN_ID", "local"),
                     "stop_reason": "fatal_error",
