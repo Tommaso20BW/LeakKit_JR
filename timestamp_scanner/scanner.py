@@ -32,7 +32,7 @@ STATE_PATH = MODULE_DIR / "state.json"
 FOUND_PATH = MODULE_DIR / "found_assets.json"
 TARGETS_PATH = MODULE_DIR / "targets.json"
 
-DEFAULT_SCAN_START = "2026-07-27 00:00:00"
+DEFAULT_SCAN_START = "2026-08-06 00:00:00"
 DEFAULT_FINAL_END = "2026-08-08 23:59:59"
 
 
@@ -565,7 +565,7 @@ def run_scan(args: argparse.Namespace) -> int:
     timeout_seconds = env_int("HTTP_TIMEOUT_SECONDS", 25)
     chunk_size = env_int("CHUNK_TIMESTAMPS", 300)
     checkpoint_every = max(1, env_int("CHECKPOINT_EVERY", 1))
-    max_runtime_seconds = env_int("MAX_RUNTIME_SECONDS", 18_000)
+    max_runtime_seconds = env_int("MAX_RUNTIME_SECONDS", 3_600)
 
     print(
         "[TIMESTAMP SCANNER] "
@@ -605,6 +605,15 @@ def run_scan(args: argparse.Namespace) -> int:
 
                 stop_after_timestamp = False
                 for timestamp, results in zip(chunk, mapped, strict=True):
+                    # Controlla il budget anche durante il blocco. In questo modo
+                    # il run si ferma dopo circa un'ora e conserva come prossimo
+                    # codice il primo timestamp non ancora completato.
+                    elapsed = time.monotonic() - started_monotonic
+                    if elapsed >= max_runtime_seconds:
+                        stop_reason = "time_budget"
+                        stop_after_timestamp = True
+                        break
+
                     state["last_attempted_timestamp"] = compact(timestamp)
 
                     errors = [result for result in results if result.status == "error"]
