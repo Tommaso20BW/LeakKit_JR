@@ -9,6 +9,7 @@ if str(ROOT) not in sys.path:
 
 from timestamp_scanner.scanner import (  # noqa: E402
     ROME,
+    GlobalRateLimiter,
     Target,
     compact,
     parse_local_datetime,
@@ -19,6 +20,10 @@ from timestamp_scanner.scanner import (  # noqa: E402
 class ScannerTests(unittest.TestCase):
     def test_compact_timestamp_includes_seconds(self) -> None:
         value = parse_local_datetime("2026-05-12 10:37:59")
+        self.assertEqual(compact(value), "20260512103759")
+
+    def test_italian_date_format(self) -> None:
+        value = parse_local_datetime("12/05/2026 10:37:59")
         self.assertEqual(compact(value), "20260512103759")
 
     def test_target_url(self) -> None:
@@ -39,8 +44,13 @@ class ScannerTests(unittest.TestCase):
         )
 
     def test_final_timestamp_has_seconds(self) -> None:
-        value = parse_local_datetime("2026-08-08 23:59:59")
+        value = parse_local_datetime("08/08/2026 23:59:59")
         self.assertEqual(compact(value), "20260808235959")
+
+    def test_pause_can_be_scheduled(self) -> None:
+        limiter = GlobalRateLimiter(20)
+        limiter.pause(0)
+        limiter.wait()
 
 
 if __name__ == "__main__":
