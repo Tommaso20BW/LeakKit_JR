@@ -32,8 +32,6 @@ STATE_PATH = MODULE_DIR / "state.json"
 FOUND_PATH = MODULE_DIR / "found_assets.json"
 TARGETS_PATH = MODULE_DIR / "targets.json"
 
-DEFAULT_SCAN_START = "2026-08-06 00:00:00"
-DEFAULT_FINAL_END = "2026-08-08 23:59:59"
 
 
 @dataclass(frozen=True)
@@ -482,12 +480,15 @@ def set_last_run(
 
 
 def run_scan(args: argparse.Namespace) -> int:
-    scan_start = parse_local_datetime(
-        os.getenv("SCAN_START", DEFAULT_SCAN_START)
-    )
-    final_end = parse_local_datetime(
-        os.getenv("SCAN_FINAL_END", DEFAULT_FINAL_END)
-    )
+    raw_scan_start = os.getenv("SCAN_START", "").strip()
+    raw_final_end = os.getenv("SCAN_FINAL_END", "").strip()
+    if not raw_scan_start or not raw_final_end:
+        raise ValueError(
+            "Devi indicare SCAN_START e SCAN_FINAL_END nel workflow."
+        )
+
+    scan_start = parse_local_datetime(raw_scan_start)
+    final_end = parse_local_datetime(raw_final_end)
     workflow_started_at = parse_workflow_started_at(
         os.getenv("RUN_STARTED_AT_UTC")
     )
