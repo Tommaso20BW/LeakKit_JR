@@ -7,20 +7,15 @@
   "last_attempted_timestamp": "20260727000000",
   "last_checked_timestamp": null,
   "last_run": {
-    "checked_timestamps": 0,
-    "cutoff": "20260806160340",
-    "fatal_error": "20260727000000 [categories] HTTP 200 ma contenuto non riconosciuto come immagine (text/html; charset=UTF-8)",
-    "found_assets": 0,
-    "run_id": "31108929330",
-    "scanner_finished_at_utc": "2026-08-06T14:04:21+00:00",
-    "scanner_started_at_utc": "2026-08-06T14:04:06+00:00",
-    "stop_reason": "transient_http_error",
-    "workflow_started_at_rome": "2026-08-06T16:03:40+02:00"
+    "fatal_error": "ValueError: Data non valida: '2026-08-06-00-00-00'. Usa YYYY-MM-DD HH:MM:SS oppure YYYYMMDDHHMMSS.",
+    "run_id": "31110906702",
+    "scanner_finished_at_utc": "2026-08-06T14:27:47+00:00",
+    "stop_reason": "fatal_error"
   },
   "next_timestamp": "20260727000000",
   "runs": 3,
   "scan_start": "20260727000000",
   "timezone": "Europe/Rome",
-  "updated_at_utc": "2026-08-06T14:04:21+00:00",
+  "updated_at_utc": "2026-08-06T14:27:47+00:00",
   "version": 1
 }
