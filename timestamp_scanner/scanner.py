@@ -479,6 +479,35 @@ def set_last_run(
     state["updated_at_utc"] = finished_at_utc or utc_now_iso()
 
 
+def initialize_state_only(args: argparse.Namespace) -> int:
+    """Valida l'intervallo e lo salva prima di iniziare le richieste."""
+    raw_scan_start = os.getenv("SCAN_START", "").strip()
+    raw_final_end = os.getenv("SCAN_FINAL_END", "").strip()
+    if not raw_scan_start or not raw_final_end:
+        raise ValueError(
+            "Devi indicare SCAN_START e SCAN_FINAL_END nel workflow."
+        )
+
+    scan_start = parse_local_datetime(raw_scan_start)
+    final_end = parse_local_datetime(raw_final_end)
+    if scan_start > final_end:
+        raise ValueError("SCAN_START deve essere precedente a SCAN_FINAL_END")
+
+    reset = args.reset_state or env_bool("RESET_STATE")
+    is_new_interval = reset or not STATE_PATH.exists()
+    state = load_state(scan_start, final_end, reset=reset)
+    if is_new_interval:
+        state["updated_at_utc"] = utc_now_iso()
+        save_json(STATE_PATH, state)
+
+    print(
+        "[TIMESTAMP SCANNER] Intervallo inizializzato | "
+        f"inizio={state['scan_start']} | fine={state['final_end']} | "
+        f"prossimo={state['next_timestamp']} | reset={str(reset).lower()}"
+    )
+    return 0
+
+
 def run_scan(args: argparse.Namespace) -> int:
     raw_scan_start = os.getenv("SCAN_START", "").strip()
     raw_final_end = os.getenv("SCAN_FINAL_END", "").strip()
@@ -744,9 +773,16 @@ def main() -> int:
         action="store_true",
         help="Riparte da SCAN_START preservando gli asset già inviati",
     )
+    parser.add_argument(
+        "--initialize-state",
+        action="store_true",
+        help="Salva e valida l'intervallo senza effettuare richieste",
+    )
     args = parser.parse_args()
 
     try:
+        if args.initialize_state:
+            return initialize_state_only(args)
         return run_scan(args)
     except Exception as exc:
         print(f"[ERRORE FATALE] {type(exc).__name__}: {exc}", file=sys.stderr)
