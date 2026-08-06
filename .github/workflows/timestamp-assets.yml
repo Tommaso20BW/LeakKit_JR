@@ -3,13 +3,21 @@ name: Scanner timestamp asset Juventus
 on:
   workflow_dispatch:
     inputs:
+      scan_start:
+        description: "Data/ora iniziale (Roma) - YYYY-MM-DD HH:MM:SS"
+        required: true
+        type: string
+      scan_end:
+        description: "Data/ora finale (Roma) - YYYY-MM-DD HH:MM:SS"
+        required: true
+        type: string
       reset_state:
-        description: "Riparti dal 06/08/2026 preservando le foto già inviate"
+        description: "Avvia un nuovo intervallo e riparti dalla data iniziale"
         required: false
         type: boolean
         default: false
       dry_run:
-        description: "Mostra soltanto l'intervallo del run"
+        description: "Mostra soltanto l'intervallo senza fare richieste"
         required: false
         type: boolean
         default: false
@@ -29,8 +37,8 @@ jobs:
     timeout-minutes: 75
 
     env:
-      SCAN_START: "2026-08-06 00:00:00"
-      SCAN_FINAL_END: "2026-08-08 23:59:59"
+      SCAN_START: ${{ inputs.scan_start }}
+      SCAN_FINAL_END: ${{ inputs.scan_end }}
       REQUESTS_PER_SECOND: "20"
       CONCURRENCY: "30"
       RETRIES: "3"
@@ -38,7 +46,7 @@ jobs:
       CHUNK_TIMESTAMPS: "60"
       CHECKPOINT_EVERY: "1"
       MAX_RUNTIME_SECONDS: "3600"
-      RESET_STATE: ${{ github.event_name == 'workflow_dispatch' && inputs.reset_state || false }}
+      RESET_STATE: ${{ inputs.reset_state }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
@@ -76,7 +84,9 @@ jobs:
       - name: Controlla sintassi e test
         run: |
           python -m py_compile timestamp_scanner/scanner.py
-          python -m unittest discover -s timestamp_scanner/tests -v
+          if [[ -d timestamp_scanner/tests ]]; then
+            python -m unittest discover -s timestamp_scanner/tests -v
+          fi
 
       - name: Scansiona fino all'istante di avvio del run
         id: scanner
@@ -84,7 +94,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          if [[ "${{ inputs.dry_run || false }}" == "true" ]]; then
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
             python -u timestamp_scanner/scanner.py --dry-run
           else
             python -u timestamp_scanner/scanner.py
@@ -92,7 +102,7 @@ jobs:
 
       - name: Salva il codice raggiunto e le foto inviate
         id: save_state
-        if: ${{ always() && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        if: ${{ always() && !inputs.dry_run }}
         shell: bash
         run: |
           set -euo pipefail
@@ -122,7 +132,7 @@ jobs:
 
       - name: Decidi se avviare subito il run successivo
         id: continuation
-        if: ${{ always() && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        if: ${{ always() && !inputs.dry_run }}
         env:
           SCANNER_OUTCOME: ${{ steps.scanner.outcome }}
           SAVE_OUTCOME: ${{ steps.save_state.outcome }}
@@ -151,6 +161,8 @@ jobs:
           print(f"fatal={'true' if fatal else 'false'}")
           print(f"next_timestamp={state.get('next_timestamp', '')}")
           print(f"stop_reason={last_run.get('stop_reason', '')}")
+          print(f"scan_start={state.get('scan_start', '')}")
+          print(f"scan_end={state.get('final_end', '')}")
           PY
 
       - name: Avvia immediatamente il workflow successivo
@@ -160,14 +172,24 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          echo "Intervallo mantenuto: ${{ steps.continuation.outputs.scan_start }} → ${{ steps.continuation.outputs.scan_end }}"
           echo "Prossimo codice: ${{ steps.continuation.outputs.next_timestamp }}"
           echo "Motivo fine run: ${{ steps.continuation.outputs.stop_reason }}"
-          gh workflow run timestamp-assets.yml --ref "${GITHUB_REF_NAME}"
-          echo "Workflow successivo richiesto."
+
+          gh workflow run timestamp-assets.yml \
+            --ref "${GITHUB_REF_NAME}" \
+            -f "scan_start=${{ steps.continuation.outputs.scan_start }}" \
+            -f "scan_end=${{ steps.continuation.outputs.scan_end }}" \
+            -f "reset_state=false" \
+            -f "dry_run=false"
+
+          echo "Workflow successivo richiesto con lo stesso intervallo."
 
       - name: Intervallo definitivo completato
         if: ${{ steps.continuation.outputs.completed == 'true' }}
-        run: echo "Scansione completata fino al 08/08/2026 23:59:59. Nessun altro run verrà avviato."
+        run: |
+          echo "Scansione completata fino a ${{ steps.continuation.outputs.scan_end }}."
+          echo "Nessun altro run verrà avviato."
 
       - name: Ferma la catena in caso di errore fatale
         if: ${{ steps.continuation.outputs.fatal == 'true' || steps.scanner.outcome == 'failure' || steps.save_state.outcome == 'failure' }}
