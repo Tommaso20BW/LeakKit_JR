@@ -3,14 +3,24 @@ name: Scanner timestamp asset Juventus
 on:
   workflow_dispatch:
     inputs:
-      scan_start:
-        description: "Data/ora iniziale (Roma) - YYYY-MM-DD HH:MM:SS"
+      scan_start_date:
+        description: "Data iniziale (Roma) - GG/MM/AAAA"
         required: true
         type: string
-      scan_end:
-        description: "Data/ora finale (Roma) - YYYY-MM-DD HH:MM:SS"
+      scan_start_time:
+        description: "Ora iniziale (Roma) - HH:MM:SS"
         required: true
         type: string
+        default: "00:00:00"
+      scan_end_date:
+        description: "Data finale (Roma) - GG/MM/AAAA"
+        required: true
+        type: string
+      scan_end_time:
+        description: "Ora finale (Roma) - HH:MM:SS"
+        required: true
+        type: string
+        default: "23:59:59"
       reset_state:
         description: "Avvia un nuovo intervallo e riparti dalla data iniziale"
         required: false
@@ -37,8 +47,8 @@ jobs:
     timeout-minutes: 75
 
     env:
-      SCAN_START: ${{ inputs.scan_start }}
-      SCAN_FINAL_END: ${{ inputs.scan_end }}
+      SCAN_START: "${{ inputs.scan_start_date }} ${{ inputs.scan_start_time }}"
+      SCAN_FINAL_END: "${{ inputs.scan_end_date }} ${{ inputs.scan_end_time }}"
       REQUESTS_PER_SECOND: "20"
       CONCURRENCY: "30"
       RETRIES: "3"
@@ -46,6 +56,7 @@ jobs:
       CHUNK_TIMESTAMPS: "60"
       CHECKPOINT_EVERY: "1"
       MAX_RUNTIME_SECONDS: "3600"
+      PAUSE_AFTER_ASSET_SECONDS: "20"
       RESET_STATE: ${{ inputs.reset_state }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -88,43 +99,6 @@ jobs:
             python -m unittest discover -s timestamp_scanner/tests -v
           fi
 
-      - name: Inizializza subito l'intervallo scelto
-        if: ${{ !inputs.dry_run }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -u timestamp_scanner/scanner.py --initialize-state
-
-      - name: Pubblica subito le date in state.json
-        if: ${{ !inputs.dry_run }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add timestamp_scanner/state.json
-
-          if git diff --cached --quiet; then
-            echo "Intervallo già presente nel JSON: nessun commit iniziale necessario."
-            exit 0
-          fi
-
-          git commit -m "Imposta intervallo scanner timestamp"
-
-          for attempt in 1 2 3; do
-            git pull --rebase origin "${GITHUB_REF_NAME}"
-            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
-              echo "Date iniziale e finale salvate subito nel repository."
-              exit 0
-            fi
-            echo "Push iniziale fallito al tentativo ${attempt}; riprovo."
-            sleep 5
-          done
-
-          echo "Impossibile pubblicare subito l'intervallo dopo 3 tentativi."
-          exit 1
-
       - name: Scansiona fino all'istante di avvio del run
         id: scanner
         continue-on-error: true
@@ -147,7 +121,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add timestamp_scanner/state.json timestamp_scanner/found_assets.json
-
           if git diff --cached --quiet; then
             echo "Nessuna modifica da salvare."
             exit 0
@@ -178,6 +151,7 @@ jobs:
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           import os
+          from datetime import datetime
           from pathlib import Path
 
           state = json.loads(
@@ -193,13 +167,18 @@ jobs:
           )
           should_continue = not state.get("completed", False) and not fatal
 
+          start = datetime.strptime(state["scan_start"], "%Y%m%d%H%M%S")
+          end = datetime.strptime(state["final_end"], "%Y%m%d%H%M%S")
+
           print(f"continue={'true' if should_continue else 'false'}")
           print(f"completed={'true' if state.get('completed', False) else 'false'}")
           print(f"fatal={'true' if fatal else 'false'}")
           print(f"next_timestamp={state.get('next_timestamp', '')}")
           print(f"stop_reason={last_run.get('stop_reason', '')}")
-          print(f"scan_start={state.get('scan_start', '')}")
-          print(f"scan_end={state.get('final_end', '')}")
+          print(f"scan_start_date={start.strftime('%d/%m/%Y')}")
+          print(f"scan_start_time={start.strftime('%H:%M:%S')}")
+          print(f"scan_end_date={end.strftime('%d/%m/%Y')}")
+          print(f"scan_end_time={end.strftime('%H:%M:%S')}")
           PY
 
       - name: Avvia immediatamente il workflow successivo
@@ -209,14 +188,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "Intervallo mantenuto: ${{ steps.continuation.outputs.scan_start }} → ${{ steps.continuation.outputs.scan_end }}"
           echo "Prossimo codice: ${{ steps.continuation.outputs.next_timestamp }}"
           echo "Motivo fine run: ${{ steps.continuation.outputs.stop_reason }}"
 
           gh workflow run timestamp-assets.yml \
             --ref "${GITHUB_REF_NAME}" \
-            -f "scan_start=${{ steps.continuation.outputs.scan_start }}" \
-            -f "scan_end=${{ steps.continuation.outputs.scan_end }}" \
+            -f "scan_start_date=${{ steps.continuation.outputs.scan_start_date }}" \
+            -f "scan_start_time=${{ steps.continuation.outputs.scan_start_time }}" \
+            -f "scan_end_date=${{ steps.continuation.outputs.scan_end_date }}" \
+            -f "scan_end_time=${{ steps.continuation.outputs.scan_end_time }}" \
             -f "reset_state=false" \
             -f "dry_run=false"
 
@@ -225,7 +205,7 @@ jobs:
       - name: Intervallo definitivo completato
         if: ${{ steps.continuation.outputs.completed == 'true' }}
         run: |
-          echo "Scansione completata fino a ${{ steps.continuation.outputs.scan_end }}."
+          echo "Scansione completata fino a ${{ steps.continuation.outputs.scan_end_date }} ${{ steps.continuation.outputs.scan_end_time }}."
           echo "Nessun altro run verrà avviato."
 
       - name: Ferma la catena in caso di errore fatale
@@ -233,3 +213,62 @@ jobs:
         run: |
           echo "Errore fatale dello scanner. Stato salvato, ma la catena automatica è stata fermata."
           exit 1
+
+      - name: Pulisci la cronologia dei run
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          echo "Recupero l'ID del workflow corrente..."
+          WORKFLOW_ID="$(
+            gh api \
+              "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}" \
+              --jq '.workflow_id'
+          )"
+
+          if [ -z "$WORKFLOW_ID" ]; then
+            echo "::error::Impossibile recuperare l'ID del workflow."
+            exit 1
+          fi
+
+          echo "Workflow ID: ${WORKFLOW_ID}"
+          echo "Cerco tutti i run completati..."
+
+          FOUND_RUNS=0
+          DELETED_RUNS=0
+          FAILED_RUNS=0
+
+          while read -r RUN_ID; do
+            if [ -z "$RUN_ID" ]; then
+              continue
+            fi
+
+            FOUND_RUNS=$((FOUND_RUNS + 1))
+            echo "Elimino il run ${RUN_ID}..."
+
+            if gh api \
+              --method DELETE \
+              "repos/${REPOSITORY}/actions/runs/${RUN_ID}"
+            then
+              DELETED_RUNS=$((DELETED_RUNS + 1))
+              echo "Run ${RUN_ID} eliminato."
+            else
+              FAILED_RUNS=$((FAILED_RUNS + 1))
+              echo "::warning::Impossibile eliminare il run ${RUN_ID}."
+            fi
+          done < <(
+            gh api \
+              --paginate \
+              "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100" \
+              --jq '.workflow_runs[].id'
+          )
+
+          echo "Pulizia completata."
+          echo "Run trovati: ${FOUND_RUNS}"
+          echo "Run eliminati: ${DELETED_RUNS}"
+          echo "Eliminazioni fallite: ${FAILED_RUNS}"
