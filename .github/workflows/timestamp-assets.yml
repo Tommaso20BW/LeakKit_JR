@@ -1,0 +1,176 @@
+name: Scanner timestamp asset Juventus
+
+on:
+  workflow_dispatch:
+    inputs:
+      reset_state:
+        description: "Riparti dal 27/07/2026 preservando le foto già inviate"
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: "Mostra soltanto l'intervallo del run"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: leakkit-timestamp-assets
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: Cerca immagini secondo per secondo
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    env:
+      SCAN_START: "2026-07-27 00:00:00"
+      SCAN_FINAL_END: "2026-08-08 23:59:59"
+      REQUESTS_PER_SECOND: "20"
+      CONCURRENCY: "30"
+      RETRIES: "3"
+      HTTP_TIMEOUT_SECONDS: "25"
+      CHUNK_TIMESTAMPS: "300"
+      CHECKPOINT_EVERY: "1"
+      MAX_RUNTIME_SECONDS: "18000"
+      RESET_STATE: ${{ github.event_name == 'workflow_dispatch' && inputs.reset_state || false }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      - name: Scarica il repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Configura Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Installa le dipendenze già usate da LeakKit
+        run: |
+          python -m pip install --upgrade pip==26.1.2
+          python -m pip install -r requirements.txt
+
+      - name: Leggi l'istante esatto di avvio del workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUN_STARTED_AT_UTC="$(
+            gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}" --jq '.created_at'
+          )"
+          echo "RUN_STARTED_AT_UTC=${RUN_STARTED_AT_UTC}" >> "$GITHUB_ENV"
+          echo "Cutoff UTC del run: ${RUN_STARTED_AT_UTC}"
+
+      - name: Controlla sintassi e test
+        run: |
+          python -m py_compile timestamp_scanner/scanner.py
+          python -m unittest discover -s timestamp_scanner/tests -v
+
+      - name: Scansiona fino all'istante di avvio del run
+        id: scanner
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          if [[ "${{ inputs.dry_run || false }}" == "true" ]]; then
+            python -u timestamp_scanner/scanner.py --dry-run
+          else
+            python -u timestamp_scanner/scanner.py
+          fi
+
+      - name: Salva il codice raggiunto e le foto inviate
+        id: save_state
+        if: ${{ always() && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add timestamp_scanner/state.json timestamp_scanner/found_assets.json
+
+          if git diff --cached --quiet; then
+            echo "Nessuna modifica da salvare."
+            exit 0
+          fi
+
+          git commit -m "Aggiorna avanzamento scanner timestamp"
+
+          for attempt in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            echo "Push fallito al tentativo ${attempt}; riprovo."
+            sleep 5
+          done
+
+          echo "Impossibile salvare lo stato dopo 3 tentativi."
+          exit 1
+
+      - name: Decidi se avviare subito il run successivo
+        id: continuation
+        if: ${{ always() && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        env:
+          SCANNER_OUTCOME: ${{ steps.scanner.outcome }}
+          SAVE_OUTCOME: ${{ steps.save_state.outcome }}
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+          from pathlib import Path
+
+          state = json.loads(
+              Path("timestamp_scanner/state.json").read_text(encoding="utf-8")
+          )
+          last_run = state.get("last_run") or {}
+          scanner_failed = os.environ.get("SCANNER_OUTCOME") != "success"
+          save_failed = os.environ.get("SAVE_OUTCOME") != "success"
+          fatal = (
+              scanner_failed
+              or save_failed
+              or last_run.get("stop_reason") == "fatal_error"
+          )
+          should_continue = not state.get("completed", False) and not fatal
+
+          print(f"continue={'true' if should_continue else 'false'}")
+          print(f"completed={'true' if state.get('completed', False) else 'false'}")
+          print(f"fatal={'true' if fatal else 'false'}")
+          print(f"next_timestamp={state.get('next_timestamp', '')}")
+          print(f"stop_reason={last_run.get('stop_reason', '')}")
+          PY
+
+      - name: Avvia immediatamente il workflow successivo
+        if: ${{ steps.continuation.outputs.continue == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Prossimo codice: ${{ steps.continuation.outputs.next_timestamp }}"
+          echo "Motivo fine run: ${{ steps.continuation.outputs.stop_reason }}"
+          gh workflow run timestamp-assets.yml --ref "${GITHUB_REF_NAME}"
+          echo "Workflow successivo richiesto."
+
+      - name: Intervallo definitivo completato
+        if: ${{ steps.continuation.outputs.completed == 'true' }}
+        run: echo "Scansione completata fino al 08/08/2026 23:59:59. Nessun altro run verrà avviato."
+
+      - name: Ferma la catena in caso di errore fatale
+        if: ${{ steps.continuation.outputs.fatal == 'true' || steps.scanner.outcome == 'failure' || steps.save_state.outcome == 'failure' }}
+        run: |
+          echo "Errore fatale dello scanner. Stato salvato, ma la catena automatica è stata fermata."
+          exit 1
