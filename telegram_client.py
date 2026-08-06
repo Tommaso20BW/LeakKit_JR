@@ -202,6 +202,55 @@ class TelegramClient:
             timeout=60,
         )
 
+
+    def send_document_bytes(
+        self,
+        content: bytes,
+        filename: str,
+        caption: str = "",
+        mime_type: str = "application/octet-stream",
+    ) -> Any:
+        """Invia un file originale come documento Telegram."""
+        if not content:
+            raise ValueError(
+                f"Il file {filename!r} non contiene dati."
+            )
+
+        if not filename:
+            raise ValueError(
+                "Il nome del file non può essere vuoto."
+            )
+
+        if self.dry_run:
+            print(
+                f"[DRY RUN][TELEGRAM DOCUMENT] "
+                f"file={filename} "
+                f"bytes={len(content)} "
+                f"mime={mime_type} "
+                f"caption={caption!r}"
+            )
+            return None
+
+        data: dict[str, Any] = {
+            "chat_id": str(self.chat_id),
+        }
+
+        if caption:
+            data["caption"] = caption
+
+        return self._post(
+            "sendDocument",
+            data=data,
+            files={
+                "document": (
+                    filename,
+                    content,
+                    mime_type,
+                ),
+            },
+            timeout=120,
+        )
+
     def send_media_group_bytes(
         self,
         images: list[tuple[bytes, str, str, str]],
