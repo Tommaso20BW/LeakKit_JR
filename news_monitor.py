@@ -225,6 +225,20 @@ def _trim_articles(articles: dict[str, Any]) -> None:
         articles.pop(url, None)
 
 
+def _is_permanently_missing_tracked_article(
+    candidate: dict[str, Any],
+    error: Exception,
+) -> bool:
+    """Riconosce un vecchio URL tracciato che non esiste più sul sito."""
+    if "tracked" not in candidate.get("sources", []):
+        return False
+    if not isinstance(error, requests.HTTPError):
+        return False
+
+    response = error.response
+    return response is not None and response.status_code in {404, 410}
+
+
 def run(state: StateStore, telegram: TelegramClient) -> None:
     news_state = state.section("news")
     articles = news_state.setdefault("articles", {})
@@ -263,6 +277,20 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
         try:
             version = fetch_article_version(candidate)
         except (requests.RequestException, RuntimeError) as error:
+            if _is_permanently_missing_tracked_article(candidate, error):
+                status_code = error.response.status_code
+                articles.pop(candidate["url"], None)
+                changed_state = True
+                log_status(
+                    "NEWS",
+                    "FOOTY-HEADLINES",
+                    (
+                        f"rimosso dallo stato '{candidate['title']}' "
+                        f"(HTTP {status_code}: articolo non più disponibile)"
+                    ),
+                )
+                continue
+
             log_status(
                 "NEWS",
                 "FOOTY-HEADLINES",
