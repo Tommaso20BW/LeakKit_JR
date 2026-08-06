@@ -88,6 +88,43 @@ jobs:
             python -m unittest discover -s timestamp_scanner/tests -v
           fi
 
+      - name: Inizializza subito l'intervallo scelto
+        if: ${{ !inputs.dry_run }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u timestamp_scanner/scanner.py --initialize-state
+
+      - name: Pubblica subito le date in state.json
+        if: ${{ !inputs.dry_run }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add timestamp_scanner/state.json
+
+          if git diff --cached --quiet; then
+            echo "Intervallo già presente nel JSON: nessun commit iniziale necessario."
+            exit 0
+          fi
+
+          git commit -m "Imposta intervallo scanner timestamp"
+
+          for attempt in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Date iniziale e finale salvate subito nel repository."
+              exit 0
+            fi
+            echo "Push iniziale fallito al tentativo ${attempt}; riprovo."
+            sleep 5
+          done
+
+          echo "Impossibile pubblicare subito l'intervallo dopo 3 tentativi."
+          exit 1
+
       - name: Scansiona fino all'istante di avvio del run
         id: scanner
         continue-on-error: true
