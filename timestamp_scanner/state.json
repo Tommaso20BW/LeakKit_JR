@@ -7,15 +7,20 @@
   "last_attempted_timestamp": "20260806162654",
   "last_checked_timestamp": "20260806162653",
   "last_run": {
-    "fatal_error": "RuntimeError: SCAN_START non coincide con state.json. Avvia manualmente il workflow con reset_state=true per ripartire.",
-    "run_id": "31129949136",
-    "scanner_finished_at_utc": "2026-08-06T23:09:14+00:00",
-    "stop_reason": "fatal_error"
+    "checked_timestamps": 0,
+    "cutoff": "20260807011134",
+    "fatal_error": "20260806162654 Telegram: Telegram sendPhoto: Bad Request: PHOTO_INVALID_DIMENSIONS",
+    "found_assets": 0,
+    "run_id": "31130110252",
+    "scanner_finished_at_utc": "2026-08-06T23:12:13+00:00",
+    "scanner_started_at_utc": "2026-08-06T23:12:07+00:00",
+    "stop_reason": "telegram_error",
+    "workflow_started_at_rome": "2026-08-07T01:11:34+02:00"
   },
   "next_timestamp": "20260806162654",
-  "runs": 23,
+  "runs": 24,
   "scan_start": "20260806000000",
   "timezone": "Europe/Rome",
-  "updated_at_utc": "2026-08-06T23:09:14+00:00",
+  "updated_at_utc": "2026-08-06T23:12:13+00:00",
   "version": 1
 }
