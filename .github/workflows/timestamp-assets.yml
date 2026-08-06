@@ -1,10 +1,10 @@
-name: Scanner timestamp asset Juventus
+ame: Scanner timestamp asset Juventus
 
 on:
   workflow_dispatch:
     inputs:
       reset_state:
-        description: "Riparti dal 27/07/2026 preservando le foto già inviate"
+        description: "Riparti dal 06/08/2026 preservando le foto già inviate"
         required: false
         type: boolean
         default: false
@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 350
 
     env:
-      SCAN_START: "2026-07-27 00:00:00"
+      SCAN_START: "2026-08-06 00:00:00"
       SCAN_FINAL_END: "2026-08-08 23:59:59"
       REQUESTS_PER_SECOND: "20"
       CONCURRENCY: "30"
