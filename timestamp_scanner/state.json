@@ -8,19 +8,19 @@
   "last_checked_timestamp": "20260806162653",
   "last_run": {
     "checked_timestamps": 0,
-    "cutoff": "20260807011134",
+    "cutoff": "20260807011216",
     "fatal_error": "20260806162654 Telegram: Telegram sendPhoto: Bad Request: PHOTO_INVALID_DIMENSIONS",
     "found_assets": 0,
-    "run_id": "31130110252",
-    "scanner_finished_at_utc": "2026-08-06T23:12:13+00:00",
-    "scanner_started_at_utc": "2026-08-06T23:12:07+00:00",
+    "run_id": "31130152677",
+    "scanner_finished_at_utc": "2026-08-06T23:12:44+00:00",
+    "scanner_started_at_utc": "2026-08-06T23:12:37+00:00",
     "stop_reason": "telegram_error",
-    "workflow_started_at_rome": "2026-08-07T01:11:34+02:00"
+    "workflow_started_at_rome": "2026-08-07T01:12:16+02:00"
   },
   "next_timestamp": "20260806162654",
-  "runs": 24,
+  "runs": 25,
   "scan_start": "20260806000000",
   "timezone": "Europe/Rome",
-  "updated_at_utc": "2026-08-06T23:12:13+00:00",
+  "updated_at_utc": "2026-08-06T23:12:44+00:00",
   "version": 1
 }
