@@ -1,76 +1,49 @@
-# Scanner timestamp asset Juventus
+Aggiornamento timestamp scanner
 
-Questa cartella è indipendente dagli altri monitor di `LeakKit_JR` e usa un workflow separato:
+Sostituisci nel repository i tre file mantenendo esattamente questi percorsi:
 
-```text
 .github/workflows/timestamp-assets.yml
-```
 
-Controlla, secondo per secondo:
+timestamp_scanner/scanner.py
 
-```text
-https://store.juventus.com/images/juventus/categories/YYYYMMDDHHMMSS.webp
-https://store.juventus.com/images/juventus/customizations/patch-overlay/YYYYMMDDHHMMSS.webp
-```
+timestamp_scanner/tests/test_scanner.py
 
-## Logica dei workflow concatenati
+Comportamento nuovo
 
-1. Il primo run parte manualmente.
-2. Appena parte, il workflow legge da GitHub il proprio `created_at`.
-3. Quel momento viene congelato come limite superiore del run.
-4. Lo scanner parte dal valore `next_timestamp` salvato in `state.json`.
-5. Non controlla mai timestamp successivi all'avvio di quel run.
-6. Alla fine salva e committa il nuovo `next_timestamp`.
-7. Subito dopo richiede un nuovo run dello stesso workflow.
-8. Il nuovo run congela un nuovo limite all'istante in cui viene creato.
-9. La catena si ferma automaticamente dopo `20260808235959`.
+Quando viene trovata una nuova immagine:
 
-Se un run raggiunge il proprio budget di esecuzione prima del cutoff, salva comunque il punto raggiunto e avvia il successivo. Questo evita il limite massimo dei runner GitHub senza saltare timestamp.
+viene inviata immediatamente su Telegram;
 
-## JSON di avanzamento
+viene salvata in found_assets.json;
 
-`state.json` non contiene un elenco da oltre un milione di codici. Registra dopo ogni timestamp completato:
+il processo resta aperto;
 
-- `last_checked_timestamp`: ultimo codice completato;
-- `next_timestamp`: primo codice da controllare al run successivo;
-- `last_attempted_timestamp`: ultimo codice tentato;
-- contatori e motivo di arresto dell'ultimo run.
+il client Telegram non viene chiuso;
 
-Il valore predefinito `CHECKPOINT_EVERY: "1"` aggiorna localmente il JSON dopo ogni singolo timestamp. Alla fine del workflow il file viene committato nel repository.
+la scansione attende 20 secondi;
 
-## Telegram
+riprende nello stesso run dal flusso già in corso.
 
-Viene riutilizzato direttamente il file già presente nella root:
+La pausa è configurata nel workflow con:
 
-```text
-telegram_client.py
-```
+PAUSE_AFTER_ASSET_SECONDS: "20"
 
-Il workflow usa gli stessi secret già configurati:
+Inserimento intervallo
 
-```text
-TELEGRAM_BOT_TOKEN
-TELEGRAM_CHAT_ID
-```
+Nel pulsante Run workflow compaiono quattro campi:
 
-Quando trova una foto:
+data iniziale: GG/MM/AAAA
 
-1. scarica i byte reali dell'immagine;
-2. la invia immediatamente su Telegram;
-3. la registra in `found_assets.json` solo dopo l'invio riuscito;
-4. non la invia nuovamente nei run successivi.
+ora iniziale: HH:MM:SS
 
-Se Telegram fallisce, quel timestamp non viene marcato come completato e viene riprovato.
+data finale: GG/MM/AAAA
 
-## Installazione
+ora finale: HH:MM:SS
 
-Copia nella root di `LeakKit_JR` entrambe le cartelle contenute nel pacchetto, mantenendo i percorsi:
+I run successivi mantengono automaticamente lo stesso intervallo.
 
-```text
-.github/workflows/timestamp-assets.yml
-timestamp_scanner/
-```
+GitHub Actions non offre un vero calendario con selettore dell'ora nei campiworkflow_dispatch, quindi questa è la soluzione nativa più semplice.
 
-Poi apri **Actions**, scegli **Scanner timestamp asset Juventus** e avvialo una sola volta con **Run workflow**. Da quel momento i run si concatenano automaticamente.
+Pulizia run
 
-L'opzione `reset_state` riporta il cursore al 27 luglio, ma conserva `found_assets.json`, quindi le foto già inviate non vengono duplicate.
+Alla fine di ogni esecuzione vengono eliminati automaticamente tutti i vecchirun completati dello stesso workflow. Il run corrente non viene cancellatoperché, durante lo step di pulizia, risulta ancora in esecuzione.
