@@ -234,14 +234,6 @@
         "description": "Official images of the Juventus 26-27 third kit have been leaked by dedicated club jersey account @La_Bianconera, confirming previous leaks.",
         "handled_fingerprint": "608cea79219e1f1ef7959a18e07ab24e9dad5404d1eba0373b423f58f46bc17c"
       },
-      "https://www.footyheadlines.com/2025/08/juventus-26-27-away-kit.html": {
-        "fingerprint": "2701ab26b955c0bc97ab228ccdfec06c5f3566c933daa746b216d43ac2400ea5",
-        "published": "2026-07-25T07:51:54+02:00",
-        "modified": "2026-07-25T07:51:54+02:00",
-        "title": "Juventus 26-27 Third Kit Leaked - Official Pictures",
-        "description": "Update: Footy Headlines can now leak the official pictures of the new Adidas Juventus 26-27 third kit, featuring a unique flame pattern.",
-        "handled_fingerprint": "2701ab26b955c0bc97ab228ccdfec06c5f3566c933daa746b216d43ac2400ea5"
-      },
       "https://www.footyheadlines.com/2553097313/exclusive-juventus-26-27-third-new-images-leaked-kids-version.html": {
         "fingerprint": "839225532bd7580b0c9680055a7c83ad51c300031ddb7fc5ba8b759a817ad8a1",
         "published": "2026-07-30T01:49:00+02:00",
@@ -273,6 +265,14 @@
         "title": "Juventus 26-27 Third Kit Revealed",
         "description": "Adidas Japan has revealed the first promotional images of Juventus' new 2026-27 third kit ahead of its official launch.",
         "handled_fingerprint": "a8613561a86d1218c6536e01fe61bb264454063b96461b0906bfdaf2552f848c"
+      },
+      "https://www.footyheadlines.com/2025/08/juventus-26-27-away-kit.html": {
+        "fingerprint": "eae4002d8ba800f94f0a8aa0795f5b15cfe4e4cdc183d126a95e96df5e338361",
+        "published": "2026-08-07T10:13:13+02:00",
+        "modified": "2026-08-07T10:13:13+02:00",
+        "title": "Juventus 26-27 Third Kit Released",
+        "description": "Update: Juventus have officially unveiled their new third kit for the 2026-27 season, featuring a blazing flame pattern inspired by the Latin word “iuventus” (meaning “youth”).",
+        "handled_fingerprint": "eae4002d8ba800f94f0a8aa0795f5b15cfe4e4cdc183d126a95e96df5e338361"
       }
     }
   }
