@@ -1,26 +1,26 @@
 {
-  "checked_timestamps": 128002,
-  "checked_urls": 256004,
+  "checked_timestamps": 128024,
+  "checked_urls": 256048,
   "completed": false,
   "final_end": "20260807235959",
   "found_assets": 24,
-  "last_attempted_timestamp": "20260807113321",
-  "last_checked_timestamp": "20260807113321",
+  "last_attempted_timestamp": "20260807113343",
+  "last_checked_timestamp": "20260807113343",
   "last_run": {
     "checked_timestamps": 22,
-    "cutoff": "20260807113321",
+    "cutoff": "20260807113343",
     "fatal_error": null,
     "found_assets": 0,
-    "run_id": "31166381923",
-    "scanner_finished_at_utc": "2026-08-07T09:33:40+00:00",
-    "scanner_started_at_utc": "2026-08-07T09:33:38+00:00",
+    "run_id": "31166407100",
+    "scanner_finished_at_utc": "2026-08-07T09:34:02+00:00",
+    "scanner_started_at_utc": "2026-08-07T09:34:00+00:00",
     "stop_reason": "cutoff_reached",
-    "workflow_started_at_rome": "2026-08-07T11:33:21+02:00"
+    "workflow_started_at_rome": "2026-08-07T11:33:43+02:00"
   },
-  "next_timestamp": "20260807113322",
-  "runs": 131,
+  "next_timestamp": "20260807113344",
+  "runs": 132,
   "scan_start": "20260806000000",
   "timezone": "Europe/Rome",
-  "updated_at_utc": "2026-08-07T09:33:40+00:00",
+  "updated_at_utc": "2026-08-07T09:34:02+00:00",
   "version": 1
 }
