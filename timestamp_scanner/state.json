@@ -9,18 +9,18 @@
   "last_run": {
     "checked_timestamps": 23,
     "cutoff": "20260807023821",
-    "fatal_error": null,
+    "fatal_error": "ValueError: Data non valida: '07:08/2026 23:59:59'. Usa GG/MM/AAAA HH:MM:SS, YYYY-MM-DD HH:MM:SS oppure YYYYMMDDHHMMSS.",
     "found_assets": 0,
-    "run_id": "31135341649",
-    "scanner_finished_at_utc": "2026-08-07T00:38:42+00:00",
+    "run_id": "31147834426",
+    "scanner_finished_at_utc": "2026-08-07T04:34:43+00:00",
     "scanner_started_at_utc": "2026-08-07T00:38:39+00:00",
-    "stop_reason": "cutoff_reached",
+    "stop_reason": "fatal_error",
     "workflow_started_at_rome": "2026-08-07T02:38:21+02:00"
   },
   "next_timestamp": "20260807023822",
   "runs": 52,
   "scan_start": "20260806000000",
   "timezone": "Europe/Rome",
-  "updated_at_utc": "2026-08-07T00:38:42+00:00",
+  "updated_at_utc": "2026-08-07T04:34:43+00:00",
   "version": 1
 }
