@@ -115,29 +115,47 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add timestamp_scanner/state.json timestamp_scanner/found_assets.json
-          if git diff --cached --quiet; then
-            echo "Nessuna modifica da salvare."
-            exit 0
-          fi
-
-          git commit -m "Aggiorna avanzamento scanner timestamp"
+          # Conserva lo stato appena prodotto da questo run.
+          STATE_BACKUP="$(mktemp -d)"
+          cp timestamp_scanner/state.json "${STATE_BACKUP}/state.json"
+          cp timestamp_scanner/found_assets.json "${STATE_BACKUP}/found_assets.json"
+          trap 'rm -rf "${STATE_BACKUP}"' EXIT
 
           for attempt in 1 2 3; do
-            git pull --rebase origin "${GITHUB_REF_NAME}"
-            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+            echo "Tentativo salvataggio stato ${attempt}/3..."
+
+            # Prende l'ultimo main senza fare merge/rebase di state.json.
+            git fetch origin "${GITHUB_REF_NAME}"
+            git reset --hard "origin/${GITHUB_REF_NAME}"
+
+            # Lo stato di QUESTO run deve vincere sullo stato remoto vecchio.
+            cp "${STATE_BACKUP}/state.json" timestamp_scanner/state.json
+            cp "${STATE_BACKUP}/found_assets.json" timestamp_scanner/found_assets.json
+
+            git add timestamp_scanner/state.json timestamp_scanner/found_assets.json
+
+            if git diff --cached --quiet; then
+              echo "Lo stato remoto è già identico a quello appena prodotto."
               exit 0
             fi
-            echo "Push fallito al tentativo ${attempt}; riprovo."
+
+            git commit -m "Aggiorna avanzamento scanner timestamp"
+
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Stato salvato correttamente."
+              exit 0
+            fi
+
+            echo "Il branch è cambiato durante il push. Riparto dall'ultimo main e riprovo."
             sleep 5
           done
 
-          echo "Impossibile salvare lo stato dopo 3 tentativi."
+          echo "::error::Impossibile salvare lo stato dopo 3 tentativi."
           exit 1
-
       - name: Decidi se avviare subito il run successivo
         id: continuation
         if: ${{ always() && !inputs.dry_run }}
