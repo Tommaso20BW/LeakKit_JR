@@ -20,7 +20,7 @@ Gli asset cercati usano un nome nel formato:
 YYYYMMDDHHMMSS
 ```
 
-Per ogni secondo dell'intervallo vengono costruiti gli URL dei target configurati. Il workflow limita il run all'istante esatto in cui è stato avviato, così lo scanner non tenta timestamp futuri.
+Per ogni secondo vengono costruiti gli URL dei target configurati. Lo scanner lavora soltanto su ore completamente concluse: alle 01:00 controlla `00:00:00 → 00:59:59`, alle 02:00 controlla `01:00:00 → 01:59:59` e così via. Non tenta mai timestamp dell'ora ancora in corso.
 
 Quando trova un nuovo asset:
 
@@ -43,24 +43,23 @@ Se Telegram non accetta il contenuto come foto, il client prova l'invio come doc
 
 Ogni target aggiuntivo deve avere un nome univoco e un `url_template` contenente `{timestamp}`.
 
-## Intervallo
+## Automazione oraria
 
-Il pulsante **Run workflow** richiede quattro campi in ora italiana:
+Non occorre inserire date o orari. GitHub Actions avvia automaticamente il workflow allo scoccare di ogni ora.
 
-| Campo | Formato |
-| --- | --- |
-| Data iniziale | `GG/MM/AAAA` |
-| Ora iniziale | `HH:MM:SS` |
-| Data finale | `GG/MM/AAAA` |
-| Ora finale | `HH:MM:SS` |
+Ogni run elabora al massimo una finestra oraria. Quando termina:
 
-`reset_state` riparte dalla data iniziale conservando l'archivio degli asset già inviati. `dry_run` mostra soltanto ampiezza dell'intervallo, cutoff e numero di URL previsti.
+1. se lo scanner è in pari, termina e attende il prossimo avvio pianificato;
+2. se esistono ore arretrate, avvia subito un altro run;
+3. se si ferma a metà, salva il primo secondo incompleto e il run successivo riparte da quel punto.
+
+Il pulsante **Run workflow** rimane disponibile senza campi data. `reset_state` riparte dall'inizio dell'ora corrente conservando l'archivio degli asset già inviati. `dry_run` mostra soltanto la prossima finestra disponibile.
 
 ## Stato
 
 | File | Ruolo |
 | --- | --- |
-| `state.json` | Cursore, contatori, intervallo, run e motivo dell'ultima interruzione |
+| `state.json` | Cursore, contatori, stato di allineamento, run e motivo dell'ultima interruzione |
 | `found_assets.json` | Registro degli URL già notificati |
 | `targets.json` | Elenco dei modelli URL |
 
@@ -89,7 +88,7 @@ Lo scanner riusa le dipendenze e il client Telegram del progetto principale.
 python -m pip install -r requirements.txt
 ```
 
-Imposta `SCAN_START` e `SCAN_FINAL_END` nel formato `GG/MM/AAAA HH:MM:SS`, quindi esegui:
+Non servono variabili con date o orari. Lo scanner usa automaticamente l'ora italiana corrente:
 
 ```bash
 python timestamp_scanner/scanner.py --dry-run
@@ -99,7 +98,6 @@ python timestamp_scanner/scanner.py
 Comandi aggiuntivi:
 
 ```bash
-python timestamp_scanner/scanner.py --initialize-state
 python timestamp_scanner/scanner.py --reset-state
 ```
 
@@ -116,17 +114,18 @@ python -m unittest discover -s timestamp_scanner/tests -v
 Il workflow `.github/workflows/timestamp-assets.yml`:
 
 - usa Python 3.14;
+- parte automaticamente allo scoccare di ogni ora;
 - valida sintassi e test prima della scansione;
 - salva `state.json` e `found_assets.json` con retry sul push;
-- avvia immediatamente un nuovo run finché l'intervallo non è completato;
+- avvia immediatamente un nuovo run quando esistono arretrati o una finestra è rimasta incompleta;
+- quando è in pari termina senza tenere occupato un runner in attesa;
 - ferma la catena in caso di errore fatale;
 - elimina i run completati dalla propria cronologia.
 
-GitHub Actions non offre un selettore grafico per data e ora nei campi `workflow_dispatch`; per questo l'intervallo viene inserito come testo.
-
 ## Limiti noti
 
-- Una scansione lunga viene suddivisa in più run.
+- Ogni run elabora al massimo un'ora; gli arretrati vengono recuperati con run concatenati.
+- Se l'intero runner viene terminato prima del salvataggio finale, alcuni secondi possono essere ricontrollati, ma non vengono saltati.
 - Limiti, blocchi o cambi di formato del CDN possono interrompere temporaneamente la catena.
 - La scoperta di un file pubblico non dimostra che il contenuto sia definitivo o destinato alla pubblicazione.
 

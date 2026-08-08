@@ -192,16 +192,36 @@ def load_targets() -> list[Target]:
     return targets
 
 
-def new_state(start: datetime, final_end: datetime) -> dict[str, Any]:
+def hour_start(value: datetime) -> datetime:
+    """Restituisce l'inizio dell'ora locale che contiene ``value``."""
+    return value.astimezone(ROME).replace(
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+
+def hour_end(value: datetime) -> datetime:
+    """Restituisce l'ultimo secondo dell'ora locale che contiene ``value``."""
+    return hour_start(value) + timedelta(hours=1) - timedelta(seconds=1)
+
+
+def latest_closed_timestamp(reference_time: datetime) -> datetime:
+    """Ultimo secondo dell'ultima ora completamente conclusa."""
+    return hour_start(reference_time) - timedelta(seconds=1)
+
+
+def new_state(reference_time: datetime) -> dict[str, Any]:
+    start = hour_start(reference_time)
     return {
-        "version": 1,
+        "version": 2,
+        "mode": "automatic_hourly",
         "timezone": "Europe/Rome",
         "scan_start": compact(start),
-        "final_end": compact(final_end),
         "next_timestamp": compact(start),
         "last_checked_timestamp": None,
         "last_attempted_timestamp": None,
-        "completed": False,
+        "caught_up": True,
         "runs": 0,
         "checked_timestamps": 0,
         "checked_urls": 0,
@@ -212,50 +232,44 @@ def new_state(start: datetime, final_end: datetime) -> dict[str, Any]:
 
 
 def load_state(
-    start: datetime,
-    final_end: datetime,
+    reference_time: datetime,
     *,
     reset: bool,
 ) -> dict[str, Any]:
-    expected_start = compact(start)
-    expected_end = compact(final_end)
-
     if reset or not STATE_PATH.exists():
-        state = new_state(start, final_end)
+        state = new_state(reference_time)
         save_json(STATE_PATH, state)
         return state
 
     state = json.loads(STATE_PATH.read_text(encoding="utf-8"))
-    stored_start = state.get("scan_start")
-    stored_end = state.get("final_end")
 
-    if stored_start != expected_start:
-        # Una nuova data iniziale indica un nuovo intervallo. Non serve
-        # ricordarsi di attivare reset_state manualmente.
-        print(
-            "[NUOVO INTERVALLO] "
-            f"state.json aveva {stored_start} → {stored_end}; "
-            f"ora userò {expected_start} → {expected_end}. "
-            "Riparto automaticamente dalla nuova data iniziale."
-        )
-        state = new_state(start, final_end)
-        save_json(STATE_PATH, state)
-        return state
+    if not state.get("next_timestamp"):
+        raise ValueError("state.json non contiene next_timestamp")
 
-    if stored_end != expected_end:
-        # Se cambia soltanto il limite finale, conserva il punto raggiunto.
-        print(
-            "[LIMITE FINALE AGGIORNATO] "
-            f"{stored_end} → {expected_end}; "
-            f"riprendo da {state.get('next_timestamp', expected_start)}."
-        )
-        state["final_end"] = expected_end
-        next_timestamp = state.get("next_timestamp", expected_start)
-        state["completed"] = next_timestamp > expected_end
+    # Migrazione trasparente dallo scanner con intervallo manuale. Il cursore
+    # viene conservato: nessun secondo già raggiunto viene perso o saltato.
+    if state.get("version") != 2 or state.get("mode") != "automatic_hourly":
+        previous_version = state.get("version")
+        state["version"] = 2
+        state["mode"] = "automatic_hourly"
+        state["timezone"] = "Europe/Rome"
+        state.pop("final_end", None)
+        state.pop("completed", None)
+        cursor = datetime.strptime(
+            state["next_timestamp"],
+            TIMESTAMP_FORMAT,
+        ).replace(tzinfo=ROME)
+        state["caught_up"] = cursor > latest_closed_timestamp(reference_time)
         state["updated_at_utc"] = utc_now_iso()
         save_json(STATE_PATH, state)
+        print(
+            "[MIGRAZIONE STATO] "
+            f"versione {previous_version} -> 2 | "
+            f"riprendo da {state['next_timestamp']}"
+        )
 
     return state
+
 
 def load_found() -> dict[str, Any]:
     if not FOUND_PATH.exists():
@@ -539,7 +553,9 @@ def set_last_run(
     *,
     run_id: str,
     workflow_started_at: datetime,
-    cutoff: datetime,
+    latest_closed_at: datetime,
+    window_start: datetime | None,
+    window_end: datetime | None,
     started_at_utc: str,
     finished_at_utc: str | None,
     stop_reason: str,
@@ -550,7 +566,9 @@ def set_last_run(
     state["last_run"] = {
         "run_id": run_id,
         "workflow_started_at_rome": workflow_started_at.isoformat(),
-        "cutoff": compact(cutoff),
+        "latest_closed_timestamp": compact(latest_closed_at),
+        "window_start": compact(window_start) if window_start else None,
+        "window_end": compact(window_end) if window_end else None,
         "scanner_started_at_utc": started_at_utc,
         "scanner_finished_at_utc": finished_at_utc,
         "stop_reason": stop_reason,
@@ -561,55 +579,14 @@ def set_last_run(
     state["updated_at_utc"] = finished_at_utc or utc_now_iso()
 
 
-def initialize_state_only(args: argparse.Namespace) -> int:
-    """Valida l'intervallo e lo salva prima di iniziare le richieste."""
-    raw_scan_start = os.getenv("SCAN_START", "").strip()
-    raw_final_end = os.getenv("SCAN_FINAL_END", "").strip()
-    if not raw_scan_start or not raw_final_end:
-        raise ValueError(
-            "Devi indicare SCAN_START e SCAN_FINAL_END nel workflow."
-        )
-
-    scan_start = parse_local_datetime(raw_scan_start)
-    final_end = parse_local_datetime(raw_final_end)
-    if scan_start > final_end:
-        raise ValueError("SCAN_START deve essere precedente a SCAN_FINAL_END")
-
-    reset = args.reset_state or env_bool("RESET_STATE")
-    is_new_interval = reset or not STATE_PATH.exists()
-    state = load_state(scan_start, final_end, reset=reset)
-    if is_new_interval:
-        state["updated_at_utc"] = utc_now_iso()
-        save_json(STATE_PATH, state)
-
-    print(
-        "[TIMESTAMP SCANNER] Intervallo inizializzato | "
-        f"inizio={state['scan_start']} | fine={state['final_end']} | "
-        f"prossimo={state['next_timestamp']} | reset={str(reset).lower()}"
-    )
-    return 0
-
-
 def run_scan(args: argparse.Namespace) -> int:
-    raw_scan_start = os.getenv("SCAN_START", "").strip()
-    raw_final_end = os.getenv("SCAN_FINAL_END", "").strip()
-    if not raw_scan_start or not raw_final_end:
-        raise ValueError(
-            "Devi indicare SCAN_START e SCAN_FINAL_END nel workflow."
-        )
-
-    scan_start = parse_local_datetime(raw_scan_start)
-    final_end = parse_local_datetime(raw_final_end)
     workflow_started_at = parse_workflow_started_at(
         os.getenv("RUN_STARTED_AT_UTC")
     )
-    run_cutoff = min(workflow_started_at, final_end)
-
-    if scan_start > final_end:
-        raise ValueError("SCAN_START deve essere precedente a SCAN_FINAL_END")
+    latest_closed_at = latest_closed_timestamp(workflow_started_at)
 
     reset = args.reset_state or env_bool("RESET_STATE")
-    state = load_state(scan_start, final_end, reset=reset)
+    state = load_state(workflow_started_at, reset=reset)
     found = load_found()
     targets = load_targets()
     state["found_assets"] = len(found["assets"])
@@ -623,49 +600,40 @@ def run_scan(args: argparse.Namespace) -> int:
         TIMESTAMP_FORMAT,
     ).replace(tzinfo=ROME)
 
-    if cursor > final_end:
-        state["completed"] = True
+    if cursor > latest_closed_at:
+        state["caught_up"] = True
         set_last_run(
             state,
             run_id=run_id,
             workflow_started_at=workflow_started_at,
-            cutoff=run_cutoff,
+            latest_closed_at=latest_closed_at,
+            window_start=None,
+            window_end=None,
             started_at_utc=scanner_started_at_utc,
             finished_at_utc=utc_now_iso(),
-            stop_reason="completed",
+            stop_reason="waiting_for_hour",
             checked_in_run=0,
             found_in_run=0,
         )
         save_json(STATE_PATH, state)
-        print("Intervallo definitivo già completato.")
+        next_open_hour = hour_start(workflow_started_at) + timedelta(hours=1)
+        print(
+            "[IN ATTESA] Nessuna ora completa da controllare | "
+            f"prossimo={state['next_timestamp']} | "
+            f"nuova finestra disponibile alle {next_open_hour.isoformat()}"
+        )
         return 0
 
-    if cursor > run_cutoff:
-        set_last_run(
-            state,
-            run_id=run_id,
-            workflow_started_at=workflow_started_at,
-            cutoff=run_cutoff,
-            started_at_utc=scanner_started_at_utc,
-            finished_at_utc=utc_now_iso(),
-            stop_reason="caught_up",
-            checked_in_run=0,
-            found_in_run=0,
-        )
-        save_json(STATE_PATH, state)
-        print(
-            "Nessun secondo da controllare in questo run: "
-            f"next={state['next_timestamp']} cutoff={compact(run_cutoff)}"
-        )
-        return 0
+    run_cutoff = min(hour_end(cursor), latest_closed_at)
+    state["caught_up"] = False
 
     if args.dry_run:
         total_timestamps = int((run_cutoff - cursor).total_seconds()) + 1
         print(f"Primo codice: {compact(cursor)}")
-        print(f"Cutoff congelato all'avvio: {compact(run_cutoff)}")
-        print(f"Ultimo limite definitivo: {compact(final_end)}")
-        print(f"Timestamp disponibili nel run: {total_timestamps:,}")
-        print(f"URL disponibili nel run: {total_timestamps * len(targets):,}")
+        print(f"Fine della finestra oraria: {compact(run_cutoff)}")
+        print(f"Ultimo secondo già chiuso: {compact(latest_closed_at)}")
+        print(f"Timestamp della finestra: {total_timestamps:,}")
+        print(f"URL della finestra: {total_timestamps * len(targets):,}")
         return 0
 
     requests_per_second = env_float("REQUESTS_PER_SECOND", 20.0)
@@ -682,8 +650,8 @@ def run_scan(args: argparse.Namespace) -> int:
 
     print(
         "[TIMESTAMP SCANNER] "
-        f"{compact(cursor)} → {compact(run_cutoff)} | "
-        f"limite definitivo {compact(final_end)} | "
+        f"{compact(cursor)} -> {compact(run_cutoff)} | "
+        f"ultimo secondo chiuso {compact(latest_closed_at)} | "
         f"{len(targets)} target | {requests_per_second:g} req/s | "
         f"pausa dopo asset {pause_after_asset_seconds:g}s"
     )
@@ -692,7 +660,7 @@ def run_scan(args: argparse.Namespace) -> int:
     checked_in_run = 0
     found_in_run = 0
     started_monotonic = time.monotonic()
-    stop_reason = "cutoff_reached"
+    stop_reason = "hour_completed"
     fatal_error: str | None = None
 
     # Viene creato una volta e chiuso soltanto alla vera fine del run.
@@ -795,19 +763,18 @@ def run_scan(args: argparse.Namespace) -> int:
                         state.get("checked_urls", 0)
                     ) + len(targets)
                     state["last_checked_timestamp"] = compact(timestamp)
-                    state["next_timestamp"] = compact(
-                        timestamp + timedelta(seconds=1)
-                    )
-                    state["completed"] = (
-                        timestamp + timedelta(seconds=1) > final_end
-                    )
+                    next_timestamp = timestamp + timedelta(seconds=1)
+                    state["next_timestamp"] = compact(next_timestamp)
+                    state["caught_up"] = next_timestamp > latest_closed_at
 
                     if checked_in_run % checkpoint_every == 0:
                         set_last_run(
                             state,
                             run_id=run_id,
                             workflow_started_at=workflow_started_at,
-                            cutoff=run_cutoff,
+                            latest_closed_at=latest_closed_at,
+                            window_start=cursor,
+                            window_end=run_cutoff,
                             started_at_utc=scanner_started_at_utc,
                             finished_at_utc=None,
                             stop_reason="running",
@@ -815,11 +782,6 @@ def run_scan(args: argparse.Namespace) -> int:
                             found_in_run=found_in_run,
                         )
                         save_json(STATE_PATH, state)
-
-                    if state["completed"]:
-                        stop_reason = "completed"
-                        stop_after_timestamp = True
-                        break
 
                 if stop_after_timestamp:
                     break
@@ -832,7 +794,9 @@ def run_scan(args: argparse.Namespace) -> int:
         state,
         run_id=run_id,
         workflow_started_at=workflow_started_at,
-        cutoff=run_cutoff,
+        latest_closed_at=latest_closed_at,
+        window_start=cursor,
+        window_end=run_cutoff,
         started_at_utc=scanner_started_at_utc,
         finished_at_utc=finished_at_utc,
         stop_reason=stop_reason,
@@ -847,7 +811,8 @@ def run_scan(args: argparse.Namespace) -> int:
         "[TIMESTAMP SCANNER] Fine run | "
         f"motivo={stop_reason} | controllati={checked_in_run:,} | "
         f"trovati={found_in_run} | prossimo={state['next_timestamp']} | "
-        f"cutoff={compact(run_cutoff)}"
+        f"finestra_fino_a={compact(run_cutoff)} | "
+        f"in_pari={str(state['caught_up']).lower()}"
     )
 
     # Errori HTTP/Telegram temporanei lasciano il cursore sul primo secondo
@@ -867,18 +832,11 @@ def main() -> int:
     parser.add_argument(
         "--reset-state",
         action="store_true",
-        help="Riparte da SCAN_START preservando gli asset già inviati",
-    )
-    parser.add_argument(
-        "--initialize-state",
-        action="store_true",
-        help="Salva e valida l'intervallo senza effettuare richieste",
+        help="Riparte dall'ora corrente preservando gli asset già inviati",
     )
     args = parser.parse_args()
 
     try:
-        if args.initialize_state:
-            return initialize_state_only(args)
         return run_scan(args)
     except Exception as exc:
         print(

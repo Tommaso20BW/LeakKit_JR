@@ -1,8 +1,7 @@
 {
   "checked_timestamps": 128273,
   "checked_urls": 256546,
-  "completed": false,
-  "final_end": "20260807235959",
+  "caught_up": false,
   "found_assets": 24,
   "last_attempted_timestamp": "20260807113752",
   "last_checked_timestamp": "20260807113752",
@@ -17,10 +16,11 @@
     "stop_reason": "cutoff_reached",
     "workflow_started_at_rome": "2026-08-07T11:37:52+02:00"
   },
+  "mode": "automatic_hourly",
   "next_timestamp": "20260807113753",
   "runs": 141,
   "scan_start": "20260806000000",
   "timezone": "Europe/Rome",
   "updated_at_utc": "2026-08-07T09:38:11+00:00",
-  "version": 1
+  "version": 2
 }

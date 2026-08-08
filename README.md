@@ -70,14 +70,14 @@ Il sottoprogetto `timestamp_scanner/` prova, secondo per secondo, due modelli di
 - immagini di categoria;
 - immagini `patch-overlay`.
 
-L'intervallo viene inserito manualmente in ora italiana tramite il workflow `timestamp-assets.yml`. Ogni run:
+Il workflow `timestamp-assets.yml` parte automaticamente allo scoccare di ogni ora e non richiede date. Ogni run:
 
 1. riprende da `state.json`;
-2. congela il limite all'istante di avvio del workflow;
+2. controlla al massimo un'ora completamente conclusa;
 3. controlla gli URL con concorrenza e limite globale di richieste;
 4. invia immediatamente ogni nuovo asset e lo registra in `found_assets.json`;
 5. attende 20 secondi dopo una scoperta e prosegue nello stesso processo;
-6. salva il cursore e, se necessario, avvia automaticamente il run successivo.
+6. salva il cursore e avvia subito un altro run se esistono arretrati o un'interruzione.
 
 Il contenuto già notificato non viene reinviato neppure quando si usa `reset_state`. La documentazione specifica è in [`timestamp_scanner/README.md`](timestamp_scanner/README.md).
 
@@ -86,7 +86,7 @@ Il contenuto già notificato non viene reinviato neppure quando si usa `reset_st
 | File | Contenuto |
 | --- | --- |
 | `.leakkit_state.json` | Stato unico dei monitor font, prodotti e notizie |
-| `timestamp_scanner/state.json` | Intervallo, cursore e ultimo esito dello scanner |
+| `timestamp_scanner/state.json` | Cursore orario, contatori e ultimo esito dello scanner |
 | `timestamp_scanner/found_assets.json` | Asset timestamp già inviati |
 | `timestamp_scanner/targets.json` | Modelli di URL controllati dallo scanner |
 
@@ -165,7 +165,7 @@ Importa soltanto lo stato legacy:
 python check.py --migrate-state
 ```
 
-Per eseguire lo scanner in locale occorre impostare almeno `SCAN_START` e `SCAN_FINAL_END`, nel formato `GG/MM/AAAA HH:MM:SS`.
+Lo scanner timestamp usa automaticamente l'ora italiana corrente e non richiede variabili con date.
 
 ## Test
 
@@ -176,14 +176,14 @@ python -m unittest discover -s timestamp_scanner/tests -v
 
 ## GitHub Actions
 
-Entrambi i workflow sono avviabili manualmente e usano Python 3.14.
+Entrambi i workflow usano Python 3.14. Lo scanner timestamp è anche avviabile manualmente, ma normalmente parte da solo ogni ora.
 
 | Workflow | Comportamento |
 | --- | --- |
 | `check.yml` | Esegue i test, avvia i tre monitor e committa `.leakkit_state.json` quando cambia |
-| `timestamp-assets.yml` | Valida l'intervallo, esegue i test dello scanner, salva cursore e asset e concatena i run fino al completamento |
+| `timestamp-assets.yml` | Parte ogni ora, esegue i test, salva cursore e asset e concatena i run finché torna in pari |
 
-La configurazione `concurrency` impedisce sovrapposizioni. Al termine, ciascun workflow elimina dalla propria cronologia i run completati. Non è presente un trigger `schedule`: il primo avvio resta manuale o affidato a un sistema esterno.
+La configurazione `concurrency` impedisce sovrapposizioni. Al termine, ciascun workflow elimina dalla propria cronologia i run completati. `check.yml` resta manuale; `timestamp-assets.yml` usa il trigger orario `schedule`.
 
 ## Limiti noti
 

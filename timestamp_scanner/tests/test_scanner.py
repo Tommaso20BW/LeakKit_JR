@@ -1,3 +1,4 @@
+import argparse
 from datetime import datetime
 from pathlib import Path
 import json
@@ -16,6 +17,9 @@ from timestamp_scanner.scanner import (  # noqa: E402
     GlobalRateLimiter,
     Target,
     compact,
+    hour_end,
+    hour_start,
+    latest_closed_timestamp,
     parse_local_datetime,
     parse_workflow_started_at,
     send_new_asset,
@@ -58,15 +62,28 @@ class ScannerTests(unittest.TestCase):
         limiter.pause(0)
         limiter.wait()
 
-    def test_new_start_automatically_creates_new_interval(self) -> None:
+    def test_hour_boundaries_use_rome_time(self) -> None:
+        value = parse_local_datetime("09/08/2026 01:37:42")
+        self.assertEqual(compact(hour_start(value)), "20260809010000")
+        self.assertEqual(compact(hour_end(value)), "20260809015959")
+
+    def test_only_fully_closed_hours_are_available(self) -> None:
+        value = parse_local_datetime("09/08/2026 01:00:00")
+        self.assertEqual(
+            compact(latest_closed_timestamp(value)),
+            "20260809005959",
+        )
+
+    def test_v1_state_migration_preserves_progress(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             state_path = Path(temporary) / "state.json"
             state_path.write_text(
                 json.dumps(
                     {
+                        "version": 1,
                         "scan_start": "20260727000000",
                         "final_end": "20260808235959",
-                        "next_timestamp": "20260727000000",
+                        "next_timestamp": "20260807113753",
                         "completed": False,
                     }
                 ),
@@ -74,16 +91,18 @@ class ScannerTests(unittest.TestCase):
             )
             with patch.object(scanner_module, "STATE_PATH", state_path):
                 state = scanner_module.load_state(
-                    parse_local_datetime("05/08/2026 00:00:00"),
-                    parse_local_datetime("07/08/2026 23:59:59"),
+                    parse_local_datetime("09/08/2026 02:00:00"),
                     reset=False,
                 )
 
-            self.assertEqual(state["scan_start"], "20260805000000")
-            self.assertEqual(state["final_end"], "20260807235959")
-            self.assertEqual(state["next_timestamp"], "20260805000000")
+            self.assertEqual(state["version"], 2)
+            self.assertEqual(state["mode"], "automatic_hourly")
+            self.assertEqual(state["next_timestamp"], "20260807113753")
+            self.assertFalse(state["caught_up"])
+            self.assertNotIn("final_end", state)
+            self.assertNotIn("completed", state)
 
-    def test_only_new_end_preserves_progress(self) -> None:
+    def test_reset_starts_from_current_hour(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             state_path = Path(temporary) / "state.json"
             state_path.write_text(
@@ -99,14 +118,99 @@ class ScannerTests(unittest.TestCase):
             )
             with patch.object(scanner_module, "STATE_PATH", state_path):
                 state = scanner_module.load_state(
-                    parse_local_datetime("05/08/2026 00:00:00"),
-                    parse_local_datetime("08/08/2026 23:59:59"),
-                    reset=False,
+                    parse_local_datetime("09/08/2026 12:34:56"),
+                    reset=True,
                 )
 
-            self.assertEqual(state["final_end"], "20260808235959")
-            self.assertEqual(state["next_timestamp"], "20260806123456")
-            self.assertFalse(state["completed"])
+            self.assertEqual(state["scan_start"], "20260809120000")
+            self.assertEqual(state["next_timestamp"], "20260809120000")
+            self.assertTrue(state["caught_up"])
+
+    def test_interrupted_hour_resumes_from_first_incomplete_second(self) -> None:
+        class DummyTelegram:
+            def __init__(self, dry_run: bool = False) -> None:
+                self.closed = False
+
+            def close(self) -> None:
+                self.closed = True
+
+        with tempfile.TemporaryDirectory() as temporary:
+            temporary_path = Path(temporary)
+            state_path = temporary_path / "state.json"
+            found_path = temporary_path / "found_assets.json"
+            state = scanner_module.new_state(
+                parse_local_datetime("09/08/2026 00:00:00")
+            )
+            state["next_timestamp"] = "20260809005957"
+            state["caught_up"] = False
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+
+            should_fail = {"value": True}
+
+            def fake_check(timestamp, *args, **kwargs):
+                timestamp_code = compact(timestamp)
+                if should_fail["value"] and timestamp_code == "20260809005958":
+                    return [
+                        UrlResult(
+                            target="categories",
+                            timestamp=timestamp_code,
+                            url=f"https://example.test/{timestamp_code}.webp",
+                            status="error",
+                            error="blocco temporaneo",
+                        )
+                    ]
+                return [
+                    UrlResult(
+                        target="categories",
+                        timestamp=timestamp_code,
+                        url=f"https://example.test/{timestamp_code}.webp",
+                        status="missing",
+                        http_status=404,
+                    )
+                ]
+
+            environment = {
+                "RUN_STARTED_AT_UTC": "2026-08-08T23:00:00Z",
+                "CHUNK_TIMESTAMPS": "3",
+                "CHECKPOINT_EVERY": "1",
+            }
+            patches = (
+                patch.object(scanner_module, "STATE_PATH", state_path),
+                patch.object(scanner_module, "FOUND_PATH", found_path),
+                patch.object(
+                    scanner_module,
+                    "load_targets",
+                    return_value=[
+                        Target(
+                            "categories",
+                            "https://example.test/{timestamp}.webp",
+                        )
+                    ],
+                ),
+                patch.object(scanner_module, "TelegramClient", DummyTelegram),
+                patch.object(scanner_module, "check_timestamp", fake_check),
+                patch.dict(scanner_module.os.environ, environment, clear=False),
+            )
+
+            for active_patch in patches:
+                active_patch.start()
+                self.addCleanup(active_patch.stop)
+
+            args = argparse.Namespace(dry_run=False, reset_state=False)
+            self.assertEqual(scanner_module.run_scan(args), 0)
+            interrupted = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(interrupted["next_timestamp"], "20260809005958")
+            self.assertEqual(
+                interrupted["last_run"]["stop_reason"],
+                "transient_http_error",
+            )
+
+            should_fail["value"] = False
+            self.assertEqual(scanner_module.run_scan(args), 0)
+            resumed = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(resumed["next_timestamp"], "20260809010000")
+            self.assertTrue(resumed["caught_up"])
+            self.assertEqual(resumed["last_run"]["window_end"], "20260809005959")
 
 
 class FakeTelegram:

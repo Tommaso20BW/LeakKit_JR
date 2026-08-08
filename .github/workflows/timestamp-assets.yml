@@ -1,26 +1,12 @@
 name: Scanner timestamp asset Juventus
 
 on:
+  schedule:
+    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
-      scan_start_date:
-        description: "Data iniziale (Roma) - GG/MM/AAAA"
-        required: true
-        type: string
-      scan_start_time:
-        description: "Ora iniziale (Roma) - HH:MM:SS"
-        required: true
-        type: string
-      scan_end_date:
-        description: "Data finale (Roma) - GG/MM/AAAA"
-        required: true
-        type: string
-      scan_end_time:
-        description: "Ora finale (Roma) - HH:MM:SS"
-        required: true
-        type: string
       reset_state:
-        description: "Avvia un nuovo intervallo e riparti dalla data iniziale"
+        description: "Riparti dall'ora corrente (mantiene le foto già inviate)"
         required: false
         type: boolean
         default: false
@@ -45,8 +31,6 @@ jobs:
     timeout-minutes: 75
 
     env:
-      SCAN_START: "${{ inputs.scan_start_date }} ${{ inputs.scan_start_time }}"
-      SCAN_FINAL_END: "${{ inputs.scan_end_date }} ${{ inputs.scan_end_time }}"
       REQUESTS_PER_SECOND: "20"
       CONCURRENCY: "30"
       RETRIES: "3"
@@ -55,7 +39,8 @@ jobs:
       CHECKPOINT_EVERY: "1"
       MAX_RUNTIME_SECONDS: "3600"
       PAUSE_AFTER_ASSET_SECONDS: "20"
-      RESET_STATE: ${{ inputs.reset_state }}
+      RESET_STATE: ${{ github.event_name == 'workflow_dispatch' && inputs.reset_state || false }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
@@ -97,13 +82,13 @@ jobs:
             python -m unittest discover -s timestamp_scanner/tests -v
           fi
 
-      - name: Scansiona fino all'istante di avvio del run
+      - name: Scansiona la prossima ora completa
         id: scanner
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+          if [[ "${DRY_RUN}" == "true" ]]; then
             python -u timestamp_scanner/scanner.py --dry-run
           else
             python -u timestamp_scanner/scanner.py
@@ -111,7 +96,7 @@ jobs:
 
       - name: Salva il codice raggiunto e le foto inviate
         id: save_state
-        if: ${{ always() && !inputs.dry_run }}
+        if: ${{ always() && env.DRY_RUN != 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -158,7 +143,7 @@ jobs:
           exit 1
       - name: Decidi se avviare subito il run successivo
         id: continuation
-        if: ${{ always() && !inputs.dry_run }}
+        if: ${{ always() && env.DRY_RUN != 'true' }}
         env:
           SCANNER_OUTCOME: ${{ steps.scanner.outcome }}
           SAVE_OUTCOME: ${{ steps.save_state.outcome }}
@@ -167,7 +152,6 @@ jobs:
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json
           import os
-          from datetime import datetime
           from pathlib import Path
 
           state = json.loads(
@@ -181,20 +165,14 @@ jobs:
               or save_failed
               or last_run.get("stop_reason") == "fatal_error"
           )
-          should_continue = not state.get("completed", False) and not fatal
-
-          start = datetime.strptime(state["scan_start"], "%Y%m%d%H%M%S")
-          end = datetime.strptime(state["final_end"], "%Y%m%d%H%M%S")
+          caught_up = bool(state.get("caught_up", False))
+          should_continue = not caught_up and not fatal
 
           print(f"continue={'true' if should_continue else 'false'}")
-          print(f"completed={'true' if state.get('completed', False) else 'false'}")
+          print(f"caught_up={'true' if caught_up else 'false'}")
           print(f"fatal={'true' if fatal else 'false'}")
           print(f"next_timestamp={state.get('next_timestamp', '')}")
           print(f"stop_reason={last_run.get('stop_reason', '')}")
-          print(f"scan_start_date={start.strftime('%d/%m/%Y')}")
-          print(f"scan_start_time={start.strftime('%H:%M:%S')}")
-          print(f"scan_end_date={end.strftime('%d/%m/%Y')}")
-          print(f"scan_end_time={end.strftime('%H:%M:%S')}")
           PY
 
       - name: Avvia immediatamente il workflow successivo
@@ -209,20 +187,16 @@ jobs:
 
           gh workflow run timestamp-assets.yml \
             --ref "${GITHUB_REF_NAME}" \
-            -f "scan_start_date=${{ steps.continuation.outputs.scan_start_date }}" \
-            -f "scan_start_time=${{ steps.continuation.outputs.scan_start_time }}" \
-            -f "scan_end_date=${{ steps.continuation.outputs.scan_end_date }}" \
-            -f "scan_end_time=${{ steps.continuation.outputs.scan_end_time }}" \
             -f "reset_state=false" \
             -f "dry_run=false"
 
-          echo "Workflow successivo richiesto con lo stesso intervallo."
+          echo "Workflow successivo richiesto dal punto salvato."
 
-      - name: Intervallo definitivo completato
-        if: ${{ steps.continuation.outputs.completed == 'true' }}
+      - name: Scanner in pari fino all'ultima ora conclusa
+        if: ${{ steps.continuation.outputs.caught_up == 'true' && steps.continuation.outputs.fatal != 'true' }}
         run: |
-          echo "Scansione completata fino a ${{ steps.continuation.outputs.scan_end_date }} ${{ steps.continuation.outputs.scan_end_time }}."
-          echo "Nessun altro run verrà avviato."
+          echo "Scanner in pari. Prossimo codice: ${{ steps.continuation.outputs.next_timestamp }}."
+          echo "Il prossimo avvio automatico avverrà allo scoccare dell'ora."
 
       - name: Ferma la catena in caso di errore fatale
         if: ${{ steps.continuation.outputs.fatal == 'true' || steps.scanner.outcome == 'failure' || steps.save_state.outcome == 'failure' }}
