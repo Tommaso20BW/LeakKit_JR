@@ -1,49 +1,135 @@
-Aggiornamento timestamp scanner
+<div align="center">
 
-Sostituisci nel repository i tre file mantenendo esattamente questi percorsi:
+# ⏱️ LeakKit Timestamp Scanner
 
-.github/workflows/timestamp-assets.yml
+**Scanner al secondo degli asset pubblici dello store Juventus.**
 
-timestamp_scanner/scanner.py
+[![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![GitHub Actions](https://github.com/Tommaso20BW/LeakKit_JR/actions/workflows/timestamp-assets.yml/badge.svg)](https://github.com/Tommaso20BW/LeakKit_JR/actions/workflows/timestamp-assets.yml)
 
-timestamp_scanner/tests/test_scanner.py
+</div>
 
-Comportamento nuovo
+> [!IMPORTANT]
+> Lo scanner controlla soltanto URL pubblici già descritti in `targets.json`. Non enumera aree riservate e non aggira autenticazioni.
 
-Quando viene trovata una nuova immagine:
+## Come funziona
 
-viene inviata immediatamente su Telegram;
+Gli asset cercati usano un nome nel formato:
 
-viene salvata in found_assets.json;
+```text
+YYYYMMDDHHMMSS
+```
 
-il processo resta aperto;
+Per ogni secondo dell'intervallo vengono costruiti gli URL dei target configurati. Il workflow limita il run all'istante esatto in cui è stato avviato, così lo scanner non tenta timestamp futuri.
 
-il client Telegram non viene chiuso;
+Quando trova un nuovo asset:
 
-la scansione attende 20 secondi;
+1. lo invia immediatamente su Telegram;
+2. registra URL, target, timestamp, tipo di contenuto e modalità di invio in `found_assets.json`;
+3. mantiene aperto il client Telegram;
+4. sospende le richieste per 20 secondi;
+5. riprende dallo stesso flusso senza terminare il processo.
 
-riprende nello stesso run dal flusso già in corso.
+Se Telegram non accetta il contenuto come foto, il client prova l'invio come documento.
 
-La pausa è configurata nel workflow con:
+## Target
 
-PAUSE_AFTER_ASSET_SECONDS: "20"
+`targets.json` contiene attualmente:
 
-Inserimento intervallo
+| Nome | Modello URL |
+| --- | --- |
+| `categories` | `/images/juventus/categories/{timestamp}.webp` |
+| `patch-overlay` | `/images/juventus/customizations/patch-overlay/{timestamp}.webp` |
 
-Nel pulsante Run workflow compaiono quattro campi:
+Ogni target aggiuntivo deve avere un nome univoco e un `url_template` contenente `{timestamp}`.
 
-data iniziale: GG/MM/AAAA
+## Intervallo
 
-ora iniziale: HH:MM:SS
+Il pulsante **Run workflow** richiede quattro campi in ora italiana:
 
-data finale: GG/MM/AAAA
+| Campo | Formato |
+| --- | --- |
+| Data iniziale | `GG/MM/AAAA` |
+| Ora iniziale | `HH:MM:SS` |
+| Data finale | `GG/MM/AAAA` |
+| Ora finale | `HH:MM:SS` |
 
-ora finale: HH:MM:SS
+`reset_state` riparte dalla data iniziale conservando l'archivio degli asset già inviati. `dry_run` mostra soltanto ampiezza dell'intervallo, cutoff e numero di URL previsti.
 
-I run successivi mantengono automaticamente lo stesso intervallo.
+## Stato
 
-GitHub Actions non offre un vero calendario con selettore dell'ora nei campiworkflow_dispatch, quindi questa è la soluzione nativa più semplice.
+| File | Ruolo |
+| --- | --- |
+| `state.json` | Cursore, contatori, intervallo, run e motivo dell'ultima interruzione |
+| `found_assets.json` | Registro degli URL già notificati |
+| `targets.json` | Elenco dei modelli URL |
 
-Pulizia run
+Il cursore avanza soltanto dopo aver completato tutti i target del secondo corrente. In caso di errore HTTP o Telegram resta sul primo secondo incompleto, che verrà ritentato.
 
-Alla fine di ogni esecuzione vengono eliminati automaticamente tutti i vecchirun completati dello stesso workflow. Il run corrente non viene cancellatoperché, durante lo step di pulizia, risulta ancora in esecuzione.
+## Parametri operativi
+
+Il workflow imposta questi valori:
+
+| Variabile | Valore | Effetto |
+| --- | ---: | --- |
+| `REQUESTS_PER_SECOND` | `20` | Limite globale delle richieste |
+| `CONCURRENCY` | `30` | Numero massimo di worker |
+| `RETRIES` | `3` | Tentativi HTTP per URL |
+| `HTTP_TIMEOUT_SECONDS` | `25` | Timeout per richiesta |
+| `CHUNK_TIMESTAMPS` | `60` | Secondi elaborati per blocco |
+| `CHECKPOINT_EVERY` | `1` | Frequenza di salvataggio del cursore |
+| `MAX_RUNTIME_SECONDS` | `3600` | Budget massimo dello scanner nel run |
+| `PAUSE_AFTER_ASSET_SECONDS` | `20` | Pausa dopo ogni scoperta |
+
+## Avvio locale
+
+Lo scanner riusa le dipendenze e il client Telegram del progetto principale.
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Imposta `SCAN_START` e `SCAN_FINAL_END` nel formato `GG/MM/AAAA HH:MM:SS`, quindi esegui:
+
+```bash
+python timestamp_scanner/scanner.py --dry-run
+python timestamp_scanner/scanner.py
+```
+
+Comandi aggiuntivi:
+
+```bash
+python timestamp_scanner/scanner.py --initialize-state
+python timestamp_scanner/scanner.py --reset-state
+```
+
+Per un invio reale servono `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID`.
+
+## Test
+
+```bash
+python -m unittest discover -s timestamp_scanner/tests -v
+```
+
+## GitHub Actions
+
+Il workflow `.github/workflows/timestamp-assets.yml`:
+
+- usa Python 3.14;
+- valida sintassi e test prima della scansione;
+- salva `state.json` e `found_assets.json` con retry sul push;
+- avvia immediatamente un nuovo run finché l'intervallo non è completato;
+- ferma la catena in caso di errore fatale;
+- elimina i run completati dalla propria cronologia.
+
+GitHub Actions non offre un selettore grafico per data e ora nei campi `workflow_dispatch`; per questo l'intervallo viene inserito come testo.
+
+## Limiti noti
+
+- Una scansione lunga viene suddivisa in più run.
+- Limiti, blocchi o cambi di formato del CDN possono interrompere temporaneamente la catena.
+- La scoperta di un file pubblico non dimostra che il contenuto sia definitivo o destinato alla pubblicazione.
+
+---
+
+Sottoprogetto di [LeakKit JR](../README.md).

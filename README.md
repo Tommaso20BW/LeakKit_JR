@@ -2,31 +2,35 @@
 
 # 🚨 LeakKit JR
 
-**Bot Telegram modulare per monitorare font, immagini prodotto e aggiornamenti pubblici legati alla Juventus.**
+**Monitor Telegram per individuare nuovi asset pubblici e aggiornamenti legati alla Juventus.**
 
-[![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![GitHub Actions](https://github.com/Tommaso20BW/LeakKit_JR/actions/workflows/check.yml/badge.svg)](https://github.com/Tommaso20BW/LeakKit_JR/actions/workflows/check.yml)
+[![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Monitor](https://github.com/Tommaso20BW/LeakKit_JR/actions/workflows/check.yml/badge.svg)](https://github.com/Tommaso20BW/LeakKit_JR/actions/workflows/check.yml)
+[![Timestamp scanner](https://github.com/Tommaso20BW/LeakKit_JR/actions/workflows/timestamp-assets.yml/badge.svg)](https://github.com/Tommaso20BW/LeakKit_JR/actions/workflows/timestamp-assets.yml)
 
 </div>
 
 > [!IMPORTANT]
-> LeakKit JR controlla esclusivamente risorse accessibili pubblicamente. Non genera codici, non forza URL protetti e non aggira login o sistemi di controllo degli accessi.
+> Il progetto controlla esclusivamente URL e pagine accessibili pubblicamente. Non genera credenziali, non forza aree protette e non aggira sistemi di controllo degli accessi.
 
-## Funzionalità
+## Panoramica
 
-`check.py` è il punto di ingresso unico e avvia tre monitor indipendenti:
+LeakKit JR contiene due flussi indipendenti:
 
-| Monitor | File | Controllo |
+| Flusso | Punto di ingresso | Scopo |
 | --- | --- | --- |
-| Font | `font_monitor.py` | Cifre da `0` a `9` dei kit `HOME`, `AWAY`, `THIRD` e `FOURTH` della stagione corrente |
-| Prodotti | `store_product_monitor.py` | Immagini principali e secondarie dei codici Juventus da `00` a `99`, varianti `A` e `B` |
-| Notizie | `news_monitor.py` | Nuovi articoli e aggiornamenti nella pagina Juventus di Footy Headlines |
+| Monitor ordinari | `check.py` | Controlla font delle maglie, immagini prodotto e notizie Footy Headlines |
+| Scanner timestamp | `timestamp_scanner/scanner.py` | Cerca asset pubblici dello store il cui nome corrisponde a un timestamp |
 
-Se un monitor fallisce, gli altri continuano comunque. Il processo termina con codice `1` quando almeno un controllo produce un errore non recuperabile.
+Entrambi inviano le nuove rilevazioni su Telegram e mantengono uno stato persistente per evitare notifiche duplicate.
 
-## Monitor dei font
+## Monitor ordinari
 
-Per ogni kit vengono controllate tutte le cifre da `0` a `9`:
+`check.py` coordina tre moduli. Un errore in un modulo non impedisce l'esecuzione degli altri; il processo termina con codice `1` se almeno un monitor fallisce.
+
+### Font delle maglie
+
+`font_monitor.py` controlla le cifre da `0` a `9` per i kit della stagione corrente:
 
 ```text
 HOME-YY-YY
@@ -35,106 +39,106 @@ THIRD-YY-YY
 FOURTH-YY-YY
 ```
 
-La notifica Telegram viene inviata soltanto quando l'intero set di dieci immagini è disponibile, evitando album incompleti.
+La notifica parte soltanto quando tutte e dieci le cifre del kit sono disponibili, così Telegram riceve un album completo.
 
-## Monitor dei prodotti
+### Immagini prodotto
 
-Il monitor verifica i codici:
+`store_product_monitor.py` verifica separatamente le varianti `A` e `B` dei codici da `00` a `99`:
 
 ```text
-A00 → A99
-B00 → B99
+JUYYA00 → JUYYA99
+JUYYB00 → JUYYB99
 ```
 
-Per ogni prodotto cerca:
+Per ogni variante cerca l'immagine principale e una seconda immagine. I prodotti `A01`–`A14` usano il suffisso `_d`; tutti gli altri usano `_2`. Se è disponibile una sola immagine, il bot invia comunque quella trovata e registra la variante come notificata.
 
-- l'immagine principale, senza suffisso;
-- la seconda immagine, con suffisso `_2`;
-- per i prodotti da `A01` ad `A14`, la seconda immagine usa il suffisso `_d`.
+### Notizie Footy Headlines
 
-Le varianti `A` e `B` vengono salvate separatamente. La notifica parte solo quando entrambe le immagini del prodotto sono disponibili.
-
-## Monitor delle notizie
-
-Il monitor legge la pagina pubblica Juventus di Footy Headlines e controlla i metadati `NewsArticle` dei singoli articoli.
-
-Rileva:
+`news_monitor.py` legge la pagina Juventus di Footy Headlines e i metadati `NewsArticle` dei singoli articoli. Rileva:
 
 - nuove pubblicazioni;
-- modifiche a titolo, descrizione o data di aggiornamento;
-- articoli ripubblicati tramite vecchi URL;
+- modifiche a titolo, descrizione o data;
+- vecchi URL ripubblicati con una data recente;
 - aggiornamenti recenti entro una finestra di due giorni.
 
-Ogni versione viene identificata tramite fingerprint SHA-256. Lo stato conserva al massimo 300 articoli.
+Ogni versione è identificata da un fingerprint SHA-256. Lo stato conserva al massimo 300 articoli e rimuove quelli tracciati che restituiscono definitivamente `404` o `410`.
+
+## Scanner timestamp
+
+Il sottoprogetto `timestamp_scanner/` prova, secondo per secondo, due modelli di URL configurati in `targets.json`:
+
+- immagini di categoria;
+- immagini `patch-overlay`.
+
+L'intervallo viene inserito manualmente in ora italiana tramite il workflow `timestamp-assets.yml`. Ogni run:
+
+1. riprende da `state.json`;
+2. congela il limite all'istante di avvio del workflow;
+3. controlla gli URL con concorrenza e limite globale di richieste;
+4. invia immediatamente ogni nuovo asset e lo registra in `found_assets.json`;
+5. attende 20 secondi dopo una scoperta e prosegue nello stesso processo;
+6. salva il cursore e, se necessario, avvia automaticamente il run successivo.
+
+Il contenuto già notificato non viene reinviato neppure quando si usa `reset_state`. La documentazione specifica è in [`timestamp_scanner/README.md`](timestamp_scanner/README.md).
+
+## Stato persistente
+
+| File | Contenuto |
+| --- | --- |
+| `.leakkit_state.json` | Stato unico dei monitor font, prodotti e notizie |
+| `timestamp_scanner/state.json` | Intervallo, cursore e ultimo esito dello scanner |
+| `timestamp_scanner/found_assets.json` | Asset timestamp già inviati |
+| `timestamp_scanner/targets.json` | Modelli di URL controllati dallo scanner |
+
+Lo stato principale è alla versione `2` e viene scritto atomicamente. Al primo caricamento importa gli eventuali file legacy `.found-font-*`, `.found-product-*` e `.seen_news.json`.
 
 ## Struttura
 
 ```text
 LeakKit_JR/
-├── .github/workflows/check.yml
-├── tests/test_check.py
-├── .leakkit_state.json
 ├── check.py
 ├── common.py
 ├── font_monitor.py
-├── news_monitor.py
-├── requirements.txt
-├── state_store.py
 ├── store_product_monitor.py
-└── telegram_client.py
+├── news_monitor.py
+├── telegram_client.py
+├── state_store.py
+├── .leakkit_state.json
+├── timestamp_scanner/
+│   ├── scanner.py
+│   ├── targets.json
+│   ├── state.json
+│   ├── found_assets.json
+│   └── tests/
+├── tests/
+└── .github/workflows/
+    ├── check.yml
+    └── timestamp-assets.yml
 ```
 
-| File | Ruolo |
-| --- | --- |
-| `check.py` | Coordina i monitor e gestisce gli argomenti CLI |
-| `common.py` | Configurazione condivisa, stagioni, header HTTP e log |
-| `telegram_client.py` | Invio di messaggi, immagini e album tramite Telegram Bot API |
-| `state_store.py` | Stato JSON unico, migrazioni e scritture atomiche |
+## Requisiti
 
-## Installazione
-
-Il workflow GitHub Actions utilizza **Python 3.14**.
+- Python 3.14, come nei workflow GitHub Actions;
+- accesso alle sorgenti pubbliche controllate;
+- un bot Telegram per gli invii reali.
 
 ```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Dipendenze principali:
+## Configurazione
 
-- `requests`
-- `beautifulsoup4`
-- `curl_cffi`
-- `tzdata`
+Configura in **Settings → Secrets and variables → Actions**:
 
-## Configurazione Telegram
-
-Configura le seguenti variabili d'ambiente o i corrispondenti secret di GitHub Actions:
-
-| Variabile | Uso |
+| Secret | Uso |
 | --- | --- |
-| `TELEGRAM_BOT_TOKEN` | Token creato con BotFather |
-| `TELEGRAM_CHAT_ID` | ID della chat, del gruppo o del canale di destinazione |
+| `TELEGRAM_BOT_TOKEN` | Token del bot Telegram |
+| `TELEGRAM_CHAT_ID` | Chat, gruppo o canale di destinazione |
 
-È supportata anche la variabile legacy `TELEGRAM_TOKEN`.
+I monitor ordinari accettano anche il nome legacy `TELEGRAM_TOKEN`. Lo scanner timestamp usa `TELEGRAM_BOT_TOKEN`.
 
-### Linux e macOS
-
-```bash
-export TELEGRAM_BOT_TOKEN="token_del_bot"
-export TELEGRAM_CHAT_ID="id_destinazione"
-python check.py
-```
-
-### PowerShell
-
-```powershell
-$env:TELEGRAM_BOT_TOKEN = "token_del_bot"
-$env:TELEGRAM_CHAT_ID = "id_destinazione"
-python check.py
-```
-
-## Comandi
+## Avvio locale
 
 Esegue tutti i monitor:
 
@@ -142,97 +146,52 @@ Esegue tutti i monitor:
 python check.py
 ```
 
-Controlla le sorgenti senza inviare messaggi e senza modificare lo stato:
+Controlla le sorgenti senza inviare messaggi e senza salvare lo stato:
 
 ```bash
 python check.py --dry-run
 ```
 
-Esegue un solo monitor:
+Esegue uno o più monitor specifici:
 
 ```bash
 python check.py --only fonts
-python check.py --only products
-python check.py --only news
+python check.py --only products --only news
 ```
 
-L'opzione `--only` può essere ripetuta:
-
-```bash
-python check.py --only fonts --only products
-```
-
-Importa i vecchi file nel JSON unico e termina:
+Importa soltanto lo stato legacy:
 
 ```bash
 python check.py --migrate-state
 ```
 
-Esegue i test:
+Per eseguire lo scanner in locale occorre impostare almeno `SCAN_START` e `SCAN_FINAL_END`, nel formato `GG/MM/AAAA HH:MM:SS`.
+
+## Test
 
 ```bash
 python -m unittest discover -s tests -v
+python -m unittest discover -s timestamp_scanner/tests -v
 ```
-
-## Stato persistente
-
-Tutto lo stato è salvato in:
-
-```text
-.leakkit_state.json
-```
-
-La versione corrente è la `2`:
-
-```json
-{
-  "version": 2,
-  "fonts": {},
-  "store_products": {},
-  "news": {
-    "initialized": false,
-    "articles": {}
-  }
-}
-```
-
-Le scritture sono atomiche e lo stato viene salvato subito dopo ogni notifica, riducendo il rischio di file corrotti o notifiche duplicate.
-
-La migrazione importa automaticamente:
-
-```text
-.found-font-*
-.found-product-*
-.seen_news.json
-```
-
-Dopo l'importazione, i vecchi file vengono eliminati. Un'eventuale sezione `adidas` proveniente da versioni precedenti viene rimossa.
 
 ## GitHub Actions
 
-Il workflow `.github/workflows/check.yml`:
+Entrambi i workflow sono avviabili manualmente e usano Python 3.14.
 
-1. viene avviato manualmente tramite **Run workflow**;
-2. configura Python 3.14;
-3. installa le dipendenze;
-4. esegue i test;
-5. avvia tutti i monitor;
-6. committa `.leakkit_state.json` soltanto quando cambia;
-7. elimina i run completati dalla cronologia del workflow.
+| Workflow | Comportamento |
+| --- | --- |
+| `check.yml` | Esegue i test, avvia i tre monitor e committa `.leakkit_state.json` quando cambia |
+| `timestamp-assets.yml` | Valida l'intervallo, esegue i test dello scanner, salva cursore e asset e concatena i run fino al completamento |
 
-La configurazione `concurrency` impedisce la sovrapposizione di due esecuzioni.
+La configurazione `concurrency` impedisce sovrapposizioni. Al termine, ciascun workflow elimina dalla propria cronologia i run completati. Non è presente un trigger `schedule`: il primo avvio resta manuale o affidato a un sistema esterno.
 
-> [!NOTE]
-> Nel workflow corrente non è presente un trigger `schedule`. Per controlli automatici è necessario aggiungere una pianificazione cron oppure avviare il workflow tramite un sistema esterno.
+## Limiti noti
 
-## Limiti
-
-- La struttura dello store Juventus e il markup di Footy Headlines possono cambiare.
-- Un'immagine può essere caricata prima della pubblicazione ufficiale del prodotto.
-- Il progetto non esegue riconoscimento visivo di loghi o maglie.
-- Errori temporanei di rete possono rendere un controllo incompleto.
-- Il progetto non accede ad aree riservate o protette.
+- Percorsi, nomi file e markup delle sorgenti esterne possono cambiare.
+- La presenza di un asset sul CDN non equivale a un annuncio ufficiale.
+- Gli errori temporanei di rete possono lasciare un controllo incompleto; lo scanner conserva il cursore per il tentativo successivo.
+- Il progetto non interpreta visivamente le immagini e non conferma che rappresentino un prodotto specifico.
 
 ---
 
-Progetto amatoriale, non affiliato con Juventus Football Club, Telegram o Footy Headlines.
+Progetto amatoriale, non affiliato con Juventus Football Club, Telegram, Footy Headlines o i gestori delle sorgenti citate.
