@@ -70,14 +70,14 @@ Il sottoprogetto `timestamp_scanner/` prova, secondo per secondo, due modelli di
 - immagini di categoria;
 - immagini `patch-overlay`.
 
-Il workflow `timestamp-assets.yml` parte automaticamente allo scoccare di ogni ora e non richiede date. Ogni run:
+Il workflow `timestamp-assets.yml` non richiede date e non usa `schedule`: si avvia manualmente una sola volta. Da quel momento ogni run:
 
 1. riprende da `state.json`;
-2. controlla al massimo un'ora completamente conclusa;
+2. attende che l'ora del cursore sia completamente conclusa;
 3. controlla gli URL con concorrenza e limite globale di richieste;
 4. invia immediatamente ogni nuovo asset e lo registra in `found_assets.json`;
 5. attende 20 secondi dopo una scoperta e prosegue nello stesso processo;
-6. salva il cursore e avvia subito un altro run se esistono arretrati o un'interruzione.
+6. salva il cursore e avvia sempre il run successivo, anche dopo un errore fatale.
 
 Il contenuto già notificato non viene reinviato neppure quando si usa `reset_state`. La documentazione specifica è in [`timestamp_scanner/README.md`](timestamp_scanner/README.md).
 
@@ -176,14 +176,14 @@ python -m unittest discover -s timestamp_scanner/tests -v
 
 ## GitHub Actions
 
-Entrambi i workflow usano Python 3.14. Lo scanner timestamp è anche avviabile manualmente, ma normalmente parte da solo ogni ora.
+Entrambi i workflow usano Python 3.14 e sono avviabili manualmente. Lo scanner timestamp continua poi tramite workflow concatenati.
 
 | Workflow | Comportamento |
 | --- | --- |
 | `check.yml` | Esegue i test, avvia i tre monitor e committa `.leakkit_state.json` quando cambia |
-| `timestamp-assets.yml` | Parte ogni ora, esegue i test, salva cursore e asset e concatena i run finché torna in pari |
+| `timestamp-assets.yml` | Dopo il primo avvio manuale attende l'ora, salva cursore e asset e avvia sempre il run successivo |
 
-La configurazione `concurrency` impedisce sovrapposizioni. Al termine, ciascun workflow elimina dalla propria cronologia i run completati. `check.yml` resta manuale; `timestamp-assets.yml` usa il trigger orario `schedule`.
+La configurazione `concurrency` impedisce sovrapposizioni. Al termine, ciascun workflow elimina dalla propria cronologia i run completati. Per fermare la catena dello scanner occorre annullare manualmente il job in esecuzione.
 
 ## Limiti noti
 

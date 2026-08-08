@@ -24,6 +24,7 @@ from timestamp_scanner.scanner import (  # noqa: E402
     parse_workflow_started_at,
     send_new_asset,
     UrlResult,
+    wait_until_hour_is_closed,
 )
 
 
@@ -73,6 +74,25 @@ class ScannerTests(unittest.TestCase):
             compact(latest_closed_timestamp(value)),
             "20260809005959",
         )
+
+    def test_wait_reaches_the_end_of_the_current_hour(self) -> None:
+        cursor = parse_local_datetime("09/08/2026 00:00:00")
+        clock = [
+            parse_local_datetime("09/08/2026 00:59:58"),
+            parse_local_datetime("09/08/2026 01:00:00"),
+        ]
+        with (
+            patch.object(
+                scanner_module,
+                "current_rome_time",
+                side_effect=clock,
+            ),
+            patch.object(scanner_module.time, "sleep") as sleep,
+        ):
+            cutoff = wait_until_hour_is_closed(cursor)
+
+        self.assertEqual(compact(cutoff), "20260809005959")
+        sleep.assert_called_once_with(2.0)
 
     def test_v1_state_migration_preserves_progress(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

@@ -1,8 +1,6 @@
 name: Scanner timestamp asset Juventus
 
 on:
-  schedule:
-    - cron: "0 * * * *"
   workflow_dispatch:
     inputs:
       reset_state:
@@ -28,7 +26,7 @@ jobs:
   scan:
     name: Cerca immagini secondo per secondo
     runs-on: ubuntu-latest
-    timeout-minutes: 75
+    timeout-minutes: 180
 
     env:
       REQUESTS_PER_SECOND: "20"
@@ -39,6 +37,7 @@ jobs:
       CHECKPOINT_EVERY: "1"
       MAX_RUNTIME_SECONDS: "3600"
       PAUSE_AFTER_ASSET_SECONDS: "20"
+      WAIT_FOR_CLOSED_HOUR: "true"
       RESET_STATE: ${{ github.event_name == 'workflow_dispatch' && inputs.reset_state || false }}
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -82,7 +81,7 @@ jobs:
             python -m unittest discover -s timestamp_scanner/tests -v
           fi
 
-      - name: Scansiona la prossima ora completa
+      - name: Attendi e scansiona la prossima ora completa
         id: scanner
         continue-on-error: true
         shell: bash
@@ -143,7 +142,7 @@ jobs:
           exit 1
       - name: Decidi se avviare subito il run successivo
         id: continuation
-        if: ${{ always() && env.DRY_RUN != 'true' }}
+        if: ${{ always() && !cancelled() && env.DRY_RUN != 'true' }}
         env:
           SCANNER_OUTCOME: ${{ steps.scanner.outcome }}
           SAVE_OUTCOME: ${{ steps.save_state.outcome }}
@@ -154,28 +153,34 @@ jobs:
           import os
           from pathlib import Path
 
-          state = json.loads(
-              Path("timestamp_scanner/state.json").read_text(encoding="utf-8")
-          )
+          try:
+              state = json.loads(
+                  Path("timestamp_scanner/state.json").read_text(encoding="utf-8")
+              )
+              state_error = ""
+          except Exception as exc:
+              state = {}
+              state_error = f"{type(exc).__name__}: {exc}"
           last_run = state.get("last_run") or {}
           scanner_failed = os.environ.get("SCANNER_OUTCOME") != "success"
           save_failed = os.environ.get("SAVE_OUTCOME") != "success"
           fatal = (
               scanner_failed
               or save_failed
+              or bool(state_error)
               or last_run.get("stop_reason") == "fatal_error"
           )
           caught_up = bool(state.get("caught_up", False))
-          should_continue = not caught_up and not fatal
 
-          print(f"continue={'true' if should_continue else 'false'}")
+          print("continue=true")
           print(f"caught_up={'true' if caught_up else 'false'}")
           print(f"fatal={'true' if fatal else 'false'}")
           print(f"next_timestamp={state.get('next_timestamp', '')}")
           print(f"stop_reason={last_run.get('stop_reason', '')}")
+          print(f"state_error={state_error.replace(chr(10), ' ')}")
           PY
 
-      - name: Avvia immediatamente il workflow successivo
+      - name: Avvia il workflow che attenderà l'ora successiva
         if: ${{ steps.continuation.outputs.continue == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -185,23 +190,28 @@ jobs:
           echo "Prossimo codice: ${{ steps.continuation.outputs.next_timestamp }}"
           echo "Motivo fine run: ${{ steps.continuation.outputs.stop_reason }}"
 
-          gh workflow run timestamp-assets.yml \
-            --ref "${GITHUB_REF_NAME}" \
-            -f "reset_state=false" \
-            -f "dry_run=false"
+          for attempt in 1 2 3; do
+            echo "Tentativo avvio workflow successivo ${attempt}/3..."
+            if gh workflow run timestamp-assets.yml \
+              --ref "${GITHUB_REF_NAME}" \
+              -f "reset_state=false" \
+              -f "dry_run=false"
+            then
+              echo "Workflow successivo richiesto dal punto salvato."
+              echo "Se l'ora non è ancora conclusa, il nuovo job resterà in attesa."
+              exit 0
+            fi
+            sleep 10
+          done
 
-          echo "Workflow successivo richiesto dal punto salvato."
+          echo "::error::Impossibile richiedere il workflow successivo dopo 3 tentativi."
+          exit 1
 
-      - name: Scanner in pari fino all'ultima ora conclusa
-        if: ${{ steps.continuation.outputs.caught_up == 'true' && steps.continuation.outputs.fatal != 'true' }}
-        run: |
-          echo "Scanner in pari. Prossimo codice: ${{ steps.continuation.outputs.next_timestamp }}."
-          echo "Il prossimo avvio automatico avverrà allo scoccare dell'ora."
-
-      - name: Ferma la catena in caso di errore fatale
+      - name: Segnala l'errore dopo avere richiesto un nuovo job
         if: ${{ steps.continuation.outputs.fatal == 'true' || steps.scanner.outcome == 'failure' || steps.save_state.outcome == 'failure' }}
         run: |
-          echo "Errore fatale dello scanner. Stato salvato, ma la catena automatica è stata fermata."
+          echo "Il run ha incontrato un errore, ma il workflow successivo è già stato richiesto."
+          echo "Il nuovo job ripartirà dall'ultimo cursore disponibile."
           exit 1
 
       - name: Pulisci la cronologia dei run

@@ -43,17 +43,21 @@ Se Telegram non accetta il contenuto come foto, il client prova l'invio come doc
 
 Ogni target aggiuntivo deve avere un nome univoco e un `url_template` contenente `{timestamp}`.
 
-## Automazione oraria
+## Avvio manuale e catena continua
 
-Non occorre inserire date o orari. GitHub Actions avvia automaticamente il workflow allo scoccare di ogni ora.
+Non occorre inserire date o orari e non è configurato alcun trigger `schedule`. Premi **Run workflow** una sola volta per avviare la catena.
 
-Ogni run elabora al massimo una finestra oraria. Quando termina:
+Ogni run elabora al massimo una finestra oraria:
 
-1. se lo scanner è in pari, termina e attende il prossimo avvio pianificato;
-2. se esistono ore arretrate, avvia subito un altro run;
-3. se si ferma a metà, salva il primo secondo incompleto e il run successivo riparte da quel punto.
+1. se l'ora del cursore non è ancora conclusa, il job resta in attesa;
+2. appena l'ora si chiude, controlla tutti i suoi secondi;
+3. salva il primo secondo ancora da controllare;
+4. avvia automaticamente un nuovo workflow;
+5. il nuovo workflow attende la chiusura dell'ora successiva e il ciclo continua.
 
-Il pulsante **Run workflow** rimane disponibile senza campi data. `reset_state` riparte dall'inizio dell'ora corrente conservando l'archivio degli asset già inviati. `dry_run` mostra soltanto la prossima finestra disponibile.
+Se la scansione si ferma a metà, il workflow successivo riparte dal primo secondo incompleto. Anche dopo un errore fatale o un salvataggio fallito viene richiesto un nuovo job: può ricontrollare alcuni secondi, ma non ne salta. Per arrestare la catena occorre annullare manualmente il job in esecuzione.
+
+`reset_state` riparte dall'inizio dell'ora corrente conservando l'archivio degli asset già inviati. `dry_run` mostra soltanto la prossima finestra disponibile e non avvia la catena.
 
 ## Stato
 
@@ -77,8 +81,9 @@ Il workflow imposta questi valori:
 | `HTTP_TIMEOUT_SECONDS` | `25` | Timeout per richiesta |
 | `CHUNK_TIMESTAMPS` | `60` | Secondi elaborati per blocco |
 | `CHECKPOINT_EVERY` | `1` | Frequenza di salvataggio del cursore |
-| `MAX_RUNTIME_SECONDS` | `3600` | Budget massimo dello scanner nel run |
+| `MAX_RUNTIME_SECONDS` | `3600` | Budget massimo della sola scansione nel run |
 | `PAUSE_AFTER_ASSET_SECONDS` | `20` | Pausa dopo ogni scoperta |
+| `WAIT_FOR_CLOSED_HOUR` | `true` | Mantiene il job in attesa finché l'ora del cursore non è conclusa |
 
 ## Avvio locale
 
@@ -114,17 +119,18 @@ python -m unittest discover -s timestamp_scanner/tests -v
 Il workflow `.github/workflows/timestamp-assets.yml`:
 
 - usa Python 3.14;
-- parte automaticamente allo scoccare di ogni ora;
+- parte soltanto con il primo avvio manuale;
+- attende nel job la chiusura dell'ora da controllare;
 - valida sintassi e test prima della scansione;
 - salva `state.json` e `found_assets.json` con retry sul push;
-- avvia immediatamente un nuovo run quando esistono arretrati o una finestra è rimasta incompleta;
-- quando è in pari termina senza tenere occupato un runner in attesa;
-- ferma la catena in caso di errore fatale;
+- dopo ogni salvataggio avvia il run successivo, che attenderà l'ora seguente;
+- richiede un nuovo run anche dopo errori fatali, con tre tentativi di avvio;
 - elimina i run completati dalla propria cronologia.
 
 ## Limiti noti
 
 - Ogni run elabora al massimo un'ora; gli arretrati vengono recuperati con run concatenati.
+- In assenza di `schedule`, il runner del job successivo resta occupato mentre aspetta la chiusura dell'ora.
 - Se l'intero runner viene terminato prima del salvataggio finale, alcuni secondi possono essere ricontrollati, ma non vengono saltati.
 - Limiti, blocchi o cambi di formato del CDN possono interrompere temporaneamente la catena.
 - La scoperta di un file pubblico non dimostra che il contenuto sia definitivo o destinato alla pubblicazione.

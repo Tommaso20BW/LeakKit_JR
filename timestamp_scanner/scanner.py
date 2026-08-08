@@ -155,10 +155,14 @@ def parse_local_datetime(value: str) -> datetime:
     )
 
 
+def current_rome_time() -> datetime:
+    return datetime.now(ROME).replace(microsecond=0)
+
+
 def parse_workflow_started_at(value: str | None) -> datetime:
     """Converte il created_at del run GitHub da UTC all'ora di Roma."""
     if not value:
-        return datetime.now(ROME).replace(microsecond=0)
+        return current_rome_time()
 
     cleaned = value.strip().replace("Z", "+00:00")
     parsed = datetime.fromisoformat(cleaned)
@@ -209,6 +213,27 @@ def hour_end(value: datetime) -> datetime:
 def latest_closed_timestamp(reference_time: datetime) -> datetime:
     """Ultimo secondo dell'ultima ora completamente conclusa."""
     return hour_start(reference_time) - timedelta(seconds=1)
+
+
+def wait_until_hour_is_closed(cursor: datetime) -> datetime:
+    """Attende la chiusura dell'ora del cursore e restituisce il cutoff."""
+    available_at = hour_end(cursor) + timedelta(seconds=1)
+
+    while True:
+        now = current_rome_time()
+        remaining_seconds = (available_at - now).total_seconds()
+        if remaining_seconds <= 0:
+            return latest_closed_timestamp(now)
+
+        sleep_seconds = min(remaining_seconds, 300.0)
+        print(
+            "[ATTESA ORA] "
+            f"finestra={compact(hour_start(cursor))}-"
+            f"{compact(hour_end(cursor))} | "
+            f"disponibile_alle={available_at.isoformat()} | "
+            f"mancano={remaining_seconds:.0f}s"
+        )
+        time.sleep(sleep_seconds)
 
 
 def new_state(reference_time: datetime) -> dict[str, Any]:
@@ -599,6 +624,13 @@ def run_scan(args: argparse.Namespace) -> int:
         state["next_timestamp"],
         TIMESTAMP_FORMAT,
     ).replace(tzinfo=ROME)
+
+    if (
+        cursor > latest_closed_at
+        and not args.dry_run
+        and env_bool("WAIT_FOR_CLOSED_HOUR")
+    ):
+        latest_closed_at = wait_until_hour_is_closed(cursor)
 
     if cursor > latest_closed_at:
         state["caught_up"] = True
