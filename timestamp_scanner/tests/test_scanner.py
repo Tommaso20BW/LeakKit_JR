@@ -173,6 +173,7 @@ class ScannerTests(unittest.TestCase):
                 "RUN_STARTED_AT_UTC": "2026-08-08T23:00:00Z",
                 "CHUNK_TIMESTAMPS": "3",
                 "CHECKPOINT_EVERY": "1",
+                "RESET_STATE": "false",
             }
             patches = (
                 patch.object(scanner_module, "STATE_PATH", state_path),
