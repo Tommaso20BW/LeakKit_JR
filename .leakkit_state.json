@@ -2,8 +2,7 @@
   "version": 2,
   "fonts": {
     "AWAY-26-27": true,
-    "HOME-26-27": true,
-    "THIRD-26-27": true
+    "HOME-26-27": true
   },
   "store_products": {
     "26_01": true,
