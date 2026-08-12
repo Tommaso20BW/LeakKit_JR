@@ -16,6 +16,8 @@ from timestamp_scanner.scanner import (  # noqa: E402
     ROME,
     GlobalRateLimiter,
     Target,
+    UrlResult,
+    asset_caption,
     compact,
     hour_end,
     hour_start,
@@ -23,7 +25,6 @@ from timestamp_scanner.scanner import (  # noqa: E402
     parse_local_datetime,
     parse_workflow_started_at,
     send_new_asset,
-    UrlResult,
     wait_until_hour_is_closed,
 )
 
@@ -239,15 +240,19 @@ class FakeTelegram:
         self.photo_error = photo_error
         self.photo_calls = 0
         self.document_calls = 0
+        self.photo_kwargs = {}
+        self.document_kwargs = {}
 
     def send_photo_bytes(self, *args, **kwargs):
         self.photo_calls += 1
+        self.photo_kwargs = kwargs
         if self.photo_error is not None:
             raise self.photo_error
         return {"message_id": 1}
 
     def send_document_bytes(self, *args, **kwargs):
         self.document_calls += 1
+        self.document_kwargs = kwargs
         return {"message_id": 2}
 
 
@@ -268,6 +273,20 @@ class TelegramFallbackTests(unittest.TestCase):
         self.assertEqual(mode, "photo")
         self.assertEqual(telegram.photo_calls, 1)
         self.assertEqual(telegram.document_calls, 0)
+        self.assertEqual(telegram.photo_kwargs["parse_mode"], "HTML")
+
+    def test_caption_is_compact_and_hides_the_raw_url(self) -> None:
+        result = self.make_result()
+        caption = asset_caption(result)
+
+        self.assertEqual(
+            caption,
+            "🚨 <b>Nuovo asset Juventus</b>\n\n"
+            "📁 categories  •  <code>20260806162654</code>\n"
+            '🔗 <a href="https://example.test/20260806162654.webp">'
+            "Apri immagine</a>",
+        )
+        self.assertNotIn("URL:", caption)
 
     def test_invalid_dimensions_fall_back_to_document(self) -> None:
         telegram = FakeTelegram(
@@ -280,6 +299,7 @@ class TelegramFallbackTests(unittest.TestCase):
         self.assertEqual(mode, "document")
         self.assertEqual(telegram.photo_calls, 1)
         self.assertEqual(telegram.document_calls, 1)
+        self.assertEqual(telegram.document_kwargs["parse_mode"], "HTML")
 
     def test_unrelated_telegram_error_is_not_hidden(self) -> None:
         telegram = FakeTelegram(

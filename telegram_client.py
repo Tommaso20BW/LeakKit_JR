@@ -160,6 +160,7 @@ class TelegramClient:
         filename: str,
         caption: str = "",
         mime_type: str = "image/jpeg",
+        parse_mode: str | None = None,
     ) -> Any:
         """Invia una singola immagine da contenuto binario."""
         if not content:
@@ -178,6 +179,7 @@ class TelegramClient:
                 f"file={filename} "
                 f"bytes={len(content)} "
                 f"mime={mime_type} "
+                f"parse_mode={parse_mode!r} "
                 f"caption={caption!r}"
             )
             return None
@@ -188,6 +190,8 @@ class TelegramClient:
 
         if caption:
             data["caption"] = caption
+        if parse_mode:
+            data["parse_mode"] = parse_mode
 
         return self._post(
             "sendPhoto",
@@ -209,6 +213,7 @@ class TelegramClient:
         filename: str,
         caption: str = "",
         mime_type: str = "application/octet-stream",
+        parse_mode: str | None = None,
     ) -> Any:
         """Invia un file originale come documento Telegram."""
         if not content:
@@ -227,6 +232,7 @@ class TelegramClient:
                 f"file={filename} "
                 f"bytes={len(content)} "
                 f"mime={mime_type} "
+                f"parse_mode={parse_mode!r} "
                 f"caption={caption!r}"
             )
             return None
@@ -237,6 +243,8 @@ class TelegramClient:
 
         if caption:
             data["caption"] = caption
+        if parse_mode:
+            data["parse_mode"] = parse_mode
 
         return self._post(
             "sendDocument",

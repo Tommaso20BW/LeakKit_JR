@@ -10,6 +10,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from html import escape
 from pathlib import Path
 from typing import Any, Iterable
 from zoneinfo import ZoneInfo
@@ -498,6 +499,18 @@ def extension_for(content_type: str | None) -> str:
     return ".webp"
 
 
+def asset_caption(result: UrlResult) -> str:
+    """Crea una didascalia Telegram compatta con un link cliccabile."""
+    target = escape(result.target)
+    timestamp = escape(result.timestamp)
+    url = escape(result.url, quote=True)
+    return (
+        "🚨 <b>Nuovo asset Juventus</b>\n\n"
+        f"📁 {target}  •  <code>{timestamp}</code>\n"
+        f'🔗 <a href="{url}">Apri immagine</a>'
+    )
+
+
 def send_new_asset(
     telegram: TelegramClient,
     result: UrlResult,
@@ -506,12 +519,7 @@ def send_new_asset(
     if result.content is None:
         raise RuntimeError("Contenuto immagine mancante")
 
-    caption = (
-        "🚨 NUOVO ASSET JUVENTUS TROVATO\n\n"
-        f"Cartella: {result.target}\n"
-        f"Codice: {result.timestamp}\n"
-        f"URL: {result.url}"
-    )
+    caption = asset_caption(result)
     filename = (
         f"{result.target}-{result.timestamp}"
         f"{extension_for(result.content_type)}"
@@ -524,6 +532,7 @@ def send_new_asset(
             filename,
             caption=caption,
             mime_type=mime_type,
+            parse_mode="HTML",
         )
         return "photo"
     except RuntimeError as exc:
@@ -547,6 +556,7 @@ def send_new_asset(
             filename,
             caption=caption,
             mime_type=mime_type,
+            parse_mode="HTML",
         )
         return "document"
 
