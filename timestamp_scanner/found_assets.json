@@ -1,5 +1,21 @@
 {
   "assets": {
+    "https://store.juventus.com/images/juventus/categories/20260812155732.webp": {
+      "content_type": "image/webp",
+      "target": "categories",
+      "telegram_mode": "photo",
+      "telegram_sent_at_utc": "2026-08-12T14:06:14+00:00",
+      "timestamp": "20260812155732",
+      "url": "https://store.juventus.com/images/juventus/categories/20260812155732.webp"
+    },
+    "https://store.juventus.com/images/juventus/categories/20260812155733.webp": {
+      "content_type": "image/webp",
+      "target": "categories",
+      "telegram_mode": "photo",
+      "telegram_sent_at_utc": "2026-08-12T14:06:35+00:00",
+      "timestamp": "20260812155733",
+      "url": "https://store.juventus.com/images/juventus/categories/20260812155733.webp"
+    },
     "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161323.webp": {
       "content_type": "image/webp",
       "target": "patch-overlay",
