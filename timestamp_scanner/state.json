@@ -10,19 +10,19 @@
     "fatal_error": null,
     "found_assets": 0,
     "latest_closed_timestamp": "20260816035959",
-    "run_id": "31918814999",
-    "scanner_finished_at_utc": "2026-08-16T02:06:28+00:00",
-    "scanner_started_at_utc": "2026-08-16T01:06:52+00:00",
+    "run_id": "31921113567",
+    "scanner_finished_at_utc": "2026-08-16T02:13:11+00:00",
+    "scanner_started_at_utc": "2026-08-16T02:06:44+00:00",
     "stop_reason": "hour_completed",
     "window_end": "20260816035959",
     "window_start": "20260816030000",
-    "workflow_started_at_rome": "2026-08-16T03:06:33+02:00"
+    "workflow_started_at_rome": "2026-08-16T04:06:31+02:00"
   },
   "mode": "automatic_hourly",
   "next_timestamp": "20260816040000",
   "runs": 173,
   "scan_start": "20260809000000",
   "timezone": "Europe/Rome",
-  "updated_at_utc": "2026-08-16T02:06:28+00:00",
+  "updated_at_utc": "2026-08-16T02:13:11+00:00",
   "version": 2
 }
