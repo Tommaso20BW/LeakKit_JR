@@ -28,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
+    outputs:
+      successor_requested: ${{ steps.start_successor.outputs.successor_requested }}
+
     env:
       REQUESTS_PER_SECOND: "20"
       CONCURRENCY: "30"
@@ -181,6 +184,7 @@ jobs:
           PY
 
       - name: Avvia il workflow che attenderà l'ora successiva
+        id: start_successor
         if: ${{ steps.continuation.outputs.continue == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -199,6 +203,7 @@ jobs:
             then
               echo "Workflow successivo richiesto dal punto salvato."
               echo "Se l'ora non è ancora conclusa, il nuovo job resterà in attesa."
+              echo "successor_requested=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
             sleep 10
@@ -272,3 +277,37 @@ jobs:
           echo "Run trovati: ${FOUND_RUNS}"
           echo "Run eliminati: ${DELETED_RUNS}"
           echo "Eliminazioni fallite: ${FAILED_RUNS}"
+
+  restart-after-failure:
+    name: Riavvia subito lo scanner dopo un errore
+    needs: scan
+    if: ${{ always() && needs.scan.result == 'failure' && needs.scan.outputs.successor_requested != 'true' && inputs.dry_run != true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Avvia un nuovo run dello scanner timestamp
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for attempt in 1 2 3; do
+            echo "Tentativo riavvio immediato ${attempt}/3..."
+            if gh workflow run timestamp-assets.yml \
+              --ref "${GITHUB_REF_NAME}" \
+              -f "reset_state=false" \
+              -f "dry_run=false"
+            then
+              echo "Nuovo run dello scanner timestamp richiesto."
+              exit 0
+            fi
+
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep 5
+            fi
+          done
+
+          echo "::error::Impossibile riavviare lo scanner timestamp dopo 3 tentativi."
+          exit 1
