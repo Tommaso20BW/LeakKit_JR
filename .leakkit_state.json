@@ -213,13 +213,6 @@
         "title": "Juventus 26-27 Third Kit Leaked - Youth Since 1897",
         "description": "A new image shared by Juventus kit experts @La_Bianconera has revealed a specific detail on the back of the Adidas Juventus 26-27 third kit."
       },
-      "https://www.footyheadlines.com/2025/09/juventus-26-27-eqt-jersey.html": {
-        "fingerprint": "60fe6344b394a0fb2d78278f91bae3ed58595eec7f1576d1375e6ee7f6de3c25",
-        "published": "2026-07-09T18:22:32+02:00",
-        "modified": "2026-07-09T18:22:32+02:00",
-        "title": "Special Juventus 26-27 EQT Retro Jersey + Jacket Leaked",
-        "description": "Update - Thursday, July 9, 2026: Juventus experts La Maglia Bianconera provide us with a first look at the Juventus 26-27 EQT jacket."
-      },
       "https://www.footyheadlines.com/2025/08/juventus-26-27-away-kit_01156287895.html": {
         "fingerprint": "849589d458b192a603ee03eb1f150adac0e06b9144c2acdd58b86dedd7b4fed4",
         "published": "2026-07-21T10:47:29+02:00",
@@ -307,6 +300,14 @@
         "title": "No-Nonsense: Adidas Juventus 2027 Training Shirt Leaked",
         "description": "We can leak the Adidas Juventus 2027 training jersey by Adidas.",
         "handled_fingerprint": "418698ffd1174a002a9f07f02f7ad7cfed3cddc2ae27024f70387196b0e33f82"
+      },
+      "https://www.footyheadlines.com/2025/09/juventus-26-27-eqt-jersey.html": {
+        "fingerprint": "4ac09681e70d206fee5a4a2f26be8f454cb6ac42625a8783af4bbacb912791a2",
+        "published": "2026-07-09T18:22:32+02:00",
+        "modified": "2026-07-09T18:22:32+02:00",
+        "title": "Juventus 26-27 EQT Retro Jersey + Collection Released",
+        "description": "Juventus released a special EQT collection, inspired by the iconic Adidas line of the 1990s.",
+        "handled_fingerprint": "4ac09681e70d206fee5a4a2f26be8f454cb6ac42625a8783af4bbacb912791a2"
       }
     }
   }
