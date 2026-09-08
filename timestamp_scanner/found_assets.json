@@ -80,6 +80,14 @@
       "timestamp": "20260903102212",
       "url": "https://store.juventus.com/images/juventus/categories/20260903102212.webp"
     },
+    "https://store.juventus.com/images/juventus/categories/20260908165909.webp": {
+      "content_type": "image/webp",
+      "target": "categories",
+      "telegram_mode": "photo",
+      "telegram_sent_at_utc": "2026-09-08T15:06:36+00:00",
+      "timestamp": "20260908165909",
+      "url": "https://store.juventus.com/images/juventus/categories/20260908165909.webp"
+    },
     "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161323.webp": {
       "content_type": "image/webp",
       "target": "patch-overlay",
