@@ -45,6 +45,7 @@ jobs:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      TELEGRAM_RICH_MESSAGES: "1"
 
     steps:
       - name: Scarica il repository
@@ -106,7 +107,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Conserva lo stato appena prodotto da questo run.
           STATE_BACKUP="$(mktemp -d)"
           cp timestamp_scanner/state.json "${STATE_BACKUP}/state.json"
           cp timestamp_scanner/found_assets.json "${STATE_BACKUP}/found_assets.json"
@@ -115,11 +115,9 @@ jobs:
           for attempt in 1 2 3; do
             echo "Tentativo salvataggio stato ${attempt}/3..."
 
-            # Prende l'ultimo main senza fare merge/rebase di state.json.
             git fetch origin "${GITHUB_REF_NAME}"
             git reset --hard "origin/${GITHUB_REF_NAME}"
 
-            # Lo stato di QUESTO run deve vincere sullo stato remoto vecchio.
             cp "${STATE_BACKUP}/state.json" timestamp_scanner/state.json
             cp "${STATE_BACKUP}/found_assets.json" timestamp_scanner/found_assets.json
 
@@ -143,6 +141,7 @@ jobs:
 
           echo "::error::Impossibile salvare lo stato dopo 3 tentativi."
           exit 1
+
       - name: Decidi se avviare subito il run successivo
         id: continuation
         if: ${{ always() && !cancelled() && env.DRY_RUN != 'true' }}
@@ -196,10 +195,7 @@ jobs:
 
           for attempt in 1 2 3; do
             echo "Tentativo avvio workflow successivo ${attempt}/3..."
-            if gh workflow run timestamp-assets.yml \
-              --ref "${GITHUB_REF_NAME}" \
-              -f "reset_state=false" \
-              -f "dry_run=false"
+            if gh workflow run timestamp-assets.yml               --ref "${GITHUB_REF_NAME}"               -f "reset_state=false"               -f "dry_run=false"
             then
               echo "Workflow successivo richiesto dal punto salvato."
               echo "Se l'ora non è ancora conclusa, il nuovo job resterà in attesa."
@@ -231,9 +227,7 @@ jobs:
 
           echo "Recupero l'ID del workflow corrente..."
           WORKFLOW_ID="$(
-            gh api \
-              "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}" \
-              --jq '.workflow_id'
+            gh api               "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}"               --jq '.workflow_id'
           )"
 
           if [ -z "$WORKFLOW_ID" ]; then
@@ -256,9 +250,7 @@ jobs:
             FOUND_RUNS=$((FOUND_RUNS + 1))
             echo "Elimino il run ${RUN_ID}..."
 
-            if gh api \
-              --method DELETE \
-              "repos/${REPOSITORY}/actions/runs/${RUN_ID}"
+            if gh api               --method DELETE               "repos/${REPOSITORY}/actions/runs/${RUN_ID}"
             then
               DELETED_RUNS=$((DELETED_RUNS + 1))
               echo "Run ${RUN_ID} eliminato."
@@ -267,10 +259,7 @@ jobs:
               echo "::warning::Impossibile eliminare il run ${RUN_ID}."
             fi
           done < <(
-            gh api \
-              --paginate \
-              "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100" \
-              --jq '.workflow_runs[].id'
+            gh api               --paginate               "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100"               --jq '.workflow_runs[].id'
           )
 
           echo "Pulizia completata."
@@ -295,10 +284,7 @@ jobs:
 
           for attempt in 1 2 3; do
             echo "Tentativo riavvio immediato ${attempt}/3..."
-            if gh workflow run timestamp-assets.yml \
-              --ref "${GITHUB_REF_NAME}" \
-              -f "reset_state=false" \
-              -f "dry_run=false"
+            if gh workflow run timestamp-assets.yml               --ref "${GITHUB_REF_NAME}"               -f "reset_state=false"               -f "dry_run=false"
             then
               echo "Nuovo run dello scanner timestamp richiesto."
               exit 0
