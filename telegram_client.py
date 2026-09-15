@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import json
 import os
-from html import escape
+import re
+from html import escape, unescape
 from typing import Any
 
 import requests
@@ -45,7 +46,7 @@ class TelegramClient:
             else os.getenv("TELEGRAM_CHAT_ID")
         )
         self.rich_messages = (
-            self._env_flag("TELEGRAM_RICH_MESSAGES", default=False)
+            self._env_flag("TELEGRAM_RICH_MESSAGES", default=True)
             if rich_messages is None
             else bool(rich_messages)
         )
@@ -263,6 +264,25 @@ class TelegramClient:
             timeout=120,
         )
 
+    @staticmethod
+    def _timestamp_rich_metadata(caption: str) -> tuple[str, str, str] | None:
+        """Estrae i dati dal caption legacy usato dal timestamp scanner."""
+        if "Nuovo asset Juventus" not in caption:
+            return None
+
+        link_match = re.search(r"href=[\"']([^\"']+)[\"']", caption)
+        url = unescape(link_match.group(1)) if link_match else ""
+        plain = re.sub(r"<[^>]+>", "", caption)
+        plain = unescape(plain)
+        lines = [line.strip() for line in plain.splitlines() if line.strip()]
+        body_lines = [
+            line
+            for line in lines
+            if "Nuovo asset Juventus" not in line and "Apri immagine" not in line
+        ]
+        body = "\n".join(body_lines)
+        return "🚨 Nuovo asset Juventus", body, url
+
     def send_photo_bytes(
         self,
         content: bytes,
@@ -271,7 +291,13 @@ class TelegramClient:
         mime_type: str = "image/jpeg",
         parse_mode: str | None = None,
     ) -> Any:
-        """Invia una singola immagine da contenuto binario."""
+        """Invia una singola immagine da contenuto binario.
+
+        Per le notifiche del timestamp scanner, quando i Rich Messages sono
+        attivi prova prima sendRichMessage e torna automaticamente a sendPhoto
+        in caso di errore. Gli altri chiamanti mantengono il comportamento
+        legacy, così i fallback dei monitor font/prodotti non vengono alterati.
+        """
         if not content:
             raise ValueError(
                 f"Il file {filename!r} non contiene dati."
@@ -281,6 +307,22 @@ class TelegramClient:
             raise ValueError(
                 "Il nome del file non può essere vuoto."
             )
+
+        timestamp_metadata = self._timestamp_rich_metadata(caption)
+        if self.rich_messages and timestamp_metadata is not None:
+            heading, body, url = timestamp_metadata
+            try:
+                return self.send_rich_gallery_bytes(
+                    heading=heading,
+                    body=body,
+                    images=[(content, filename, caption, mime_type)],
+                    footer=url,
+                )
+            except RuntimeError as exc:
+                print(
+                    "[TELEGRAM RICH FALLBACK] Rich Message timestamp non "
+                    f"disponibile ({exc}). Uso sendPhoto legacy."
+                )
 
         if self.dry_run:
             print(
