@@ -46,7 +46,7 @@ def check_font_kit(
     state: StateStore,
     telegram: TelegramClient,
 ) -> None:
-    """Controlla e invia in un unico album le cifre da 0 a 9."""
+    """Controlla e invia le cifre da 0 a 9 senza cambiare la logica."""
     font_state = state.section("fonts")
 
     if font_state.get(kit):
@@ -117,12 +117,6 @@ def check_font_kit(
         )
         return
 
-    telegram.send_message(
-        "🚨 LEAK! Le immagini del font "
-        f"{kit} della Juventus sono state caricate sullo store!\n\n"
-        "Te le invio in un unico album 👇"
-    )
-
     album: list[tuple[bytes, str, str, str]] = []
 
     for number, content in found:
@@ -135,8 +129,34 @@ def check_font_kit(
             )
         )
 
-    # Invia tutte le 10 cifre nello stesso album Telegram.
-    telegram.send_media_group_bytes(album)
+    rich_sent = False
+    if telegram.rich_messages:
+        try:
+            telegram.send_rich_gallery_bytes(
+                heading="🚨 LEAK FONT JUVENTUS",
+                body=(
+                    f"Il font {kit} della Juventus è stato caricato sullo store.\n"
+                    f"Trovate tutte le {TOTAL_DIGITS} cifre, da 0 a 9."
+                ),
+                images=album,
+                footer=f"{kit} • {len(found)}/{TOTAL_DIGITS} immagini",
+            )
+            rich_sent = True
+        except (RuntimeError, ValueError) as error:
+            log_status(
+                "FONT",
+                kit,
+                f"Rich Message non disponibile, fallback album: {error}",
+            )
+
+    if not rich_sent:
+        telegram.send_message(
+            "🚨 LEAK! Le immagini del font "
+            f"{kit} della Juventus sono state caricate sullo store!\n\n"
+            "Te le invio in un unico album 👇"
+        )
+        # Invia tutte le 10 cifre nello stesso album Telegram.
+        telegram.send_media_group_bytes(album)
 
     font_state[kit] = True
     state.save()

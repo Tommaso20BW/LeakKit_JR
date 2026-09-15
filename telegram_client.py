@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from html import escape
 from typing import Any
 
 import requests
@@ -19,12 +20,17 @@ class TelegramClient:
         token: str | None = None,
         chat_id: str | int | None = None,
         dry_run: bool = False,
+        rich_messages: bool | None = None,
     ) -> None:
         """
         Inizializza il client Telegram.
 
         In modalità dry-run non vengono effettuati invii reali e non sono
         richiesti token o chat ID.
+
+        I Rich Messages sono abilitati con TELEGRAM_RICH_MESSAGES=1 oppure
+        passando rich_messages=True. I metodi legacy restano invariati e
+        vengono usati come fallback dai monitor.
         """
         self.dry_run = dry_run
 
@@ -38,6 +44,11 @@ class TelegramClient:
             if chat_id is not None
             else os.getenv("TELEGRAM_CHAT_ID")
         )
+        self.rich_messages = (
+            self._env_flag("TELEGRAM_RICH_MESSAGES", default=False)
+            if rich_messages is None
+            else bool(rich_messages)
+        )
 
         if not self.dry_run:
             if not self.token:
@@ -50,6 +61,13 @@ class TelegramClient:
                 )
 
         self.session = requests.Session()
+
+    @staticmethod
+    def _env_flag(name: str, *, default: bool) -> bool:
+        raw = os.getenv(name)
+        if raw is None:
+            return default
+        return raw.strip().lower() not in {"", "0", "false", "no", "off"}
 
     def _api_url(self, method: str) -> str:
         """Restituisce l'URL completo del metodo Telegram."""
@@ -154,6 +172,97 @@ class TelegramClient:
             timeout=30,
         )
 
+    def send_rich_gallery_bytes(
+        self,
+        *,
+        heading: str,
+        body: str,
+        images: list[tuple[bytes, str, str, str]],
+        footer: str = "",
+    ) -> Any:
+        """Invia testo + 1-50 immagini in un singolo Rich Message.
+
+        Ogni immagine usa la stessa tupla del vecchio send_media_group_bytes:
+        (contenuto, nome_file, didascalia, mime_type).
+
+        Il metodo viene chiamato dai monitor solo se rich_messages=True.
+        In caso di errore il monitor esegue il fallback legacy, quindi lo
+        stato e la logica di rilevamento non cambiano.
+        """
+        if not self.rich_messages:
+            raise RuntimeError("Rich Messages disabilitati")
+        if not images:
+            raise ValueError("Un Rich Message gallery richiede almeno un'immagine.")
+        if len(images) > 50:
+            raise ValueError("Un Rich Message può contenere al massimo 50 media.")
+
+        files: dict[str, tuple[str, bytes, str]] = {}
+        media: list[dict[str, Any]] = []
+        image_tags: list[str] = []
+
+        for index, (content, filename, _caption, mime_type) in enumerate(images):
+            if not content:
+                raise ValueError(f"Il file {filename!r} non contiene dati.")
+            if not filename:
+                raise ValueError(f"Nome file mancante per l'immagine {index + 1}.")
+
+            attachment_name = f"rich_media_{index}"
+            media_id = f"photo_{index}"
+            files[attachment_name] = (filename, content, mime_type)
+            media.append(
+                {
+                    "id": media_id,
+                    "media": {
+                        "type": "photo",
+                        "media": f"attach://{attachment_name}",
+                    },
+                }
+            )
+            image_tags.append(f'<img src="tg://photo?id={media_id}"/>')
+
+        if len(image_tags) == 1:
+            media_block = image_tags[0]
+        else:
+            media_block = f"<tg-collage>{''.join(image_tags)}</tg-collage>"
+
+        html_parts = [
+            f"<h2>{escape(heading)}</h2>",
+            f"<p>{escape(body).replace(chr(10), '<br>')}</p>",
+            media_block,
+        ]
+        if footer:
+            html_parts.append(
+                f"<footer>{escape(footer).replace(chr(10), '<br>')}</footer>"
+            )
+
+        rich_message = {
+            "html": "".join(html_parts),
+            "media": media,
+        }
+
+        if self.dry_run:
+            print(
+                "[DRY RUN][TELEGRAM RICH GALLERY]\n"
+                f"heading={heading!r}\n"
+                f"body={body!r}\n"
+                f"footer={footer!r}\n"
+                f"images={len(images)}"
+            )
+            return None
+
+        return self._post(
+            "sendRichMessage",
+            data={
+                "chat_id": str(self.chat_id),
+                "rich_message": json.dumps(
+                    rich_message,
+                    ensure_ascii=False,
+                ),
+            },
+            files=files,
+            timeout=120,
+        )
+
     def send_photo_bytes(
         self,
         content: bytes,
@@ -205,7 +314,6 @@ class TelegramClient:
             },
             timeout=60,
         )
-
 
     def send_document_bytes(
         self,

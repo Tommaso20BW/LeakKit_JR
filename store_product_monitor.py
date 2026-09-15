@@ -172,30 +172,56 @@ def check_product_variant(
 
     image_word = "immagine" if len(found) == 1 else "immagini"
 
-    telegram.send_message(
-        f"🚨 LEAK! {image_word.capitalize()} prodotto "
-        f"{letter}{code} della Juventus "
-        "caricata sullo store!\n\n"
-        "Te la invio qui sotto 👇"
-        if len(found) == 1
-        else (
-            f"🚨 LEAK! Immagini prodotto {letter}{code} della Juventus "
-            "caricate sullo store!\n\n"
-            "Te le invio qui sotto 👇"
-        )
-    )
+    rich_sent = False
+    if telegram.rich_messages:
+        try:
+            telegram.send_rich_gallery_bytes(
+                heading=f"🚨 LEAK PRODOTTO {letter}{code}",
+                body=(
+                    f"{image_word.capitalize()} prodotto {letter}{code} della "
+                    "Juventus caricata sullo store!"
+                    if len(found) == 1
+                    else (
+                        f"Immagini prodotto {letter}{code} della Juventus "
+                        "caricate sullo store!"
+                    )
+                ),
+                images=found,
+                footer=" • ".join(item[2] for item in found),
+            )
+            rich_sent = True
+        except (RuntimeError, ValueError) as error:
+            log_status(
+                "PRODUCT",
+                f"{letter}{code}",
+                f"Rich Message non disponibile, fallback legacy: {error}",
+            )
 
-    if len(found) == 1:
-        content, filename, caption, mime_type = found[0]
-
-        telegram.send_photo_bytes(
-            content=content,
-            filename=filename,
-            caption=caption,
-            mime_type=mime_type,
+    if not rich_sent:
+        telegram.send_message(
+            f"🚨 LEAK! {image_word.capitalize()} prodotto "
+            f"{letter}{code} della Juventus "
+            "caricata sullo store!\n\n"
+            "Te la invio qui sotto 👇"
+            if len(found) == 1
+            else (
+                f"🚨 LEAK! Immagini prodotto {letter}{code} della Juventus "
+                "caricate sullo store!\n\n"
+                "Te le invio qui sotto 👇"
+            )
         )
-    else:
-        telegram.send_media_group_bytes(found)
+
+        if len(found) == 1:
+            content, filename, caption, mime_type = found[0]
+
+            telegram.send_photo_bytes(
+                content=content,
+                filename=filename,
+                caption=caption,
+                mime_type=mime_type,
+            )
+        else:
+            telegram.send_media_group_bytes(found)
 
     product_state[state_key] = True
     state.save()
