@@ -183,6 +183,10 @@ class TelegramClient:
     ) -> Any:
         """Invia testo + 1-50 immagini in un singolo Rich Message.
 
+        Con più immagini usa uno slideshow: Telegram mostra un solo media
+        alla volta e l'utente può scorrere gli altri. Con una sola immagine
+        mantiene un normale blocco foto.
+
         Ogni immagine usa la stessa tupla del vecchio send_media_group_bytes:
         (contenuto, nome_file, didascalia, mime_type).
 
@@ -224,7 +228,7 @@ class TelegramClient:
         if len(image_tags) == 1:
             media_block = image_tags[0]
         else:
-            media_block = f"<tg-collage>{''.join(image_tags)}</tg-collage>"
+            media_block = f"<tg-slideshow>{''.join(image_tags)}</tg-slideshow>"
 
         html_parts = [
             f"<h2>{escape(heading)}</h2>",
