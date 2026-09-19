@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Scarica il repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Configura Python
         uses: actions/setup-python@v6
@@ -44,18 +46,47 @@ jobs:
 
       - name: Salva lo stato unico
         if: always() && hashFiles('.leakkit_state.json') != ''
+        shell: bash
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          set -euo pipefail
 
-          git add .leakkit_state.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git diff --cached --quiet; then
-            echo "Nessuna modifica allo stato da salvare."
-          else
+          STATE_BACKUP="$(mktemp)"
+          cp .leakkit_state.json "${STATE_BACKUP}"
+          trap 'rm -f "${STATE_BACKUP}"' EXIT
+
+          for attempt in 1 2 3; do
+            echo "Tentativo salvataggio stato ${attempt}/3..."
+
+            git fetch origin "${GITHUB_REF_NAME}"
+            git reset --hard "origin/${GITHUB_REF_NAME}"
+
+            cp "${STATE_BACKUP}" .leakkit_state.json
+            git add .leakkit_state.json
+
+            if git diff --cached --quiet; then
+              echo "Lo stato remoto è già identico a quello appena prodotto."
+              exit 0
+            fi
+
             git commit -m "Aggiorna stato LeakKit JR"
-            git push
-          fi
+
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "Stato LeakKit JR salvato correttamente."
+              exit 0
+            fi
+
+            echo "Il branch è cambiato durante il push. Riparto dall'ultimo main e riprovo."
+
+            if [[ "${attempt}" -lt 3 ]]; then
+              sleep 5
+            fi
+          done
+
+          echo "::error::Impossibile salvare lo stato dopo 3 tentativi."
+          exit 1
 
       - name: Pulisci la cronologia dei run
         if: always()
@@ -70,9 +101,7 @@ jobs:
           echo "Recupero l'ID del workflow corrente..."
 
           WORKFLOW_ID="$(
-            gh api \
-              "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}" \
-              --jq '.workflow_id'
+            gh api               "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}"               --jq '.workflow_id'
           )"
 
           if [ -z "$WORKFLOW_ID" ]; then
@@ -95,9 +124,7 @@ jobs:
             FOUND_RUNS=$((FOUND_RUNS + 1))
             echo "Elimino il run ${RUN_ID}..."
 
-            if gh api \
-              --method DELETE \
-              "repos/${REPOSITORY}/actions/runs/${RUN_ID}"
+            if gh api               --method DELETE               "repos/${REPOSITORY}/actions/runs/${RUN_ID}"
             then
               DELETED_RUNS=$((DELETED_RUNS + 1))
               echo "Run ${RUN_ID} eliminato."
@@ -106,10 +133,7 @@ jobs:
               echo "::warning::Impossibile eliminare il run ${RUN_ID}."
             fi
           done < <(
-            gh api \
-              --paginate \
-              "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100" \
-              --jq '.workflow_runs[].id'
+            gh api               --paginate               "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100"               --jq '.workflow_runs[].id'
           )
 
           echo "Pulizia completata."
