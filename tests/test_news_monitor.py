@@ -21,6 +21,7 @@ class NewsMonitorMissingArticleTests(unittest.TestCase):
             "modified": "2026-08-06T09:00:00+02:00",
             "title": "Live article",
             "description": "Description",
+            "image": "https://cdn.footyheadlines.com/live.jpg",
         }
 
     @staticmethod
@@ -81,7 +82,7 @@ class NewsMonitorMissingArticleTests(unittest.TestCase):
 
         self.assertNotIn(self.GONE_URL, news_state["articles"])
         state.save.assert_called_once_with()
-        telegram.send_message.assert_not_called()
+        telegram.send_news_rich_message.assert_not_called()
         self.assertTrue(
             any(
                 "rimosso dallo stato 'Gone article'" in call.args[2]
@@ -188,6 +189,68 @@ class NewsMonitorMissingArticleTests(unittest.TestCase):
             news_state["articles"][page_404_url],
         )
         state.save.assert_not_called()
+
+
+class NewsMonitorRichDeliveryTests(unittest.TestCase):
+    def test_fetch_article_version_extracts_schema_image(self) -> None:
+        candidate = {
+            "url": "https://www.footyheadlines.com/2026/09/test.html",
+            "title": "Fallback title",
+            "snippet": "Fallback description",
+            "sources": ["latest"],
+        }
+        response = Mock()
+        response.text = """
+        <html><head>
+        <script type="application/ld+json">
+        {
+          "@type": "NewsArticle",
+          "headline": "New Juventus Kit",
+          "description": "Article description",
+          "datePublished": "2026-09-19T10:00:00+02:00",
+          "dateModified": "2026-09-19T10:05:00+02:00",
+          "image": {"@type": "ImageObject", "url": "/media/juventus-kit.jpg"}
+        }
+        </script>
+        </head></html>
+        """
+        response.raise_for_status = Mock()
+
+        with patch.object(news_monitor.requests, "get", return_value=response):
+            version = news_monitor.fetch_article_version(candidate)
+
+        self.assertEqual(
+            "https://www.footyheadlines.com/media/juventus-kit.jpg",
+            version["image"],
+        )
+        self.assertEqual("New Juventus Kit", version["title"])
+
+    def test_send_news_article_uses_rich_message(self) -> None:
+        telegram = Mock()
+        candidate = {
+            "url": "https://www.footyheadlines.com/2026/09/test.html",
+        }
+        version = {
+            "title": "New Juventus Kit",
+            "description": "Article description",
+            "image": "https://cdn.footyheadlines.com/juventus-kit.jpg",
+        }
+
+        news_monitor.send_news_article(
+            telegram,
+            candidate,
+            version,
+            is_update=True,
+        )
+
+        telegram.send_news_rich_message.assert_called_once_with(
+            title="New Juventus Kit",
+            description="Article description",
+            url=candidate["url"],
+            image_url=version["image"],
+            is_update=True,
+        )
+        telegram.send_message.assert_not_called()
 
 
 if __name__ == "__main__":
