@@ -6,7 +6,6 @@ import hashlib
 import json
 import re
 from datetime import datetime, timedelta
-from html import escape
 from typing import Any, Iterator
 from urllib.parse import urljoin
 from zoneinfo import ZoneInfo
@@ -95,6 +94,23 @@ def clean_schema_text(value: Any) -> str:
     return re.sub(r"\s+", " ", text.replace("\\_", "_")).strip()
 
 
+def extract_schema_image(value: Any, base_url: str) -> str:
+    """Estrae il primo URL immagine valido dai metadati schema.org."""
+    if isinstance(value, str) and value.strip():
+        return urljoin(base_url, value.strip())
+    if isinstance(value, dict):
+        for key in ("url", "contentUrl"):
+            candidate = value.get(key)
+            if isinstance(candidate, str) and candidate.strip():
+                return urljoin(base_url, candidate.strip())
+    if isinstance(value, list):
+        for item in value:
+            image_url = extract_schema_image(item, base_url)
+            if image_url:
+                return image_url
+    return ""
+
+
 def fetch_article_version(candidate: dict[str, Any]) -> dict[str, str]:
     response = requests.get(candidate["url"], headers=HEADERS, timeout=30)
     response.raise_for_status()
@@ -127,6 +143,14 @@ def fetch_article_version(candidate: dict[str, Any]) -> dict[str, str]:
     description = description or candidate["snippet"]
     published = str(metadata.get("datePublished") or "")
     modified = str(metadata.get("dateModified") or published)
+    image = extract_schema_image(metadata.get("image"), candidate["url"])
+    if not image:
+        og_image = soup.select_one('meta[property="og:image"][content]')
+        if og_image:
+            image = urljoin(
+                candidate["url"],
+                str(og_image.get("content", "")).strip(),
+            )
     signature_source = json.dumps(
         {"title": title, "description": description, "modified": modified},
         ensure_ascii=False,
@@ -139,6 +163,7 @@ def fetch_article_version(candidate: dict[str, Any]) -> dict[str, str]:
         "modified": modified,
         "title": title,
         "description": description,
+        "image": image,
     }
 
 
@@ -200,22 +225,12 @@ def send_news_article(
     version: dict[str, str],
     is_update: bool,
 ) -> None:
-    heading = (
-        "🔄 <b>AGGIORNAMENTO FOOTY HEADLINES</b>"
-        if is_update
-        else "📰 <b>FOOTY HEADLINES</b>"
-    )
-    text = f"{heading}\n\n<b>{escape(version['title'])}</b>"
-    if version["description"]:
-        text += f"\n\n{escape(version['description'])}"
-    text += (
-        f'\n\n<a href="{escape(candidate["url"], quote=True)}">'
-        "Leggi l’articolo</a>"
-    )
-    telegram.send_message(
-        text,
-        parse_mode="HTML",
-        disable_preview=False,
+    telegram.send_news_rich_message(
+        title=version["title"],
+        description=version.get("description", ""),
+        url=candidate["url"],
+        image_url=version.get("image", ""),
+        is_update=is_update,
     )
 
 
