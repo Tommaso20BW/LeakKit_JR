@@ -5,10 +5,15 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from html import escape, unescape
 from typing import Any
 
 import requests
+
+
+NEWS_MEDIA_MAX_ATTEMPTS = 5
+NEWS_TEXT_MAX_ATTEMPTS = 3
 
 
 class TelegramClient:
@@ -171,6 +176,131 @@ class TelegramClient:
             "sendMessage",
             data=data,
             timeout=30,
+        )
+
+    @staticmethod
+    def _news_rich_html(
+        *,
+        title: str,
+        description: str,
+        url: str,
+        image_url: str = "",
+        is_update: bool = False,
+    ) -> str:
+        """Crea il Rich Message editoriale usato dalle notizie Footy Headlines."""
+        source = "Footy Headlines · Aggiornamento" if is_update else "Footy Headlines"
+        source_emoji = "🔄" if is_update else "📰"
+        parts = [
+            f"<h2>{source_emoji} {escape(source)}</h2>",
+            f"<h4>{escape(title.strip())}</h4>",
+        ]
+        if image_url.strip():
+            parts.append(
+                f'<img src="{escape(image_url.strip(), quote=True)}"/>'
+            )
+        if description.strip():
+            parts.append(
+                f"<p>{escape(description.strip()).replace(chr(10), '<br>')}</p>"
+            )
+        parts.append(
+            '<tg-button-row align="left">'
+            f'<tg-button type="url" style="primary" '
+            f'url="{escape(url.strip(), quote=True)}">'
+            'Apri notizia'
+            '</tg-button>'
+            '</tg-button-row>'
+        )
+        return "".join(parts)
+
+    def _send_news_rich_with_retries(
+        self,
+        rich_message: dict[str, Any],
+        *,
+        attempts: int,
+    ) -> Any:
+        """Invia un Rich Message ritentando gli errori temporanei."""
+        last_error: RuntimeError | None = None
+        for attempt in range(1, attempts + 1):
+            try:
+                return self._post(
+                    "sendRichMessage",
+                    data={
+                        "chat_id": str(self.chat_id),
+                        "rich_message": json.dumps(
+                            rich_message,
+                            ensure_ascii=False,
+                        ),
+                    },
+                    timeout=60,
+                )
+            except RuntimeError as error:
+                last_error = error
+                if attempt == attempts:
+                    break
+                time.sleep(min(2 ** (attempt - 1), 10))
+
+        if last_error is not None:
+            raise last_error
+        raise RuntimeError("Invio Rich Message Footy Headlines fallito.")
+
+    def send_news_rich_message(
+        self,
+        *,
+        title: str,
+        description: str,
+        url: str,
+        image_url: str = "",
+        is_update: bool = False,
+    ) -> Any:
+        """Invia Footy Headlines come Rich Message, senza fallback legacy.
+
+        Se è presente un'immagine, Telegram ha fino a 5 tentativi per
+        recuperarla. Se continua a fallire, la notizia viene inviata comunque
+        nello stesso formato Rich Message, ma senza media.
+        """
+        if not title.strip():
+            raise ValueError("Il titolo Footy Headlines non può essere vuoto.")
+        if not url.strip():
+            raise ValueError("L'URL Footy Headlines non può essere vuoto.")
+
+        if self.dry_run:
+            print(
+                "[DRY RUN][FOOTY HEADLINES RICH]\n"
+                f"title={title!r}\n"
+                f"description={description!r}\n"
+                f"url={url!r}\n"
+                f"image_url={image_url!r}\n"
+                f"is_update={is_update!r}"
+            )
+            return None
+
+        def payload(current_image_url: str) -> dict[str, str]:
+            return {
+                "html": self._news_rich_html(
+                    title=title,
+                    description=description,
+                    url=url,
+                    image_url=current_image_url,
+                    is_update=is_update,
+                )
+            }
+
+        if image_url.strip():
+            try:
+                return self._send_news_rich_with_retries(
+                    payload(image_url),
+                    attempts=NEWS_MEDIA_MAX_ATTEMPTS,
+                )
+            except RuntimeError as error:
+                print(
+                    "[TELEGRAM RICH] immagine Footy Headlines non disponibile "
+                    f"dopo {NEWS_MEDIA_MAX_ATTEMPTS} tentativi ({error}); "
+                    "invio la notizia senza media, sempre in Rich Message."
+                )
+
+        return self._send_news_rich_with_retries(
+            payload(""),
+            attempts=NEWS_TEXT_MAX_ATTEMPTS,
         )
 
     def send_rich_gallery_bytes(
