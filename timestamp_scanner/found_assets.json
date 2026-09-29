@@ -152,6 +152,30 @@
       "timestamp": "20260928155012",
       "url": "https://store.juventus.com/images/juventus/categories/20260928155012.webp"
     },
+    "https://store.juventus.com/images/juventus/categories/20260929114955.webp": {
+      "content_type": "image/webp",
+      "target": "categories",
+      "telegram_mode": "photo",
+      "telegram_sent_at_utc": "2026-09-29T10:05:27+00:00",
+      "timestamp": "20260929114955",
+      "url": "https://store.juventus.com/images/juventus/categories/20260929114955.webp"
+    },
+    "https://store.juventus.com/images/juventus/categories/20260929115228.webp": {
+      "content_type": "image/webp",
+      "target": "categories",
+      "telegram_mode": "photo",
+      "telegram_sent_at_utc": "2026-09-29T10:06:06+00:00",
+      "timestamp": "20260929115228",
+      "url": "https://store.juventus.com/images/juventus/categories/20260929115228.webp"
+    },
+    "https://store.juventus.com/images/juventus/categories/20260929115440.webp": {
+      "content_type": "image/webp",
+      "target": "categories",
+      "telegram_mode": "photo",
+      "telegram_sent_at_utc": "2026-09-29T10:06:40+00:00",
+      "timestamp": "20260929115440",
+      "url": "https://store.juventus.com/images/juventus/categories/20260929115440.webp"
+    },
     "https://store.juventus.com/images/juventus/customizations/patch-overlay/20260806161323.webp": {
       "content_type": "image/webp",
       "target": "patch-overlay",
