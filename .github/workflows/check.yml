@@ -16,8 +16,10 @@ jobs:
     name: Font, maglie e notizie
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
+      - name: Attendi 8 minuti prima del controllo
+        run: sleep 480
+
       - name: Scarica il repository
         uses: actions/checkout@v6
         with:
@@ -49,20 +51,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           STATE_BACKUP="$(mktemp)"
-          cp .leakkit_state.json "${STATE_BACKUP}"
           trap 'rm -f "${STATE_BACKUP}"' EXIT
+
+          cp .leakkit_state.json "${STATE_BACKUP}"
 
           for attempt in 1 2 3; do
             echo "Tentativo salvataggio stato ${attempt}/3..."
-
             git fetch origin "${GITHUB_REF_NAME}"
             git reset --hard "origin/${GITHUB_REF_NAME}"
-
             cp "${STATE_BACKUP}" .leakkit_state.json
             git add .leakkit_state.json
 
@@ -79,7 +79,6 @@ jobs:
             fi
 
             echo "Il branch è cambiato durante il push. Riparto dall'ultimo main e riprovo."
-
             if [[ "${attempt}" -lt 3 ]]; then
               sleep 5
             fi
@@ -99,10 +98,9 @@ jobs:
           set -uo pipefail
 
           echo "Recupero l'ID del workflow corrente..."
-
-          WORKFLOW_ID="$(
-            gh api               "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}"               --jq '.workflow_id'
-          )"
+          WORKFLOW_ID="$({
+            gh api "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}" --jq '.workflow_id'
+          })"
 
           if [ -z "$WORKFLOW_ID" ]; then
             echo "::error::Impossibile recuperare l'ID del workflow."
@@ -111,7 +109,6 @@ jobs:
 
           echo "Workflow ID: ${WORKFLOW_ID}"
           echo "Cerco tutti i run completati..."
-
           FOUND_RUNS=0
           DELETED_RUNS=0
           FAILED_RUNS=0
@@ -123,9 +120,7 @@ jobs:
 
             FOUND_RUNS=$((FOUND_RUNS + 1))
             echo "Elimino il run ${RUN_ID}..."
-
-            if gh api               --method DELETE               "repos/${REPOSITORY}/actions/runs/${RUN_ID}"
-            then
+            if gh api --method DELETE "repos/${REPOSITORY}/actions/runs/${RUN_ID}"; then
               DELETED_RUNS=$((DELETED_RUNS + 1))
               echo "Run ${RUN_ID} eliminato."
             else
@@ -133,10 +128,24 @@ jobs:
               echo "::warning::Impossibile eliminare il run ${RUN_ID}."
             fi
           done < <(
-            gh api               --paginate               "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100"               --jq '.workflow_runs[].id'
+            gh api --paginate \
+              "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100" \
+              --jq '.workflow_runs[].id'
           )
 
           echo "Pulizia completata."
           echo "Run trovati: ${FOUND_RUNS}"
           echo "Run eliminati: ${DELETED_RUNS}"
           echo "Eliminazioni fallite: ${FAILED_RUNS}"
+
+      - name: Avvia il prossimo controllo
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Avvio immediato del prossimo run..."
+          gh workflow run check.yml --ref "${GITHUB_REF_NAME}"
+          echo "Prossimo run avviato."
