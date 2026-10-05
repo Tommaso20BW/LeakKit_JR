@@ -17,11 +17,11 @@ from common import HEADERS, log_status
 from state_store import StateStore
 from telegram_client import TelegramClient
 
-
 NEWS_TEAM_URL = "https://www.footyheadlines.com/team/Juventus"
 NEWS_MAX_SEEN = 300
 NEWS_MAX_AGE_DAYS = 2
 ROME = ZoneInfo("Europe/Rome")
+
 NEWS_URL_RE = re.compile(
     r"^https://www\.footyheadlines\.com/.+\.html$",
     re.IGNORECASE,
@@ -31,24 +31,29 @@ NEWS_URL_RE = re.compile(
 def fetch_news_candidates() -> list[dict[str, Any]]:
     response = requests.get(NEWS_TEAM_URL, headers=HEADERS, timeout=30)
     response.raise_for_status()
-    soup = BeautifulSoup(response.text, "html.parser")
 
+    soup = BeautifulSoup(response.text, "html.parser")
     candidates: list[dict[str, Any]] = []
     candidates_by_url: dict[str, dict[str, Any]] = {}
+
     headlines = soup.select(
         "h2.post-feed__item-headline, h2.simple-post-feed__item-headline"
     )
+
     for heading in headlines:
         link = heading.find_parent("a", href=True)
         if not link:
             continue
+
         url = urljoin(NEWS_TEAM_URL, str(link["href"]).strip())
         url = url.split("#", 1)[0].split("?", 1)[0]
+
         if not NEWS_URL_RE.match(url):
             continue
 
         tab = heading.find_parent("div", class_="tab-container__content-tab")
         source = str(tab.get("data-id", "page") if tab else "page").lower()
+
         if url in candidates_by_url:
             sources = candidates_by_url[url]["sources"]
             if source not in sources:
@@ -57,6 +62,7 @@ def fetch_news_candidates() -> list[dict[str, Any]]:
 
         content = heading.find_parent("div", class_="post-feed__item-content")
         snippet = ""
+
         if content:
             paragraph = (
                 content.select_one(".content-teaser p")
@@ -74,6 +80,7 @@ def fetch_news_candidates() -> list[dict[str, Any]]:
         }
         candidates.append(candidate)
         candidates_by_url[url] = candidate
+
     return candidates
 
 
@@ -90,6 +97,7 @@ def iter_json_nodes(value: Any) -> Iterator[dict[str, Any]]:
 def clean_schema_text(value: Any) -> str:
     if not value:
         return ""
+
     text = BeautifulSoup(str(value), "html.parser").get_text(" ", strip=True)
     return re.sub(r"\s+", " ", text.replace("\\_", "_")).strip()
 
@@ -98,33 +106,39 @@ def extract_schema_image(value: Any, base_url: str) -> str:
     """Estrae il primo URL immagine valido dai metadati schema.org."""
     if isinstance(value, str) and value.strip():
         return urljoin(base_url, value.strip())
+
     if isinstance(value, dict):
         for key in ("url", "contentUrl"):
             candidate = value.get(key)
             if isinstance(candidate, str) and candidate.strip():
                 return urljoin(base_url, candidate.strip())
+
     if isinstance(value, list):
         for item in value:
             image_url = extract_schema_image(item, base_url)
             if image_url:
                 return image_url
+
     return ""
 
 
 def fetch_article_version(candidate: dict[str, Any]) -> dict[str, str]:
     response = requests.get(candidate["url"], headers=HEADERS, timeout=30)
     response.raise_for_status()
-    soup = BeautifulSoup(response.text, "html.parser")
 
+    soup = BeautifulSoup(response.text, "html.parser")
     metadata = None
+
     for script in soup.find_all("script", type="application/ld+json"):
         raw = script.string or script.get_text()
         if not raw.strip():
             continue
+
         try:
             parsed = json.loads(raw)
         except json.JSONDecodeError:
             continue
+
         for node in iter_json_nodes(parsed):
             article_type = node.get("@type")
             if article_type == "NewsArticle" or (
@@ -132,17 +146,22 @@ def fetch_article_version(candidate: dict[str, Any]) -> dict[str, str]:
             ):
                 metadata = node
                 break
+
         if metadata:
             break
+
     if not metadata:
         raise RuntimeError("metadati NewsArticle non trovati")
 
     title = clean_schema_text(metadata.get("headline") or metadata.get("name"))
     title = title or candidate["title"]
+
     description = clean_schema_text(metadata.get("description"))
     description = description or candidate["snippet"]
+
     published = str(metadata.get("datePublished") or "")
     modified = str(metadata.get("dateModified") or published)
+
     image = extract_schema_image(metadata.get("image"), candidate["url"])
     if not image:
         og_image = soup.select_one('meta[property="og:image"][content]')
@@ -160,6 +179,7 @@ def fetch_article_version(candidate: dict[str, Any]) -> dict[str, str]:
         sort_keys=True,
     )
     fingerprint = hashlib.sha256(signature_source.encode("utf-8")).hexdigest()
+
     return {
         "fingerprint": fingerprint,
         "content_fingerprint": fingerprint,
@@ -174,12 +194,15 @@ def fetch_article_version(candidate: dict[str, Any]) -> dict[str, str]:
 def parse_article_datetime(value: str) -> datetime | None:
     if not value:
         return None
+
     try:
         parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
+
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=ROME)
+
     return parsed.astimezone(ROME)
 
 
@@ -192,8 +215,10 @@ def is_recent_version(version: dict[str, str]) -> bool:
         )
         if parsed is not None
     ]
+
     if not dates:
         return False
+
     return max(dates) >= datetime.now(ROME) - timedelta(days=NEWS_MAX_AGE_DAYS)
 
 
@@ -201,6 +226,7 @@ def is_recent_publication(version: dict[str, str]) -> bool:
     published = parse_article_datetime(version.get("published", ""))
     if published is None:
         return False
+
     return published >= datetime.now(ROME) - timedelta(days=NEWS_MAX_AGE_DAYS)
 
 
@@ -209,8 +235,10 @@ def is_republished_old_url(
 ) -> bool:
     url_date = re.search(r"/(\d{4})/(\d{2})/", candidate["url"])
     published = parse_article_datetime(version.get("published", ""))
+
     if not url_date or published is None:
         return False
+
     return (published.year, published.month) > (
         int(url_date.group(1)),
         int(url_date.group(2)),
@@ -241,11 +269,52 @@ def _content_fingerprint(value: dict[str, Any]) -> str:
     return hashlib.sha256(signature_source.encode("utf-8")).hexdigest()
 
 
+def _legacy_fingerprint(version: dict[str, Any]) -> str:
+    """Fingerprint usato dagli stati legacy: title + description + modified."""
+    signature_source = json.dumps(
+        {
+            "title": version.get("title", ""),
+            "description": version.get("description", ""),
+            "modified": version.get("modified", ""),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    return hashlib.sha256(signature_source.encode("utf-8")).hexdigest()
+
+
+def _is_legacy_state(previous: dict[str, Any]) -> bool:
+    return not (
+        isinstance(previous.get("content_fingerprint"), str)
+        and previous.get("content_fingerprint")
+    )
+
+
 def _has_meaningful_update(
     previous: dict[str, Any],
     version: dict[str, str],
 ) -> bool:
     """Confronta il contenuto, ignorando modifiche alla sola dateModified."""
+    if _is_legacy_state(previous):
+        previous_title = clean_schema_text(previous.get("title"))
+        previous_description = clean_schema_text(previous.get("description"))
+        current_title = clean_schema_text(version.get("title"))
+        current_description = clean_schema_text(version.get("description"))
+
+        if previous_title != current_title or previous_description != current_description:
+            return True
+
+        # Gli stati legacy possono non avere conservato l'immagine. In quel caso
+        # una differenza dell'immagine non è sufficiente per trattare la versione
+        # storica come un aggiornamento: la nuova impronta verrà comunque salvata
+        # alla migrazione e da quel momento le immagini verranno confrontate.
+        previous_image = str(previous.get("image") or "").strip()
+        current_image = str(version.get("image") or "").strip()
+        if previous_image and previous_image != current_image:
+            return True
+
+        return False
+
     return _content_fingerprint(previous) != _content_fingerprint(version)
 
 
@@ -259,8 +328,10 @@ def _already_tracked_content(
     for url, previous in articles.items():
         if url == current_url or not isinstance(previous, dict):
             continue
+
         if _content_fingerprint(previous) == current_fingerprint:
             return True
+
     return False
 
 
@@ -281,7 +352,7 @@ def send_news_article(
 
 def _trim_articles(articles: dict[str, Any]) -> None:
     overflow = len(articles) - NEWS_MAX_SEEN
-    for url in list(articles)[:max(0, overflow)]:
+    for url in list(articles)[: max(0, overflow)]:
         articles.pop(url, None)
 
 
@@ -289,14 +360,17 @@ def _is_permanently_missing_tracked_article(
     candidate: dict[str, Any],
     error: Exception,
 ) -> bool:
-    """Riconosce un vecchio URL tracciato che non esiste più sul sito."""
-    if "tracked" not in candidate.get("sources", []):
-        return False
+    """Riconosce un URL tracciato che non esiste più sul sito."""
     if not isinstance(error, requests.HTTPError):
         return False
 
     response = error.response
-    return response is not None and response.status_code in {404, 410}
+    if response is None or response.status_code not in {404, 410}:
+        return False
+
+    # Un URL può essere presente sia nella pagina corrente sia nello stato
+    # persistente. In entrambi i casi, se è tracciato va rimosso dallo stato.
+    return candidate.get("tracked", False) or "tracked" in candidate.get("sources", [])
 
 
 def run(state: StateStore, telegram: TelegramClient) -> None:
@@ -308,16 +382,25 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
         page_candidates = fetch_news_candidates()
     except requests.RequestException as error:
         raise RuntimeError(f"pagina Juventus non raggiungibile: {error}") from error
+
     if not page_candidates:
         log_status("NEWS", "FOOTY-HEADLINES", "nessun articolo trovato")
         return
 
     candidates = list(page_candidates)
     candidate_urls = {candidate["url"] for candidate in candidates}
+
+    # Gli articoli già presenti nello stato restano "tracciati" anche quando
+    # Footy Headlines li mostra ancora nella pagina corrente.
+    for candidate in candidates:
+        if candidate["url"] in articles:
+            candidate["tracked"] = True
+
     old_candidates = 0
     for url, previous in list(articles.items()):
         if url in candidate_urls or not NEWS_URL_RE.match(url):
             continue
+
         previous_dict = previous if isinstance(previous, dict) else {}
         candidates.append(
             {
@@ -325,6 +408,7 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
                 "title": previous_dict.get("title", "Articolo Footy Headlines"),
                 "snippet": previous_dict.get("description", ""),
                 "sources": ["tracked"],
+                "tracked": True,
             }
         )
         candidate_urls.add(url)
@@ -333,6 +417,7 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
     changed_state = False
     notifications = 0
     successful_checks = 0
+
     for candidate in reversed(candidates):
         try:
             version = fetch_article_version(candidate)
@@ -359,8 +444,21 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
             continue
 
         successful_checks += 1
-
         previous = articles.get(candidate["url"], "__missing__")
+
+        # MIGRAZIONE SILENZIOSA DEGLI STATI LEGACY.
+        # Il vecchio fingerprint era title + description + modified.
+        # Se il fingerprint persistito corrisponde al vecchio algoritmo,
+        # aggiorniamo direttamente il record al nuovo formato senza Telegram.
+        if (
+            isinstance(previous, dict)
+            and _is_legacy_state(previous)
+            and previous.get("fingerprint") == _legacy_fingerprint(version)
+        ):
+            articles[candidate["url"]] = handled_version(version)
+            changed_state = True
+            continue
+
         unhandled_republished = (
             is_republished_old_url(candidate, version)
             and is_recent_version(version)
@@ -368,12 +466,14 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
                 previous is None
                 or (
                     isinstance(previous, dict)
+                    and not _is_legacy_state(previous)
                     and previous.get("fingerprint") == version["fingerprint"]
                     and previous.get("handled_fingerprint")
                     != version["fingerprint"]
                 )
             )
         )
+
         unseen_old_update = (
             previous == "__missing__"
             and initialized
@@ -398,6 +498,19 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
             version,
         )
 
+        # Se uno stato legacy non mostra una modifica significativa del contenuto
+        # (quindi, in particolare, è cambiata soltanto dateModified), completiamo
+        # comunque la migrazione al nuovo formato senza inviare Telegram.
+        if (
+            isinstance(previous, dict)
+            and _is_legacy_state(previous)
+            and not is_update
+        ):
+            articles[candidate["url"]] = handled_version(version)
+            _trim_articles(articles)
+            changed_state = True
+            continue
+
         # Footy Headlines può ripresentare lo stesso articolo con un URL nuovo.
         # Se il contenuto è identico a uno già gestito, aggiorniamo soltanto lo
         # stato del nuovo URL senza inviare una seconda notifica.
@@ -413,11 +526,16 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
         notify_as_update = is_update or unseen_old_update or unhandled_republished
         send_news_article(telegram, candidate, version, notify_as_update)
         label = "aggiornamento" if notify_as_update else "nuova notizia"
-        log_status("NEWS", "FOOTY-HEADLINES", f"notificato {label}: {version['title']}")
+        log_status(
+            "NEWS",
+            "FOOTY-HEADLINES",
+            f"notificato {label}: {version['title']}",
+        )
 
         articles.pop(candidate["url"], None)
         articles[candidate["url"]] = handled_version(version)
         _trim_articles(articles)
+
         news_state["initialized"] = True
         state.save()
         changed_state = False
@@ -425,14 +543,19 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
 
     if successful_checks == 0:
         raise RuntimeError("nessun articolo è stato verificato correttamente")
+
     if not news_state.get("initialized"):
         news_state["initialized"] = True
         changed_state = True
+
     if changed_state:
         _trim_articles(articles)
         state.save()
+
     if notifications == 0:
         checked = len(page_candidates) + old_candidates
         log_status(
-            "NEWS", "FOOTY-HEADLINES", f"nessuna novità ({checked} controllati)"
+            "NEWS",
+            "FOOTY-HEADLINES",
+            f"nessuna novità ({checked} controllati)",
         )
