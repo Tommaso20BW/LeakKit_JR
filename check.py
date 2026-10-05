@@ -1,151 +1,84 @@
-name: Controlla leak Juventus
+"""Punto di ingresso unico per tutti i monitor LeakKit JR."""
 
-on:
-  workflow_dispatch: {}
+from __future__ import annotations
 
-permissions:
-  actions: write
-  contents: write
+import argparse
+import sys
+import traceback
+from collections.abc import Callable
 
-concurrency:
-  group: leakkit-check
-  cancel-in-progress: false
+import font_monitor
+import news_monitor
+import store_product_monitor
+from common import log_status
+from state_store import StateStore
+from telegram_client import TelegramClient
 
-jobs:
-  check-leaks:
-    name: Font, maglie e notizie
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Attendi 8 minuti prima del controllo
-        run: sleep 480
+Monitor = Callable[[StateStore, TelegramClient], None]
+MONITORS: dict[str, Monitor] = {
+    "fonts": font_monitor.run,
+    "products": store_product_monitor.run,
+    "news": news_monitor.run,
+}
 
-      - name: Scarica il repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
-      - name: Configura Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
-          cache: pip
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Esegue i monitor LeakKit JR")
+    parser.add_argument(
+        "--only",
+        action="append",
+        choices=tuple(MONITORS),
+        help="esegue solo il monitor indicato; ripetibile",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="controlla le sorgenti senza inviare messaggi o salvare lo stato",
+    )
+    parser.add_argument(
+        "--migrate-state",
+        action="store_true",
+        help="importa i vecchi file nel JSON unico e termina",
+    )
+    return parser.parse_args(argv)
 
-      - name: Installa dipendenze
-        run: |
-          python -m pip install --upgrade pip==26.1.2
-          python -m pip install -r requirements.txt
 
-      - name: Esegui test
-        run: python -m unittest discover -s tests -v
+def run_monitors(
+    state: StateStore,
+    telegram: TelegramClient,
+    selected: list[str],
+) -> list[str]:
+    failures: list[str] = []
+    for name in selected:
+        log_status("RUN", name.upper(), "avvio")
+        try:
+            MONITORS[name](state, telegram)
+        except Exception as error:
+            failures.append(name)
+            log_status("ERROR", name.upper(), str(error))
+            traceback.print_exc()
+        else:
+            log_status("RUN", name.upper(), "completato")
+    return failures
 
-      - name: Esegui tutti i monitor
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_RICH_MESSAGES: "1"
-        run: python -u check.py
 
-      - name: Salva lo stato unico
-        if: always() && hashFiles('.leakkit_state.json') != ''
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    state = StateStore(read_only=args.dry_run)
+    if args.migrate_state:
+        log_status("STATE", "JSON", "migrazione completata")
+        return 0
+    telegram = TelegramClient(dry_run=args.dry_run)
+    selected = list(dict.fromkeys(args.only or MONITORS.keys()))
+    failures = run_monitors(state, telegram, selected)
+    if failures:
+        print(
+            "Monitor terminati con errori: " + ", ".join(failures),
+            file=sys.stderr,
+        )
+        return 1
+    return 0
 
-          STATE_BACKUP="$(mktemp)"
-          trap 'rm -f "${STATE_BACKUP}"' EXIT
 
-          cp .leakkit_state.json "${STATE_BACKUP}"
-
-          for attempt in 1 2 3; do
-            echo "Tentativo salvataggio stato ${attempt}/3..."
-            git fetch origin "${GITHUB_REF_NAME}"
-            git reset --hard "origin/${GITHUB_REF_NAME}"
-            cp "${STATE_BACKUP}" .leakkit_state.json
-            git add .leakkit_state.json
-
-            if git diff --cached --quiet; then
-              echo "Lo stato remoto è già identico a quello appena prodotto."
-              exit 0
-            fi
-
-            git commit -m "Aggiorna stato LeakKit JR"
-
-            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
-              echo "Stato LeakKit JR salvato correttamente."
-              exit 0
-            fi
-
-            echo "Il branch è cambiato durante il push. Riparto dall'ultimo main e riprovo."
-            if [[ "${attempt}" -lt 3 ]]; then
-              sleep 5
-            fi
-          done
-
-          echo "::error::Impossibile salvare lo stato dopo 3 tentativi."
-          exit 1
-
-      - name: Pulisci la cronologia dei run
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          CURRENT_RUN_ID: ${{ github.run_id }}
-        shell: bash
-        run: |
-          set -uo pipefail
-
-          echo "Recupero l'ID del workflow corrente..."
-          WORKFLOW_ID="$({
-            gh api "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}" --jq '.workflow_id'
-          })"
-
-          if [ -z "$WORKFLOW_ID" ]; then
-            echo "::error::Impossibile recuperare l'ID del workflow."
-            exit 1
-          fi
-
-          echo "Workflow ID: ${WORKFLOW_ID}"
-          echo "Cerco tutti i run completati..."
-          FOUND_RUNS=0
-          DELETED_RUNS=0
-          FAILED_RUNS=0
-
-          while read -r RUN_ID; do
-            if [ -z "$RUN_ID" ]; then
-              continue
-            fi
-
-            FOUND_RUNS=$((FOUND_RUNS + 1))
-            echo "Elimino il run ${RUN_ID}..."
-            if gh api --method DELETE "repos/${REPOSITORY}/actions/runs/${RUN_ID}"; then
-              DELETED_RUNS=$((DELETED_RUNS + 1))
-              echo "Run ${RUN_ID} eliminato."
-            else
-              FAILED_RUNS=$((FAILED_RUNS + 1))
-              echo "::warning::Impossibile eliminare il run ${RUN_ID}."
-            fi
-          done < <(
-            gh api --paginate \
-              "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100" \
-              --jq '.workflow_runs[].id'
-          )
-
-          echo "Pulizia completata."
-          echo "Run trovati: ${FOUND_RUNS}"
-          echo "Run eliminati: ${DELETED_RUNS}"
-          echo "Eliminazioni fallite: ${FAILED_RUNS}"
-
-      - name: Avvia il prossimo controllo
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          echo "Avvio immediato del prossimo run..."
-          gh workflow run check.yml --ref "${GITHUB_REF_NAME}"
-          echo "Prossimo run avviato."
+if __name__ == "__main__":
+    raise SystemExit(main())
