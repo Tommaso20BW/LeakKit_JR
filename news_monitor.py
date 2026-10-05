@@ -368,8 +368,10 @@ def _is_permanently_missing_tracked_article(
     if response is None or response.status_code not in {404, 410}:
         return False
 
-    # Un URL può essere presente sia nella pagina corrente sia nello stato
-    # persistente. In entrambi i casi, se è tracciato va rimosso dallo stato.
+    # Rimuoviamo solo gli URL che stiamo verificando perché erano tracciati
+    # nello stato ma non sono più presenti nella pagina corrente. Un URL che
+    # Footy Headlines continua a mostrare nella pagina corrente non viene
+    # considerato rimosso, anche se la richiesta dell'articolo restituisce 404/410.
     return candidate.get("tracked", False) or "tracked" in candidate.get("sources", [])
 
 
@@ -389,12 +391,6 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
 
     candidates = list(page_candidates)
     candidate_urls = {candidate["url"] for candidate in candidates}
-
-    # Gli articoli già presenti nello stato restano "tracciati" anche quando
-    # Footy Headlines li mostra ancora nella pagina corrente.
-    for candidate in candidates:
-        if candidate["url"] in articles:
-            candidate["tracked"] = True
 
     old_candidates = 0
     for url, previous in list(articles.items()):
@@ -417,6 +413,15 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
     changed_state = False
     notifications = 0
     successful_checks = 0
+
+    # Conserviamo una fotografia delle impronte già tracciate all'inizio del run.
+    # Serve anche quando un vecchio URL viene rimosso dallo stato perché risponde
+    # 404/410 prima che venga elaborato il nuovo URL dello stesso contenuto.
+    known_content_fingerprints = {
+        _content_fingerprint(previous)
+        for previous in articles.values()
+        if isinstance(previous, dict)
+    }
 
     for candidate in reversed(candidates):
         try:
@@ -456,6 +461,7 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
             and previous.get("fingerprint") == _legacy_fingerprint(version)
         ):
             articles[candidate["url"]] = handled_version(version)
+            known_content_fingerprints.add(_content_fingerprint(version))
             changed_state = True
             continue
 
@@ -498,24 +504,16 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
             version,
         )
 
-        # Se uno stato legacy non mostra una modifica significativa del contenuto
-        # (quindi, in particolare, è cambiata soltanto dateModified), completiamo
-        # comunque la migrazione al nuovo formato senza inviare Telegram.
-        if (
-            isinstance(previous, dict)
-            and _is_legacy_state(previous)
-            and not is_update
-        ):
-            articles[candidate["url"]] = handled_version(version)
-            _trim_articles(articles)
-            changed_state = True
-            continue
-
         # Footy Headlines può ripresentare lo stesso articolo con un URL nuovo.
         # Se il contenuto è identico a uno già gestito, aggiorniamo soltanto lo
         # stato del nuovo URL senza inviare una seconda notifica.
-        if is_new and _already_tracked_content(articles, candidate["url"], version):
+        current_content_fingerprint = _content_fingerprint(version)
+        if is_new and (
+            current_content_fingerprint in known_content_fingerprints
+            or _already_tracked_content(articles, candidate["url"], version)
+        ):
             articles[candidate["url"]] = handled_version(version)
+            known_content_fingerprints.add(current_content_fingerprint)
             _trim_articles(articles)
             changed_state = True
             continue
@@ -534,6 +532,7 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
 
         articles.pop(candidate["url"], None)
         articles[candidate["url"]] = handled_version(version)
+        known_content_fingerprints.add(_content_fingerprint(version))
         _trim_articles(articles)
 
         news_state["initialized"] = True
