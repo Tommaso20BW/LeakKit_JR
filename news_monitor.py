@@ -408,14 +408,6 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
             continue
 
         if not is_new and not is_update and not unhandled_republished:
-            # Migrazione trasparente: gli stati precedenti non avevano
-            # content_fingerprint, quindi li aggiorniamo senza notificare.
-            if isinstance(previous, dict) and (
-                previous.get("content_fingerprint")
-                != version["fingerprint"]
-            ):
-                articles[candidate["url"]] = handled_version(version)
-                changed_state = True
             continue
 
         notify_as_update = is_update or unseen_old_update or unhandled_republished
