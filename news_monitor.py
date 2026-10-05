@@ -151,14 +151,18 @@ def fetch_article_version(candidate: dict[str, Any]) -> dict[str, str]:
                 candidate["url"],
                 str(og_image.get("content", "")).strip(),
             )
+
+    # dateModified è metadato tecnico, non prova che il contenuto sia cambiato.
+    # Footy Headlines può aggiornarlo quando ripubblica lo stesso identico articolo.
     signature_source = json.dumps(
-        {"title": title, "description": description, "modified": modified},
+        {"title": title, "description": description, "image": image},
         ensure_ascii=False,
         sort_keys=True,
     )
     fingerprint = hashlib.sha256(signature_source.encode("utf-8")).hexdigest()
     return {
         "fingerprint": fingerprint,
+        "content_fingerprint": fingerprint,
         "published": published,
         "modified": modified,
         "title": title,
@@ -217,6 +221,47 @@ def handled_version(version: dict[str, str]) -> dict[str, str]:
     result = dict(version)
     result["handled_fingerprint"] = version["fingerprint"]
     return result
+
+
+def _content_fingerprint(value: dict[str, Any]) -> str:
+    """Restituisce l'identificatore del contenuto, anche per vecchi stati."""
+    fingerprint = value.get("content_fingerprint")
+    if isinstance(fingerprint, str) and fingerprint:
+        return fingerprint
+
+    signature_source = json.dumps(
+        {
+            "title": clean_schema_text(value.get("title")),
+            "description": clean_schema_text(value.get("description")),
+            "image": str(value.get("image") or "").strip(),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    return hashlib.sha256(signature_source.encode("utf-8")).hexdigest()
+
+
+def _has_meaningful_update(
+    previous: dict[str, Any],
+    version: dict[str, str],
+) -> bool:
+    """Confronta il contenuto, ignorando modifiche alla sola dateModified."""
+    return _content_fingerprint(previous) != _content_fingerprint(version)
+
+
+def _already_tracked_content(
+    articles: dict[str, Any],
+    current_url: str,
+    version: dict[str, str],
+) -> bool:
+    """Riconosce lo stesso articolo ripubblicato con un URL differente."""
+    current_fingerprint = _content_fingerprint(version)
+    for url, previous in articles.items():
+        if url == current_url or not isinstance(previous, dict):
+            continue
+        if _content_fingerprint(previous) == current_fingerprint:
+            return True
+    return False
 
 
 def send_news_article(
@@ -348,10 +393,29 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
                 continue
 
         is_new = previous == "__missing__"
-        is_update = isinstance(previous, dict) and (
-            previous.get("fingerprint") != version["fingerprint"]
+        is_update = isinstance(previous, dict) and _has_meaningful_update(
+            previous,
+            version,
         )
+
+        # Footy Headlines può ripresentare lo stesso articolo con un URL nuovo.
+        # Se il contenuto è identico a uno già gestito, aggiorniamo soltanto lo
+        # stato del nuovo URL senza inviare una seconda notifica.
+        if is_new and _already_tracked_content(articles, candidate["url"], version):
+            articles[candidate["url"]] = handled_version(version)
+            _trim_articles(articles)
+            changed_state = True
+            continue
+
         if not is_new and not is_update and not unhandled_republished:
+            # Migrazione trasparente: gli stati precedenti non avevano
+            # content_fingerprint, quindi li aggiorniamo senza notificare.
+            if isinstance(previous, dict) and (
+                previous.get("content_fingerprint")
+                != version["fingerprint"]
+            ):
+                articles[candidate["url"]] = handled_version(version)
+                changed_state = True
             continue
 
         notify_as_update = is_update or unseen_old_update or unhandled_republished
