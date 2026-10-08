@@ -24,7 +24,7 @@ from timestamp_scanner.scanner import (  # noqa: E402
     latest_closed_timestamp,
     parse_local_datetime,
     parse_workflow_started_at,
-    send_new_asset,
+    send_new_assets,
     wait_until_hour_is_closed,
 )
 
@@ -236,78 +236,81 @@ class ScannerTests(unittest.TestCase):
 
 
 class FakeTelegram:
-    def __init__(self, photo_error: Exception | None = None) -> None:
-        self.photo_error = photo_error
-        self.photo_calls = 0
-        self.document_calls = 0
-        self.photo_kwargs = {}
-        self.document_kwargs = {}
+    def __init__(self, rich_error: Exception | None = None) -> None:
+        self.rich_error = rich_error
+        self.rich_calls: list[dict] = []
 
-    def send_photo_bytes(self, *args, **kwargs):
-        self.photo_calls += 1
-        self.photo_kwargs = kwargs
-        if self.photo_error is not None:
-            raise self.photo_error
-        return {"message_id": 1}
-
-    def send_document_bytes(self, *args, **kwargs):
-        self.document_calls += 1
-        self.document_kwargs = kwargs
-        return {"message_id": 2}
+    def send_rich_gallery_bytes(self, **kwargs):
+        self.rich_calls.append(kwargs)
+        if self.rich_error is not None:
+            raise self.rich_error
+        return {"message_id": len(self.rich_calls)}
 
 
-class TelegramFallbackTests(unittest.TestCase):
-    def make_result(self) -> UrlResult:
+class TelegramGalleryTests(unittest.TestCase):
+    def make_result(
+        self,
+        timestamp: str = "20260806162654",
+        target: str = "categories",
+    ) -> UrlResult:
         return UrlResult(
-            target="categories",
-            timestamp="20260806162654",
-            url="https://example.test/20260806162654.webp",
+            target=target,
+            timestamp=timestamp,
+            url=f"https://example.test/{timestamp}.webp",
             status="found",
             content_type="image/webp",
             content=b"RIFFxxxxWEBPpayload",
         )
 
-    def test_normal_image_is_sent_as_photo(self) -> None:
+    def test_gallery_sends_one_rich_message_for_multiple_images(self) -> None:
         telegram = FakeTelegram()
-        mode = send_new_asset(telegram, self.make_result())
-        self.assertEqual(mode, "photo")
-        self.assertEqual(telegram.photo_calls, 1)
-        self.assertEqual(telegram.document_calls, 0)
-        self.assertEqual(telegram.photo_kwargs["parse_mode"], "HTML")
+        results = [
+            self.make_result("20260806162654"),
+            self.make_result("20260806162655"),
+            self.make_result("20260806162656"),
+        ]
 
-    def test_caption_is_compact_and_hides_the_raw_url(self) -> None:
-        result = self.make_result()
-        caption = asset_caption(result)
+        sent = send_new_assets(telegram, results)
 
+        self.assertEqual(len(telegram.rich_calls), 1)
+        self.assertEqual(len(telegram.rich_calls[0]["images"]), 3)
+        self.assertEqual(sent, [result.url for result in results])
         self.assertEqual(
-            caption,
-            "🚨 <b>Nuovo asset Juventus</b>\n\n"
-            "📁 categories  •  <code>20260806162654</code>\n"
-            '🔗 <a href="https://example.test/20260806162654.webp">'
-            "Apri immagine</a>",
+            telegram.rich_calls[0]["heading"],
+            "🚨 Nuovi asset Juventus",
         )
-        self.assertNotIn("URL:", caption)
+        self.assertIn("3", telegram.rich_calls[0]["body"])
 
-    def test_invalid_dimensions_fall_back_to_document(self) -> None:
-        telegram = FakeTelegram(
-            RuntimeError(
-                "Telegram sendPhoto: Bad Request: "
-                "PHOTO_INVALID_DIMENSIONS"
-            )
-        )
-        mode = send_new_asset(telegram, self.make_result())
-        self.assertEqual(mode, "document")
-        self.assertEqual(telegram.photo_calls, 1)
-        self.assertEqual(telegram.document_calls, 1)
-        self.assertEqual(telegram.document_kwargs["parse_mode"], "HTML")
+    def test_gallery_splits_after_50_images(self) -> None:
+        telegram = FakeTelegram()
+        results = [
+            self.make_result(f"2026080616{minute:04d}")
+            for minute in range(51)
+        ]
 
-    def test_unrelated_telegram_error_is_not_hidden(self) -> None:
-        telegram = FakeTelegram(
-            RuntimeError("Telegram sendPhoto: Unauthorized")
-        )
-        with self.assertRaisesRegex(RuntimeError, "Unauthorized"):
-            send_new_asset(telegram, self.make_result())
-        self.assertEqual(telegram.document_calls, 0)
+        sent = send_new_assets(telegram, results)
+
+        self.assertEqual(len(telegram.rich_calls), 2)
+        self.assertEqual(len(telegram.rich_calls[0]["images"]), 50)
+        self.assertEqual(len(telegram.rich_calls[1]["images"]), 1)
+        self.assertEqual(len(sent), 51)
+
+    def test_gallery_does_not_send_missing_content(self) -> None:
+        telegram = FakeTelegram()
+        result = self.make_result()
+        result.content = None
+
+        sent = send_new_assets(telegram, [result])
+
+        self.assertEqual(sent, [])
+        self.assertEqual(telegram.rich_calls, [])
+
+    def test_gallery_error_is_propagated(self) -> None:
+        telegram = FakeTelegram(RuntimeError("Telegram temporary error"))
+        with self.assertRaisesRegex(RuntimeError, "temporary error"):
+            send_new_assets(telegram, [self.make_result()])
+
+
 
 
 if __name__ == "__main__":
