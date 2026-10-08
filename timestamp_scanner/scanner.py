@@ -511,54 +511,65 @@ def asset_caption(result: UrlResult) -> str:
     )
 
 
-def send_new_asset(
+RICH_GALLERY_MAX_IMAGES = 50
+
+
+def send_new_assets(
     telegram: TelegramClient,
-    result: UrlResult,
-) -> str:
-    """Invia l'asset come foto o, se necessario, come file originale."""
-    if result.content is None:
-        raise RuntimeError("Contenuto immagine mancante")
+    results: list[UrlResult],
+) -> list[str]:
+    """Invia tutti gli asset del ciclo in Rich Message + slideshow.
 
-    caption = asset_caption(result)
-    filename = (
-        f"{result.target}-{result.timestamp}"
-        f"{extension_for(result.content_type)}"
-    )
-    mime_type = result.content_type or "image/webp"
+    Non invia più una foto alla volta: raccoglie gli asset trovati durante
+    l'intero ciclo e li manda a fine ciclo. Il Rich Message supporta fino a
+    50 immagini per invio, quindi oltre quel limite vengono creati più
+    slideshow consecutivi.
+    """
+    pending = [result for result in results if result.content is not None]
+    if not pending:
+        return []
 
-    try:
-        telegram.send_photo_bytes(
-            result.content,
-            filename,
-            caption=caption,
-            mime_type=mime_type,
-            parse_mode="HTML",
-        )
-        return "photo"
-    except RuntimeError as exc:
-        error_text = str(exc).upper()
-        recoverable_photo_errors = (
-            "PHOTO_INVALID_DIMENSIONS",
-            "IMAGE_PROCESS_FAILED",
-        )
-        if not any(
-            marker in error_text
-            for marker in recoverable_photo_errors
-        ):
-            raise
+    sent_urls: list[str] = []
 
-        print(
-            "[TELEGRAM FALLBACK] Telegram non accetta l'asset come foto "
-            f"({exc}). Lo invio come file originale."
+    for start in range(0, len(pending), RICH_GALLERY_MAX_IMAGES):
+        batch = pending[start:start + RICH_GALLERY_MAX_IMAGES]
+        images: list[tuple[bytes, str, str, str]] = []
+
+        for result in batch:
+            filename = (
+                f"{result.target}-{result.timestamp}"
+                f"{extension_for(result.content_type)}"
+            )
+            mime_type = result.content_type or "image/webp"
+            images.append(
+                (
+                    result.content,
+                    filename,
+                    asset_caption(result),
+                    mime_type,
+                )
+            )
+
+        first_timestamp = batch[0].timestamp
+        last_timestamp = batch[-1].timestamp
+
+        telegram.send_rich_gallery_bytes(
+            heading="🚨 Nuovi asset Juventus",
+            body=(
+                f"Trovati <b>{len(batch)}</b> nuovi asset nel ciclo di scansione."
+                f"\n🕒 {first_timestamp}"
+                f" → {last_timestamp}"
+            ),
+            images=images,
+            footer=(
+                f"Slideshow {start // RICH_GALLERY_MAX_IMAGES + 1} "
+                f"• {len(batch)} immagini"
+            ),
         )
-        telegram.send_document_bytes(
-            result.content,
-            filename,
-            caption=caption,
-            mime_type=mime_type,
-            parse_mode="HTML",
-        )
-        return "document"
+
+        sent_urls.extend(result.url for result in batch)
+
+    return sent_urls
 
 
 def pause_after_asset(
@@ -701,6 +712,7 @@ def run_scan(args: argparse.Namespace) -> int:
     limiter = GlobalRateLimiter(requests_per_second)
     checked_in_run = 0
     found_in_run = 0
+    pending_assets: list[UrlResult] = []
     started_monotonic = time.monotonic()
     stop_reason = "hour_completed"
     fatal_error: str | None = None
@@ -761,28 +773,14 @@ def run_scan(args: argparse.Namespace) -> int:
                                 print(f"[GIÀ INVIATO] {result.url}")
                                 continue
 
-                            telegram_mode = send_new_asset(
-                                telegram,
-                                result,
-                            )
-                            found["assets"][result.url] = {
-                                "target": result.target,
-                                "timestamp": result.timestamp,
-                                "url": result.url,
-                                "content_type": result.content_type,
-                                "telegram_mode": telegram_mode,
-                                "telegram_sent_at_utc": utc_now_iso(),
-                            }
-                            found_in_run += 1
-                            state["found_assets"] = len(found["assets"])
-                            save_json(FOUND_PATH, found)
+                            pending_assets.append(result)
                             print(
-                                "[TROVATO E INVIATO] "
-                                f"modalità={telegram_mode} | {result.url}"
+                                "[ACCODATO PER INVIO A FINE CICLO] "
+                                f"{result.url}"
                             )
 
-                            # Non esce dal ciclo e non chiude Telegram:
-                            # attende e poi continua nello stesso processo.
+                            # Manteniamo la pausa anti-CDN già prevista dal
+                            # vecchio scanner, ma non inviamo più Telegram qui.
                             pause_after_asset(
                                 limiter,
                                 pause_after_asset_seconds,
@@ -830,6 +828,46 @@ def run_scan(args: argparse.Namespace) -> int:
     finally:
         # La chiusura avviene qui, non dopo il singolo invio.
         telegram.close()
+
+    # Tutti gli asset trovati nel ciclo vengono inviati soltanto ora,
+    # in uno o più Rich Message slideshow. Questo evita un messaggio per
+    # ogni singola foto.
+    if pending_assets:
+        try:
+            sent_urls = send_new_assets(telegram, pending_assets)
+            sent_at = utc_now_iso()
+            for result in pending_assets:
+                if result.url not in sent_urls:
+                    continue
+                found["assets"][result.url] = {
+                    "target": result.target,
+                    "timestamp": result.timestamp,
+                    "url": result.url,
+                    "content_type": result.content_type,
+                    "telegram_mode": "rich_gallery",
+                    "telegram_sent_at_utc": sent_at,
+                }
+                found_in_run += 1
+
+            state["found_assets"] = len(found["assets"])
+            save_json(FOUND_PATH, found)
+            print(
+                "[CICLO COMPLETATO] "
+                f"inviati {len(sent_urls)} asset in Rich Message slideshow"
+            )
+        except Exception as exc:
+            # Gli asset restano fuori da found_assets: il prossimo run li
+            # ritroverà e li invierà, evitando di marcarli come inviati prima
+            # che Telegram abbia confermato l'invio.
+            stop_reason = "telegram_error"
+            fatal_error = f"fine ciclo Telegram: {exc}"
+            print(f"[ERRORE] {fatal_error}", file=sys.stderr)
+    elif pending_assets:
+        print(
+            "[INVIO RINVIATO] "
+            f"{len(pending_assets)} asset non vengono marcati come inviati "
+            f"perché il ciclo si è fermato con motivo={stop_reason}"
+        )
 
     finished_at_utc = utc_now_iso()
     set_last_run(
