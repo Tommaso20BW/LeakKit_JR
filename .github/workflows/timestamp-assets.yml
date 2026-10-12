@@ -72,15 +72,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           RUN_STARTED_AT_UTC="$(
             gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}" --jq '.created_at'
           )"
+
           echo "RUN_STARTED_AT_UTC=${RUN_STARTED_AT_UTC}" >> "$GITHUB_ENV"
           echo "Cutoff UTC del run: ${RUN_STARTED_AT_UTC}"
 
       - name: Controlla sintassi e test
         run: |
           python -m py_compile timestamp_scanner/scanner.py
+
           if [[ -d timestamp_scanner/tests ]]; then
             python -m unittest discover -s timestamp_scanner/tests -v
           fi
@@ -91,6 +94,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+
           if [[ "${DRY_RUN}" == "true" ]]; then
             python -u timestamp_scanner/scanner.py --dry-run
           else
@@ -163,15 +167,18 @@ jobs:
           except Exception as exc:
               state = {}
               state_error = f"{type(exc).__name__}: {exc}"
+
           last_run = state.get("last_run") or {}
           scanner_failed = os.environ.get("SCANNER_OUTCOME") != "success"
           save_failed = os.environ.get("SAVE_OUTCOME") != "success"
+
           fatal = (
               scanner_failed
               or save_failed
               or bool(state_error)
               or last_run.get("stop_reason") == "fatal_error"
           )
+
           caught_up = bool(state.get("caught_up", False))
 
           print("continue=true")
@@ -190,110 +197,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           echo "Prossimo codice: ${{ steps.continuation.outputs.next_timestamp }}"
           echo "Motivo fine run: ${{ steps.continuation.outputs.stop_reason }}"
 
-          for attempt in 1 2 3; do
-            echo "Tentativo avvio workflow successivo ${attempt}/3..."
-            if gh workflow run timestamp-assets.yml               --ref "${GITHUB_REF_NAME}"               -f "reset_state=false"               -f "dry_run=false"
-            then
-              echo "Workflow successivo richiesto dal punto salvato."
-              echo "Se l'ora non è ancora conclusa, il nuovo job resterà in attesa."
-              echo "successor_requested=true" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            sleep 10
-          done
+          MAX_ATTEMPTS=5
 
-          echo "::error::Impossibile richiedere il workflow successivo dopo 3 tentativi."
-          exit 1
-
-      - name: Segnala l'errore dopo avere richiesto un nuovo job
-        if: ${{ steps.continuation.outputs.fatal == 'true' || steps.scanner.outcome == 'failure' || steps.save_state.outcome == 'failure' }}
-        run: |
-          echo "Il run ha incontrato un errore, ma il workflow successivo è già stato richiesto."
-          echo "Il nuovo job ripartirà dall'ultimo cursore disponibile."
-          exit 1
-
-      - name: Pulisci la cronologia dei run
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          CURRENT_RUN_ID: ${{ github.run_id }}
-        shell: bash
-        run: |
-          set -uo pipefail
-
-          echo "Recupero l'ID del workflow corrente..."
-          WORKFLOW_ID="$(
-            gh api               "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}"               --jq '.workflow_id'
-          )"
-
-          if [ -z "$WORKFLOW_ID" ]; then
-            echo "::error::Impossibile recuperare l'ID del workflow."
-            exit 1
-          fi
-
-          echo "Workflow ID: ${WORKFLOW_ID}"
-          echo "Cerco tutti i run completati..."
-
-          FOUND_RUNS=0
-          DELETED_RUNS=0
-          FAILED_RUNS=0
-
-          while read -r RUN_ID; do
-            if [ -z "$RUN_ID" ]; then
-              continue
-            fi
-
-            FOUND_RUNS=$((FOUND_RUNS + 1))
-            echo "Elimino il run ${RUN_ID}..."
-
-            if gh api               --method DELETE               "repos/${REPOSITORY}/actions/runs/${RUN_ID}"
-            then
-              DELETED_RUNS=$((DELETED_RUNS + 1))
-              echo "Run ${RUN_ID} eliminato."
-            else
-              FAILED_RUNS=$((FAILED_RUNS + 1))
-              echo "::warning::Impossibile eliminare il run ${RUN_ID}."
-            fi
-          done < <(
-            gh api               --paginate               "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100"               --jq '.workflow_runs[].id'
-          )
-
-          echo "Pulizia completata."
-          echo "Run trovati: ${FOUND_RUNS}"
-          echo "Run eliminati: ${DELETED_RUNS}"
-          echo "Eliminazioni fallite: ${FAILED_RUNS}"
-
-  restart-after-failure:
-    name: Riavvia subito lo scanner dopo un errore
-    needs: scan
-    if: ${{ always() && needs.scan.result == 'failure' && needs.scan.outputs.successor_requested != 'true' && inputs.dry_run != true }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - name: Avvia un nuovo run dello scanner timestamp
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          for attempt in 1 2 3; do
-            echo "Tentativo riavvio immediato ${attempt}/3..."
-            if gh workflow run timestamp-assets.yml               --ref "${GITHUB_REF_NAME}"               -f "reset_state=false"               -f "dry_run=false"
-            then
-              echo "Nuovo run dello scanner timestamp richiesto."
-              exit 0
-            fi
-
-            if [[ "${attempt}" -lt 3 ]]; then
-              sleep 5
-            fi
-          done
-
-          echo "::error::Impossibile riavviare lo scanner timestamp dopo 3 tentativi."
-          exit 1
+          for ATTEMPT in $(seq 1 "$MAX_ATT
