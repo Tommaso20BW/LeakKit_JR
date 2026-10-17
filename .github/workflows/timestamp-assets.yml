@@ -201,6 +201,39 @@ jobs:
           echo "Prossimo codice: ${{ steps.continuation.outputs.next_timestamp }}"
           echo "Motivo fine run: ${{ steps.continuation.outputs.stop_reason }}"
 
-          MAX_ATTEMPTS=5
+          MAX_ATTEMPTS=10
 
-          for ATTEMPT in $(seq 1 "$MAX_ATT
+          for ATTEMPT in $(seq 1 "$MAX_ATTEMPTS"); do
+            echo "Avvio del run successivo..."
+            echo "Tentativo ${ATTEMPT}/${MAX_ATTEMPTS}"
+
+            if OUTPUT=$(gh workflow run timestamp-assets.yml \
+              --ref "${GITHUB_REF_NAME}" 2>&1); then
+
+              if [[ -n "$OUTPUT" ]]; then
+                echo "$OUTPUT"
+              fi
+
+              echo "successor_requested=true" >> "$GITHUB_OUTPUT"
+
+              echo "Avvio riuscito."
+              exit 0
+            fi
+
+            echo "$OUTPUT" >&2
+
+            if [[ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]]; then
+              # Attesa crescente: 15, 30, 60, poi sempre 60 secondi.
+              WAIT=$((15 * (2 ** (ATTEMPT - 1))))
+              if [[ "$WAIT" -gt 60 ]]; then
+                WAIT=60
+              fi
+
+              echo "Avvio fallito, nuovo tentativo tra ${WAIT} secondi..."
+              sleep "${WAIT}"
+            fi
+          done
+
+          echo "successor_requested=false" >> "$GITHUB_OUTPUT"
+          echo "::error::Impossibile avviare il run successivo dopo ${MAX_ATTEMPTS} tentativi."
+          exit 1
