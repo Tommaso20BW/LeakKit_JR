@@ -15,7 +15,7 @@ jobs:
   check-leaks:
     name: Font, maglie e notizie
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Attendi 8 minuti prima del controllo
@@ -160,7 +160,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          MAX_ATTEMPTS=5
+          MAX_ATTEMPTS=10
 
           for ATTEMPT in $(seq 1 "$MAX_ATTEMPTS"); do
             echo "Avvio del prossimo controllo..."
@@ -173,20 +173,23 @@ jobs:
                 echo "$OUTPUT"
               fi
 
-              echo "Prossimo run avviato."
+              echo "Avvio riuscito."
               exit 0
-            else
-              EXIT_CODE=$?
-              echo "$OUTPUT" >&2
+            fi
 
-              if [[ "$OUTPUT" =~ HTTP\ (429|500|502|503|504) ]] &&
-                 [[ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]]; then
+            echo "$OUTPUT" >&2
 
-                case "$ATTEMPT" in
-                  1) WAIT=15 ;;
-                  2) WAIT=30 ;;
-                  3) WAIT=60 ;;
-                  4) WAIT=120 ;;
-                esac
+            if [[ "$ATTEMPT" -lt "$MAX_ATTEMPTS" ]]; then
+              # Attesa crescente: 15, 30, 60, poi sempre 60 secondi.
+              WAIT=$((15 * (2 ** (ATTEMPT - 1))))
+              if [[ "$WAIT" -gt 60 ]]; then
+                WAIT=60
+              fi
 
-                echo "Errore
+              echo "Avvio fallito, nuovo tentativo tra ${WAIT} secondi..."
+              sleep "${WAIT}"
+            fi
+          done
+
+          echo "::error::Impossibile avviare il prossimo controllo dopo ${MAX_ATTEMPTS} tentativi."
+          exit 1
