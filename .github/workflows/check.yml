@@ -2,6 +2,8 @@ name: Controlla leak Juventus
 
 on:
   workflow_dispatch: {}
+  schedule:
+    - cron: "23,53 * * * *"
 
 permissions:
   actions: write
