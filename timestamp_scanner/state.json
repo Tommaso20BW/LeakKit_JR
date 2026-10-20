@@ -10,19 +10,19 @@
     "fatal_error": "20261017210000 [categories] HTTP 403: risposta inattesa o blocco temporaneo",
     "found_assets": 0,
     "latest_closed_timestamp": "20261020115959",
-    "run_id": "39405736226",
-    "scanner_finished_at_utc": "2026-10-20T10:08:24+00:00",
-    "scanner_started_at_utc": "2026-10-20T10:08:21+00:00",
+    "run_id": "39405798215",
+    "scanner_finished_at_utc": "2026-10-20T10:08:50+00:00",
+    "scanner_started_at_utc": "2026-10-20T10:08:47+00:00",
     "stop_reason": "transient_http_error",
     "window_end": "20261017215959",
     "window_start": "20261017210000",
-    "workflow_started_at_rome": "2026-10-20T12:07:58+02:00"
+    "workflow_started_at_rome": "2026-10-20T12:08:28+02:00"
   },
   "mode": "automatic_hourly",
   "next_timestamp": "20261017210000",
-  "runs": 9672,
+  "runs": 9673,
   "scan_start": "20261017210000",
   "timezone": "Europe/Rome",
-  "updated_at_utc": "2026-10-20T10:08:24+00:00",
+  "updated_at_utc": "2026-10-20T10:08:50+00:00",
   "version": 2
 }
