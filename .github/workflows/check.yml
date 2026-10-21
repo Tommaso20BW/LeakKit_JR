@@ -1,4 +1,4 @@
-name: Controlla leak Juventus
+name: Leak Juventus
 
 on:
   workflow_dispatch: {}
