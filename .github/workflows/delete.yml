@@ -1,0 +1,146 @@
+name: Elimina run scanner timestamp
+
+# Workflow temporaneo: elimina TUTTI i run completati di
+# "timestamp-assets.yml" e nient'altro. Si avvia solo a mano.
+# Quando il lavoro è finito puoi cancellare questo file.
+#
+# Limite di GitHub: il token del workflow ha circa 1000 chiamate API all'ora,
+# quindi servono molte ore per ~11.600 run. Il workflow aspetta da solo
+# quando il limite finisce e, se non fa in tempo, si riavvia da solo.
+#
+# Facoltativo, per fare 5 volte più in fretta: crea il secret CLEANUP_PAT
+# (token personale con permesso "Actions: read and write" su questa repo).
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: elimina-run-timestamp
+  cancel-in-progress: false
+
+jobs:
+  elimina:
+    name: Elimina i run del timestamp scanner
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    outputs:
+      remaining: ${{ steps.delete.outputs.remaining }}
+      deleted: ${{ steps.delete.outputs.deleted }}
+
+    steps:
+      - name: Elimina tutti i run completati di timestamp-assets.yml
+        id: delete
+        env:
+          GH_TOKEN: ${{ secrets.CLEANUP_PAT != '' && secrets.CLEANUP_PAT || github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TARGET_WORKFLOW: timestamp-assets.yml
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          # Si ferma poco prima del timeout del job (350 minuti).
+          DEADLINE=$(( $(date +%s) + 335 * 60 ))
+          DELETED=0
+          FAILED=0
+          EMPTY_PAGES=0
+
+          wait_for_rate_limit() {
+            # Chiamate API rimaste e momento in cui si azzera il contatore.
+            local info remaining reset now
+            info="$(gh api rate_limit --jq '.resources.core | "\(.remaining) \(.reset)"' 2>/dev/null || echo "")"
+            [[ -z "$info" ]] && return 0
+            remaining="${info%% *}"
+            reset="${info##* }"
+            if (( remaining < 120 )); then
+              now="$(date +%s)"
+              local wait_seconds=$(( reset - now + 10 ))
+              (( wait_seconds < 10 )) && wait_seconds=10
+              if (( now + wait_seconds >= DEADLINE )); then
+                return 1
+              fi
+              echo "Limite API quasi esaurito (${remaining} rimaste). Attendo ${wait_seconds}s..."
+              sleep "$wait_seconds"
+            fi
+            return 0
+          }
+
+          while (( $(date +%s) < DEADLINE )); do
+            if ! wait_for_rate_limit; then
+              echo "Il limite API si azzera oltre il tempo disponibile: chiudo il run."
+              break
+            fi
+
+            if ! IDS="$(gh api \
+              "repos/${REPOSITORY}/actions/workflows/${TARGET_WORKFLOW}/runs?status=completed&per_page=100" \
+              --jq '.workflow_runs[].id' 2>&1)"; then
+              echo "Elenco run non riuscito: ${IDS}"
+              sleep 60
+              continue
+            fi
+
+            if [[ -z "$IDS" ]]; then
+              echo "Nessun run completato rimasto."
+              break
+            fi
+
+            PAGE_DELETED=0
+            for RUN_ID in $IDS; do
+              if gh api -X DELETE "repos/${REPOSITORY}/actions/runs/${RUN_ID}" >/dev/null 2>&1; then
+                DELETED=$((DELETED + 1))
+                PAGE_DELETED=$((PAGE_DELETED + 1))
+              else
+                FAILED=$((FAILED + 1))
+              fi
+              sleep 0.3
+            done
+
+            echo "Eliminati finora: ${DELETED} | falliti: ${FAILED}"
+
+            if (( PAGE_DELETED == 0 )); then
+              EMPTY_PAGES=$((EMPTY_PAGES + 1))
+              if (( EMPTY_PAGES >= 3 )); then
+                echo "::error::Nessuna eliminazione riuscita per 3 pagine di fila."
+                break
+              fi
+              sleep 60
+            else
+              EMPTY_PAGES=0
+            fi
+          done
+
+          REMAINING="$(
+            gh api \
+              "repos/${REPOSITORY}/actions/workflows/${TARGET_WORKFLOW}/runs?status=completed&per_page=1" \
+              --jq '.total_count' 2>/dev/null || echo "?"
+          )"
+
+          echo "Run eliminati in questo giro: ${DELETED}"
+          echo "Run completati ancora presenti: ${REMAINING}"
+
+          {
+            echo "deleted=${DELETED}"
+            echo "remaining=${REMAINING}"
+          } >> "$GITHUB_OUTPUT"
+
+          if (( EMPTY_PAGES >= 3 )); then
+            exit 1
+          fi
+
+      - name: Riavvia se restano run da eliminare
+        if: >-
+          always() &&
+          steps.delete.outputs.deleted != '' &&
+          steps.delete.outputs.deleted != '0' &&
+          steps.delete.outputs.remaining != '0' &&
+          steps.delete.outputs.remaining != '?'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Restano ${{ steps.delete.outputs.remaining }} run: riavvio."
+          gh workflow run elimina-run-timestamp.yml --ref "${GITHUB_REF_NAME}"
