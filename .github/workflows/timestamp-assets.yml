@@ -99,9 +99,42 @@ jobs:
 
           if [[ "${DRY_RUN}" == "true" ]]; then
             python -u timestamp_scanner/scanner.py --dry-run
-          else
-            python -u timestamp_scanner/scanner.py
+            exit 0
           fi
+
+          # Lo scanner copre una sola ora per esecuzione. Se il sito risponde con
+          # un errore temporaneo (per esempio HTTP 403), non si esce subito:
+          # si aspetta e si riprova dallo stesso secondo, restando dentro
+          # circa un'ora di run. Un tentativo ogni 10 minuti, mai a raffica.
+          START_EPOCH="$(date +%s)"
+          RETRY_WINDOW_SECONDS=3000
+          RETRY_PAUSE_SECONDS=600
+
+          while true; do
+            STATUS=0
+            python -u timestamp_scanner/scanner.py || STATUS=$?
+
+            if [[ "$STATUS" -ne 0 ]]; then
+              exit "$STATUS"
+            fi
+
+            STOP_REASON="$(
+              python -c "import json; print((json.load(open('timestamp_scanner/state.json')).get('last_run') or {}).get('stop_reason', ''))"
+            )"
+
+            if [[ "$STOP_REASON" != "transient_http_error" ]]; then
+              exit 0
+            fi
+
+            ELAPSED=$(( $(date +%s) - START_EPOCH ))
+            if (( ELAPSED + RETRY_PAUSE_SECONDS > RETRY_WINDOW_SECONDS )); then
+              echo "Blocco ancora attivo dopo ${ELAPSED}s: chiudo il run."
+              exit 0
+            fi
+
+            echo "Errore temporaneo del sito. Nuovo tentativo tra ${RETRY_PAUSE_SECONDS}s (trascorsi ${ELAPSED}s)."
+            sleep "$RETRY_PAUSE_SECONDS"
+          done
 
       - name: Salva il codice raggiunto e le foto inviate
         id: save_state
@@ -244,62 +277,22 @@ jobs:
           echo "::error::Impossibile avviare il run successivo dopo ${MAX_ATTEMPTS} tentativi."
           exit 1
 
-      - name: Pulisci la cronologia dei run
+      - name: Pulisci la cronologia dei run dello scanner
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          CURRENT_RUN_ID: ${{ github.run_id }}
-        shell: bash
+          KEEP: "0"
         run: |
-          set -uo pipefail
-
-          echo "Recupero l'ID del workflow corrente..."
-
-          WORKFLOW_ID="$(
-            gh api \
-              "repos/${REPOSITORY}/actions/runs/${CURRENT_RUN_ID}" \
-              --jq '.workflow_id'
-          )"
-
-          if [ -z "$WORKFLOW_ID" ]; then
-            echo "::error::Impossibile recuperare l'ID del workflow."
-            exit 1
-          fi
-
-          echo "Workflow ID: ${WORKFLOW_ID}"
-          echo "Cerco tutti i run completati..."
-
-          FOUND_RUNS=0
-          DELETED_RUNS=0
-          FAILED_RUNS=0
-
+          gh api \
+            "repos/${{ github.repository }}/actions/workflows/timestamp-assets.yml/runs?status=completed&per_page=100" \
+            --jq '.workflow_runs | sort_by(.created_at) | reverse | .['"$KEEP"':] | .[].id' |
           while read -r RUN_ID; do
-            if [ -z "$RUN_ID" ]; then
-              continue
+            if [ -n "$RUN_ID" ]; then
+              echo "Elimino run $RUN_ID"
+
+              gh api -X DELETE \
+                "repos/${{ github.repository }}/actions/runs/$RUN_ID" || true
             fi
-
-            FOUND_RUNS=$((FOUND_RUNS + 1))
-            echo "Elimino il run ${RUN_ID}..."
-
-            if gh api \
-              --method DELETE \
-              "repos/${REPOSITORY}/actions/runs/${RUN_ID}"; then
-
-              DELETED_RUNS=$((DELETED_RUNS + 1))
-              echo "Run ${RUN_ID} eliminato."
-            else
-              FAILED_RUNS=$((FAILED_RUNS + 1))
-              echo "::warning::Impossibile eliminare il run ${RUN_ID}."
-            fi
-          done < <(
-            gh api \
-              --paginate \
-              "repos/${REPOSITORY}/actions/workflows/${WORKFLOW_ID}/runs?status=completed&per_page=100" \
-              --jq '.workflow_runs[].id'
-          )
+          done
 
           echo "Pulizia completata."
-          echo "Run trovati: ${FOUND_RUNS}"
-          echo "Run eliminati: ${DELETED_RUNS}"
-          echo "Eliminazioni fallite: ${FAILED_RUNS}"
