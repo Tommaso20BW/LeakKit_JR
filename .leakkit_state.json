@@ -572,6 +572,16 @@
         "description": "Update: Footy Headlines can leak 4 new official images of the new Adidas Juventus 2026 knit long-sleeve jersey.",
         "image": "https://www.footyheadlines.com/static/img/post/2026/10/30/h2WmiGNQXpbsFid/adidas-juventus-2026-knit-long-sleeve-jersey-leaked.jpg",
         "handled_fingerprint": "a7137429cdb224cc7ad51e2d436969e5a71b532df229bf9db54738c71622b75f"
+      },
+      "https://www.footyheadlines.com/7599208711/exclusive-adidas-juventus-2027-icon-collection-leaked.html": {
+        "fingerprint": "1a4fd348b8f05eaaaf7ff8eb904ebce5e125be453dfa479884d5ab2044022cff",
+        "content_fingerprint": "1a4fd348b8f05eaaaf7ff8eb904ebce5e125be453dfa479884d5ab2044022cff",
+        "published": "2026-10-30T20:09:00+01:00",
+        "modified": "2026-10-30T20:09:00+01:00",
+        "title": "Exclusive: Adidas Juventus 2027 Icon Collection Leaked",
+        "description": "Footy Headlines can leak the new Adidas Juventus 2027 Icon collection, featuring a premium retro-inspired lifestyle range scheduled to launch in early 2027.",
+        "image": "https://www.footyheadlines.com/static/img/post/2026/10/30/VDDW2oEo610Ky7t/exclusive-adidas-juventus-2027-icon-collection-leaked.jpg",
+        "handled_fingerprint": "1a4fd348b8f05eaaaf7ff8eb904ebce5e125be453dfa479884d5ab2044022cff"
       }
     }
   }
