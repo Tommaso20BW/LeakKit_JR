@@ -255,3 +255,47 @@ class NewsMonitorRichDeliveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NewsMonitorSameArticleTwoUrlsTests(unittest.TestCase):
+    URL_A = "https://www.footyheadlines.com/4502316860/adidas-juventus-2026-knit-leaked.html"
+    URL_B = "https://www.footyheadlines.com/4502316860/exclusive-adidas-juventus-2026-knit-leaked.html"
+
+    @staticmethod
+    def _version(fp: str, title: str, description: str) -> dict[str, str]:
+        return {
+            "fingerprint": fp,
+            "content_fingerprint": fp,
+            "handled_fingerprint": fp,
+            "published": "2026-11-20T05:49:00+01:00",
+            "modified": "2026-11-20T05:49:47+01:00",
+            "title": title,
+            "description": description,
+            "image": "https://cdn.footyheadlines.com/x.jpg",
+        }
+
+    def test_update_seen_on_second_url_is_not_sent_again(self) -> None:
+        old = self._version("old", "Jersey Leaked", "Leaked images")
+        new_version = self._version("new", "Jersey Released", "Officially unveiled")
+        old["fingerprint"] = old["handled_fingerprint"] = news_monitor._content_fingerprint(old)
+        new_version["fingerprint"] = new_version["handled_fingerprint"] = news_monitor._content_fingerprint(new_version)
+        old["content_fingerprint"] = old["fingerprint"]
+        new_version["content_fingerprint"] = new_version["fingerprint"]
+        news_state = {"initialized": True, "articles": {self.URL_A: dict(old), self.URL_B: dict(old)}}
+        state = Mock()
+        state.section.return_value = news_state
+        telegram = Mock()
+
+        def candidates(url):
+            return [{"url": url, "title": "Jersey", "snippet": "", "sources": ["latest"]}]
+
+        for url in (self.URL_A, self.URL_B):          # due controlli, uno per URL
+            with (
+                patch.object(news_monitor, "fetch_news_candidates", return_value=candidates(url)),
+                patch.object(news_monitor, "fetch_article_version", return_value=dict(new_version)),
+                patch.object(news_monitor, "log_status"),
+            ):
+                news_monitor.run(state, telegram)
+
+        self.assertEqual(telegram.send_news_rich_message.call_count, 1)
+        self.assertEqual(news_state["articles"][self.URL_B]["fingerprint"], new_version["fingerprint"])

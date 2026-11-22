@@ -518,6 +518,27 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
             changed_state = True
             continue
 
+        # Stesso articolo sotto più URL (stesso numero, nome diverso): l'aggiornamento
+        # arriva su ognuno, ma va notificato una volta sola.
+        if is_update and (
+            (
+                current_content_fingerprint in known_content_fingerprints
+                and _content_fingerprint(previous) != current_content_fingerprint
+            )
+            or _already_tracked_content(articles, candidate["url"], version)
+        ):
+            articles.pop(candidate["url"], None)
+            articles[candidate["url"]] = handled_version(version)
+            known_content_fingerprints.add(current_content_fingerprint)
+            _trim_articles(articles)
+            changed_state = True
+            log_status(
+                "NEWS",
+                "FOOTY-HEADLINES",
+                f"aggiornamento già notificato con un altro URL: {version['title']}",
+            )
+            continue
+
         if not is_new and not is_update and not unhandled_republished:
             continue
 
