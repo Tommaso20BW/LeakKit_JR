@@ -253,16 +253,6 @@
         "image": "https://www.footyheadlines.com/static/img/post/2026/09/02/tDsMColX9vRuN9n/leak-or-not-to-leak-adidas-playfully-teases-juventus-kit-releases.jpg",
         "handled_fingerprint": "047ee1121c0d03d3f919186e17a28926685c2dc2517f75f354145ff1c982c4cf"
       },
-      "https://www.footyheadlines.com/7889700929/juventus-27-28-home-kit-info-leaked-130th-anniversary-design.html": {
-        "fingerprint": "54f7cf81569c2d5e42f556744afdf6b709e6aed372b8c7a3e923c476adebe888",
-        "content_fingerprint": "54f7cf81569c2d5e42f556744afdf6b709e6aed372b8c7a3e923c476adebe888",
-        "published": "2026-09-28T12:11:00+02:00",
-        "modified": "2026-09-28T12:11:24+02:00",
-        "title": "Juventus 27-28 Home Kit Info Leaked - 130th Anniversary Design",
-        "description": "The first information about the new Juventus 27-28 home kit has been leaked via Italian kit insider @La_Bianconera.",
-        "image": "https://www.footyheadlines.com/static/img/post/2026/09/28/6pzCKRGgUk7WvU1/juventus-27-28-home-kit-info-leaked-130th-anniversary-design.jpg",
-        "handled_fingerprint": "54f7cf81569c2d5e42f556744afdf6b709e6aed372b8c7a3e923c476adebe888"
-      },
       "https://www.footyheadlines.com/6067398971/bold-zebra-print-juventus-26-27-lifestyler-jersey-leaked.html": {
         "fingerprint": "c446257efa2309fe04c307717301874b5e482ffff297cd3182d132e0597a47a5",
         "content_fingerprint": "c446257efa2309fe04c307717301874b5e482ffff297cd3182d132e0597a47a5",
@@ -612,6 +602,16 @@
         "description": "Update - Nov 20, 2026: Juventus has officially unveiled a special 2026 long-sleeve knit jersey.",
         "image": "https://www.footyheadlines.com/static/img/post/2026/11/20/cNjpHuN5GPjY3lc/adidas-juventus-2026-knit-long-sleeve-jersey-released.jpg",
         "handled_fingerprint": "027037c8e13acd4f94051a7a9f4881a5b2e8c2e86fe89359a7afb1b2293bba65"
+      },
+      "https://www.footyheadlines.com/7889700929/juventus-27-28-home-kit-info-leaked-130th-anniversary-design.html": {
+        "fingerprint": "ddd6ee5682239c039cbb810c49cf4a252de4516d045747d68a4c02e562b698af",
+        "content_fingerprint": "ddd6ee5682239c039cbb810c49cf4a252de4516d045747d68a4c02e562b698af",
+        "published": "2026-11-23T06:05:01+01:00",
+        "modified": "2026-11-23T06:05:01+01:00",
+        "title": "Juventus 27-28 Home Kit Info Leaked - 130th Anniversary Design",
+        "description": "Update - Nov 23, 2026: Designer JMFK has created a new prediction for Juventus' 2027-28 home kit, and it could be close to the final design.",
+        "image": "https://www.footyheadlines.com/static/img/post/2026/11/20/xoyVenk61pxJIKp/juventus-27-28-home-kit-info-leaked-130th-anniversary-design.jpg",
+        "handled_fingerprint": "ddd6ee5682239c039cbb810c49cf4a252de4516d045747d68a4c02e562b698af"
       }
     }
   }
