@@ -413,6 +413,7 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
     changed_state = False
     notifications = 0
     successful_checks = 0
+    failed_sends = 0
 
     # Conserviamo una fotografia delle impronte già tracciate all'inizio del run.
     # Serve anche quando un vecchio URL viene rimosso dallo stato perché risponde
@@ -543,7 +544,15 @@ def run(state: StateStore, telegram: TelegramClient) -> None:
             continue
 
         notify_as_update = is_update or unseen_old_update or unhandled_republished
-        send_news_article(telegram, candidate, version, notify_as_update)
+        try:
+            send_news_article(telegram, candidate, version, notify_as_update)
+        except Exception as error:
+            # Un articolo rifiutato non blocca i successivi: resta da inviare al prossimo giro.
+            failed_sends += 1
+            log_status("NEWS", "FOOTY-HEADLINES", f"invio non riuscito: {version['title']} ({error})")
+            if failed_sends >= 3:       # Telegram probabilmente giù: inutile insistere ora
+                break
+            continue
         label = "aggiornamento" if notify_as_update else "nuova notizia"
         log_status(
             "NEWS",

@@ -253,6 +253,49 @@ class NewsMonitorRichDeliveryTests(unittest.TestCase):
         telegram.send_message.assert_not_called()
 
 
+class NewsMonitorRejectedArticleTests(unittest.TestCase):
+    @staticmethod
+    def _candidate(number: int) -> dict[str, object]:
+        return {
+            "url": f"https://www.footyheadlines.com/{number}/article-{number}.html",
+            "title": f"Article {number}",
+            "snippet": "Description",
+            "sources": ["latest"],
+        }
+
+    @staticmethod
+    def _version(candidate: dict[str, object]) -> dict[str, str]:
+        title = str(candidate["title"])
+        return {
+            "fingerprint": title,
+            "handled_fingerprint": title,
+            "published": "2026-08-06T09:00:00+02:00",
+            "modified": "2026-08-06T09:00:00+02:00",
+            "title": title,
+            "description": title,
+            "image": "",
+        }
+
+    def test_rejected_article_does_not_block_next_ones(self) -> None:
+        first, second = self._candidate(1), self._candidate(2)
+        news_state: dict[str, object] = {"initialized": True, "articles": {}}
+        state = Mock()
+        state.section.return_value = news_state
+        sent = []
+
+        def send(_telegram, candidate, _version, _is_update) -> None:
+            if candidate["url"] == second["url"]:   # il primo elaborato: la lista si legge al contrario
+                raise RuntimeError("Telegram 400")
+            sent.append(candidate["url"])
+
+        with patch.object(news_monitor, "fetch_news_candidates", return_value=[first, second]),                 patch.object(news_monitor, "fetch_article_version", side_effect=self._version),                 patch.object(news_monitor, "send_news_article", side_effect=send):
+            news_monitor.run(state, Mock())
+
+        self.assertEqual(sent, [first["url"]])
+        self.assertIn(first["url"], news_state["articles"])
+        self.assertNotIn(second["url"], news_state["articles"])
+
+
 if __name__ == "__main__":
     unittest.main()
 
