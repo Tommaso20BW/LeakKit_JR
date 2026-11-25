@@ -293,16 +293,6 @@
         "image": "https://www.footyheadlines.com/static/img/post/2026/09/27/5rjXvJ6cyPP2OkS/kit-insider-grhaer9-announces-retirement-shares-early-27-28-kit-predictions.jpg",
         "handled_fingerprint": "d29cb5fe44107ec3d7219a64a7ec94d5df5764cd8bea609dece519d56a585175"
       },
-      "https://www.footyheadlines.com/0115557318/juventus-27-28-third-kit-colors-leaked-to-be-inspired-by-turin-s-liberty.html": {
-        "fingerprint": "ae4370ef4b2a6f502bde9c453f4459f288b3c3296da22d56c1b233925f6aa650",
-        "content_fingerprint": "ae4370ef4b2a6f502bde9c453f4459f288b3c3296da22d56c1b233925f6aa650",
-        "published": "2026-09-28T10:22:00+02:00",
-        "modified": "2026-09-28T10:22:06+02:00",
-        "title": "Juventus 27-28 Third Kit Colors Leaked - to Be Inspired by Turin's Liberty",
-        "description": "The first information regarding Juventus' 2027-28 third kit has been leaked by reliable Juventus shirt experts La Maglia Bianconera.",
-        "image": "https://www.footyheadlines.com/static/img/post/2026/09/28/VSk3cV2uhz1vTLT/juventus-27-28-third-kit-colors-leaked-to-be-inspired-by-turin-s-liberty.jpg",
-        "handled_fingerprint": "ae4370ef4b2a6f502bde9c453f4459f288b3c3296da22d56c1b233925f6aa650"
-      },
       "https://www.footyheadlines.com/5487450173/motorsport-inspired-adidas-2027-racing-jackets-leaked.html": {
         "fingerprint": "9f8298575b7cf967c2eec6e5e5c2a4ec2e34c52a4a44aaa097198a5e267497d4",
         "content_fingerprint": "9f8298575b7cf967c2eec6e5e5c2a4ec2e34c52a4a44aaa097198a5e267497d4",
@@ -632,6 +622,26 @@
         "description": "Footy Headlines can leak the first look at the new Adidas Juventus 27-28 anthem jacket, showcasing a retro black, yellow, and white design built on Adidas' shared 27-28 Trefoil home! jacket template.",
         "image": "https://www.footyheadlines.com/static/img/post/2026/11/23/KqIWpX8WpyYBmmF/exclusive-juventus-27-28-anthem-jacket-leaked-trefoil-home-debut.jpg",
         "handled_fingerprint": "934348a5e2b025ad2a79587d79b01e512e3e5347ecbc6d89d3f34e388f69ddc1"
+      },
+      "https://www.footyheadlines.com/0115557318/juventus-27-28-third-kit-colors-leaked-to-be-inspired-by-turin-s-liberty.html": {
+        "fingerprint": "e4da7567f9074d12657668713e00402af1814adfae54648b1d707a1565e9fabd",
+        "content_fingerprint": "e4da7567f9074d12657668713e00402af1814adfae54648b1d707a1565e9fabd",
+        "published": "2026-09-28T10:22:00+02:00",
+        "modified": "2026-11-26T00:49:09+01:00",
+        "title": "Juventus 27-28 Third Kit Colors Leaked - Inspired by Turin's Liberty",
+        "description": "The first information regarding Juventus' 2027-28 third kit has been leaked by reliable Juventus shirt experts La Maglia Bianconera.",
+        "image": "https://www.footyheadlines.com/static/img/post/2026/09/28/VSk3cV2uhz1vTLT/juventus-27-28-third-kit-colors-leaked-inspired-by-turin-s-liberty.jpg",
+        "handled_fingerprint": "e4da7567f9074d12657668713e00402af1814adfae54648b1d707a1565e9fabd"
+      },
+      "https://www.footyheadlines.com/0115557318/juventus-27-28-third-kit-colors-leaked-inspired-by-turin-s-liberty.html": {
+        "fingerprint": "e4da7567f9074d12657668713e00402af1814adfae54648b1d707a1565e9fabd",
+        "content_fingerprint": "e4da7567f9074d12657668713e00402af1814adfae54648b1d707a1565e9fabd",
+        "published": "2026-09-28T10:22:00+02:00",
+        "modified": "2026-11-26T00:49:09+01:00",
+        "title": "Juventus 27-28 Third Kit Colors Leaked - Inspired by Turin's Liberty",
+        "description": "The first information regarding Juventus' 2027-28 third kit has been leaked by reliable Juventus shirt experts La Maglia Bianconera.",
+        "image": "https://www.footyheadlines.com/static/img/post/2026/09/28/VSk3cV2uhz1vTLT/juventus-27-28-third-kit-colors-leaked-inspired-by-turin-s-liberty.jpg",
+        "handled_fingerprint": "e4da7567f9074d12657668713e00402af1814adfae54648b1d707a1565e9fabd"
       }
     }
   }
